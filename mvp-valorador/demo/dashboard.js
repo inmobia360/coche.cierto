@@ -3,3 +3,4 @@ let current='novel';const tabs=document.querySelector('#profileTabs'),dashboard=
 const printLink=document.createElement('link');printLink.rel='stylesheet';printLink.href='print-a4.css';document.head.append(printLink);
 const themeBootstrap=document.createElement('script');themeBootstrap.src='../theme.js?v=20260828-1';document.head.append(themeBootstrap);
 const sharedHeader=document.createElement('script');sharedHeader.src='../site-header.js?v=20260829-3';document.body.append(sharedHeader);
+const demoEnhancements=document.createElement('script');demoEnhancements.src='demo-enhancements.js?v=20260829-1';document.body.append(demoEnhancements);
