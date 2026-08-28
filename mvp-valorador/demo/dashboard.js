@@ -4,3 +4,4 @@ const printLink=document.createElement('link');printLink.rel='stylesheet';printL
 const themeBootstrap=document.createElement('script');themeBootstrap.src='../theme.js?v=20260828-1';document.head.append(themeBootstrap);
 const sharedHeader=document.createElement('script');sharedHeader.src='../site-header.js?v=20260829-3';document.body.append(sharedHeader);
 const demoEnhancements=document.createElement('script');demoEnhancements.src='demo-enhancements.js?v=20260829-1';document.body.append(demoEnhancements);
+const demoDetail=document.createElement('script');demoDetail.src='demo-detail.js?v=20260829-1';document.body.append(demoDetail);
