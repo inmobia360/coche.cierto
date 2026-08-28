@@ -1,0 +1,6 @@
+@media (min-width: 761px){
+  .landing-shell{max-width:1440px;padding-inline:clamp(36px,6vw,96px)}
+  .landing-nav .brand-lockup{font-size:31px}
+  .landing-nav .brand-lockup img{width:60px;height:60px}
+  .landing-hero{min-height:min(720px,56.25vw)}
+}

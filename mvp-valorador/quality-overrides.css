@@ -1,0 +1,16 @@
+:root{--cc-blue:#00263e;--cc-orange:#fc4c02;--cc-paper:#f7f8f5;--cc-muted:#b8cbd2}
+.landing-page{overflow-x:hidden}.landing-page a:focus-visible,.landing-page button:focus-visible{outline:3px solid #f5c451;outline-offset:4px}.landing-page .eyebrow{letter-spacing:.12em}.landing-page h1{max-width:13ch}.landing-page .hero-lead{max-width:34rem}.landing-page .mini-form h2{max-width:15ch}.landing-page .nav-cta,.landing-page .button{min-height:44px;display:inline-flex;align-items:center;justify-content:center}.landing-page .mini-choice{min-height:48px}.landing-page .mini-note{margin-bottom:0}.landing-page .landing-proof article{border-left:2px solid rgba(252,76,2,.65);padding-left:18px}.landing-page .demo-band{border:1px solid rgba(184,203,210,.12)}
+@media(min-width:1400px){.landing-page .landing-hero{grid-template-columns:minmax(560px,1.1fr) minmax(430px,.9fr)}.landing-page .hero-copy h1{font-size:clamp(68px,6vw,94px)}}
+@media(max-width:480px){.landing-page .landing-nav .brand-lockup{font-size:19px}.landing-page .landing-nav .brand-lockup img{width:42px;height:42px}.landing-page .nav-cta{padding-inline:12px;font-size:12px}.landing-page .hero-actions .button{width:100%}}
+
+/* Ajuste de jerarquía: los CTAs guían la acción sin competir con el titular. */
+.landing-page .nav-cta,.landing-page .hero-actions .button{font-weight:500}
+@media(min-width:761px){.landing-page .hero-copy h1{max-width:15ch}.landing-page .landing-hero{grid-template-columns:minmax(0,1.16fr) minmax(380px,.84fr);gap:clamp(42px,6vw,96px)}}
+@media(min-width:761px){.landing-page .hero-copy{min-width:0}.landing-page .hero-copy h1{max-width:19ch}.landing-page .hero-visual{min-width:420px}.landing-page .mini-form{width:min(100%,480px)}}
+
+.valuator-dialog--flow > :not(.valuator-close):not(iframe){display:none!important}
+.valuator-dialog--flow iframe{display:block!important;position:relative;z-index:1}
+.valuator-dialog--flow .valuator-close{z-index:3;background:#f7f8f5}
+.valuator-dialog--flow{width:min(1120px,calc(100vw - 48px));height:min(94dvh,920px);max-height:calc(100dvh - 32px);background:#071521}
+.valuator-dialog--flow iframe{min-width:0;min-height:0;overflow:auto}
+@media(max-width:760px){.valuator-dialog--flow{width:100vw;height:100dvh;max-height:none}.valuator-dialog--flow iframe{border-radius:0}}
