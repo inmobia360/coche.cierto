@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',()=>{
+const start=()=>{
   const page=document.querySelector('.page, .demo-app, .app');
   if(!page||page.querySelector('.site-header'))return;
   page.querySelector('.nav, .demo-nav, .brand')?.remove();
@@ -13,4 +13,4 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.head.append(style);
   const toggle=header.querySelector('.site-menu-toggle');
   toggle.addEventListener('click',()=>{const open=header.querySelector('.site-nav').classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open))});
-});
+};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
