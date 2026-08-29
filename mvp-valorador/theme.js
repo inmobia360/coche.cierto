@@ -31,8 +31,27 @@
         document.body.setAttribute('data-theme', 'dark');
       }
     }
+    updateLogo(isLight);
     updateCarImage(isLight);
     updateButtons(isLight);
+  }
+
+  function updateLogo(isLight) {
+    const logos = document.querySelectorAll('.brand-lockup img, .site-brand img');
+    logos.forEach(img => {
+      const isSubdir = window.location.pathname.includes('/como-funciona/') ||
+                       window.location.pathname.includes('/que-analizamos/') ||
+                       window.location.pathname.includes('/demo/') ||
+                       window.location.pathname.includes('/metodologia/') ||
+                       window.location.pathname.includes('/recursos/') ||
+                       window.location.pathname.includes('/valorador/') ||
+                       window.location.pathname.includes('/analizar-coche/');
+      const base = isSubdir ? '../' : './';
+      const targetLogo = isLight ? base + 'brand-symbol-light.svg' : base + 'brand-symbol.svg';
+      if (img.getAttribute('src') !== targetLogo) {
+        img.src = targetLogo;
+      }
+    });
   }
 
   function updateCarImage(isLight) {

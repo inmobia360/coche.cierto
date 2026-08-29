@@ -18,7 +18,7 @@
     else if (path.indexOf('/recursos/') !== -1) currentKey = 'recursos';
 
     var headerHTML = '<a class="brand-lockup" href="' + base + '" aria-label="CocheCierto, inicio">' +
-      '<img src="' + base + 'brand-symbol.svg" alt="CocheCierto" width="36" height="36">' +
+      '<img src="' + base + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36">' +
       '<span>Coche<strong>Cierto</strong></span>' +
       '</a>' +
       '<nav class="nav-links" aria-label="Navegación principal">' +
