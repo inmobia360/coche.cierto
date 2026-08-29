@@ -236,3 +236,37 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+@media (max-width: 880px) {
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .mobile-menu-btn { display: none !important; }
+  .site-header .nav-links, .site-header .landing-menu, .site-header .site-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed !important;
+    z-index: 250;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    width: 100%;
+    gap: 0 !important;
+    padding: 7px 6px calc(7px + env(safe-area-inset-bottom)) !important;
+    border: 1px solid var(--border-subtle);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    background: var(--bg-surface-elevated);
+    box-shadow: 0 -10px 30px rgba(0, 10, 20, .28);
+  }
+  .site-header .nav-links a, .site-header .landing-menu a, .site-header .site-nav a {
+    min-height: 56px;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 3px;
+    border-radius: 10px;
+    font-size: 11px !important;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .site-header .nav-links a[aria-current="page"]::after { left: 18%; right: 18%; bottom: 4px; height: 3px; }
+}

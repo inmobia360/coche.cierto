@@ -45,6 +45,8 @@ body.theme-light,
   box-sizing: border-box;
 }
 
+html, body { max-width: 100%; overflow-x: hidden; }
+
 body {
   margin: 0;
   background-color: var(--bg-base);
@@ -203,7 +205,29 @@ body {
   cursor: pointer !important;
   font-size: 20px !important;
   padding: 0 !important;
+  touch-action: manipulation;
 }
+
+.install-app-prompt {
+  position: fixed;
+  z-index: 300;
+  right: clamp(14px, 3vw, 32px);
+  bottom: clamp(14px, 3vw, 32px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: min(430px, calc(100vw - 28px));
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-elevated);
+  color: var(--ink-primary);
+  box-shadow: var(--card-shadow);
+}
+.install-app-prompt div { display: grid; gap: 3px; min-width: 0; }
+.install-app-prompt span { color: var(--ink-secondary); font-size: 13px; line-height: 1.35; }
+.install-app-button { border: 0; border-radius: var(--radius-pill); padding: 10px 14px; background: var(--brand-orange); color: #fff; font: inherit; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.install-app-close { border: 0; background: transparent; color: var(--ink-secondary); font-size: 22px; cursor: pointer; padding: 2px 5px; }
 
 @media (max-width: 880px) {
   .site-header, .landing-nav { padding: 8px 0 16px !important; }
@@ -238,9 +262,54 @@ body {
     padding: 12px 14px;
     border-radius: 10px;
     font-size: 16px !important;
+    touch-action: manipulation;
   }
   .nav-links a:hover, .nav-links a:focus-visible,
   .landing-menu a:hover, .landing-menu a:focus-visible { background: var(--bg-subtle); }
+}
+
+@media (max-width: 880px) {
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .site-shell, .landing-shell, .page, .demo-app, .app { padding-left: 16px !important; padding-right: 16px !important; }
+  .site-header, .landing-nav { gap: 10px; }
+  .brand-lockup, .site-brand { font-size: clamp(18px, 5vw, 22px) !important; }
+  .brand-lockup img, .site-brand img { width: 34px !important; height: 34px !important; }
+  .header-actions { gap: 7px !important; }
+  .nav-cta { display: none !important; }
+  .mobile-menu-btn { display: none !important; }
+  .site-header .nav-links, .site-header .landing-menu, .site-header .site-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed !important;
+    z-index: 250;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    width: 100%;
+    gap: 0 !important;
+    padding: 7px 6px calc(7px + env(safe-area-inset-bottom)) !important;
+    border: 1px solid var(--border-subtle);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    background: color-mix(in srgb, var(--bg-surface-elevated) 94%, transparent);
+    box-shadow: 0 -10px 30px rgba(0, 10, 20, .28);
+    backdrop-filter: blur(18px);
+  }
+  .site-header .nav-links a, .site-header .landing-menu a, .site-header .site-nav a {
+    min-height: 56px;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 3px;
+    border-radius: 10px;
+    font-size: 11px !important;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .site-header .nav-links a[aria-current="page"]::after { left: 18%; right: 18%; bottom: 4px; height: 3px; }
+  .site-header .nav-links a:hover, .site-header .nav-links a:focus-visible { background: var(--bg-subtle); }
+  .install-app-prompt { align-items: flex-start; gap: 8px; }
+  .install-app-button { align-self: center; }
 }
 
 .eyebrow {

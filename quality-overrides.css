@@ -41,7 +41,7 @@
 
 @media (max-width: 760px) {
   .valuator-dialog--flow {
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
     max-height: none;
     border-radius: 0;

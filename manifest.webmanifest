@@ -1,0 +1,11 @@
+{
+  "name": "CocheCierto",
+  "short_name": "CocheCierto",
+  "description": "Decide con datos y compra con seguridad.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#021a2d",
+  "theme_color": "#021a2d",
+  "lang": "es",
+  "icons": [{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"}]
+}

@@ -7,7 +7,8 @@
   function initHeader() {
     var path = window.location.pathname.replace(/\/index\.html$/, '/');
     var isSubdir = /\/[^\/]+\/+$/.test(path) && !path.endsWith('/mvp-valorador/');
-    var base = isSubdir ? '../' : './';
+    var pathParts = path.split('/').filter(Boolean);
+    var base = pathParts.length ? '../' : './';
 
     var currentKey = 'home';
     if (path.indexOf('/como-funciona/') !== -1) currentKey = 'como-funciona';
@@ -51,11 +52,23 @@
       var mobileBtn = header.querySelector('.mobile-menu-btn');
       var navLinks = header.querySelector('.nav-links');
       if (mobileBtn && navLinks) {
+        mobileBtn.setAttribute('aria-controls', 'primary-navigation');
+        navLinks.id = 'primary-navigation';
         mobileBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           var isOpen = navLinks.classList.toggle('is-open');
           mobileBtn.setAttribute('aria-expanded', String(isOpen));
+          mobileBtn.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
           mobileBtn.textContent = isOpen ? '✕' : '☰';
+        });
+
+        navLinks.querySelectorAll('a').forEach(function (link) {
+          link.addEventListener('click', function () {
+            navLinks.classList.remove('is-open');
+            mobileBtn.setAttribute('aria-expanded', 'false');
+            mobileBtn.setAttribute('aria-label', 'Abrir menú');
+            mobileBtn.textContent = '☰';
+          });
         });
 
         document.addEventListener('click', function (e) {
@@ -68,10 +81,67 @@
       }
     }
 
+    if (!document.querySelector('link[rel="manifest"]')) {
+      var manifest = document.createElement('link');
+      manifest.rel = 'manifest';
+      manifest.href = base + 'manifest.webmanifest';
+      document.head.appendChild(manifest);
+    }
+
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+      var appleCapable = document.createElement('meta');
+      appleCapable.name = 'apple-mobile-web-app-capable';
+      appleCapable.content = 'yes';
+      document.head.appendChild(appleCapable);
+      var appleStatus = document.createElement('meta');
+      appleStatus.name = 'apple-mobile-web-app-status-bar-style';
+      appleStatus.content = 'black-translucent';
+      document.head.appendChild(appleStatus);
+    }
+
+    if ('serviceWorker' in navigator && window.isSecureContext) {
+      navigator.serviceWorker.register(base + 'sw.js').catch(function () {});
+    }
+
+    setupInstallPrompt();
+
     if (window.CocheCiertoTheme) {
       var isLight = document.documentElement.classList.contains('theme-light');
       var btns = document.querySelectorAll('.theme-toggle-btn');
       btns.forEach(function (btn) { btn.textContent = isLight ? '☾' : '☼'; });
+    }
+  }
+
+  function setupInstallPrompt() {
+    var isAppleTablet = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    var isMobileDevice = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || isAppleTablet;
+    var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!isMobileDevice || isStandalone) return;
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function (event) {
+      event.preventDefault();
+      deferredPrompt = event;
+      if (document.querySelector('.install-app-prompt')) return;
+      var prompt = document.createElement('aside');
+      prompt.className = 'install-app-prompt';
+      prompt.setAttribute('role', 'status');
+      prompt.innerHTML = '<div><strong>Usa CocheCierto como una app</strong><span>Accede más rápido desde tu móvil o tablet.</span></div><button type="button" class="install-app-button">Añadir</button><button type="button" class="install-app-close" aria-label="Cerrar aviso">×</button>';
+      document.body.appendChild(prompt);
+      prompt.querySelector('.install-app-button').addEventListener('click', function () {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(function () { prompt.remove(); deferredPrompt = null; });
+      });
+      prompt.querySelector('.install-app-close').addEventListener('click', function () { prompt.remove(); });
+    });
+
+    var isAppleMobile = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+    if (isAppleMobile && !document.querySelector('.install-app-prompt')) {
+      var iosPrompt = document.createElement('aside');
+      iosPrompt.className = 'install-app-prompt install-app-prompt-ios';
+      iosPrompt.setAttribute('role', 'status');
+      iosPrompt.innerHTML = '<div><strong>Añade CocheCierto a tu pantalla de inicio</strong><span>Pulsa Compartir y después “Añadir a pantalla de inicio” para usarlo como una app.</span></div><button type="button" class="install-app-close" aria-label="Cerrar aviso">×</button>';
+      document.body.appendChild(iosPrompt);
+      iosPrompt.querySelector('.install-app-close').addEventListener('click', function () { iosPrompt.remove(); });
     }
   }
 
