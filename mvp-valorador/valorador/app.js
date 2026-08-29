@@ -18,10 +18,25 @@
   if(new URLSearchParams(location.search).get('skipIntro')==='1'&&state.answers.intent) state.index=1;
   const screen = document.querySelector('#screen');
   const root = document.documentElement;
-  const symbol = document.querySelector('#brandSymbol');
-  const themeToggle = document.querySelector('#themeToggle');
-  function setTheme(theme){root.dataset.theme=theme;symbol.src=theme==='light'?'brand-symbol-light.svg':'brand-symbol.svg';themeToggle.textContent=theme==='light'?'☾':'☼';themeToggle.setAttribute('aria-label',theme==='light'?'Cambiar a tema oscuro':'Cambiar a tema claro');localStorage.setItem('cc-theme',theme);}
-  setTheme(localStorage.getItem('cc-theme')||'dark');themeToggle.onclick=()=>setTheme(root.dataset.theme==='light'?'dark':'light');
+  function setTheme(theme){
+    root.dataset.theme = theme;
+    document.documentElement.classList.toggle('theme-light', theme === 'light');
+    if (document.body) document.body.classList.toggle('theme-light', theme === 'light');
+    const symbol = document.querySelector('#brandSymbol, .brand-lockup img');
+    if (symbol) symbol.src = theme === 'light' ? 'brand-symbol-light.svg' : 'brand-symbol.svg';
+    const themeToggle = document.querySelector('#themeToggle, .theme-toggle-btn');
+    if (themeToggle) {
+      themeToggle.textContent = theme === 'light' ? '☾' : '☼';
+      themeToggle.setAttribute('aria-label', theme === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro');
+    }
+    localStorage.setItem('cc-theme', theme);
+  }
+  setTheme(localStorage.getItem('cc-theme') || 'dark');
+  document.addEventListener('DOMContentLoaded', () => {
+    setTheme(localStorage.getItem('cc-theme') || 'dark');
+    const themeToggle = document.querySelector('#themeToggle, .theme-toggle-btn');
+    if (themeToggle) themeToggle.onclick = () => setTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
+  });
   const esc = (v) => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const professionalQuestions = [['¿A qué te dedicas?', [['autonomo','Soy autónomo'],['delivery','Reparto o transporte'],['commercial','Comercial'],['company','Empresa'],['other','Otra actividad']], 'profession'],['¿Qué necesitas transportar?', [['people','Personas'],['goods','Mercancía'],['tools','Herramientas'],['none','Nada especial']], 'cargo'],['¿Cuánto puede estar parado el vehículo?', [['day','Un día'],['several','Varios días'],['never','Casi nunca']], 'downtime']];
   function activeQuestions(){ return state.useType==='professional' ? [...questions.slice(0,5),...professionalQuestions,...questions.slice(5)] : questions; }

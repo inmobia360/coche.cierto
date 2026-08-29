@@ -6,140 +6,105 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="canonical" href="https://cochecierto.com/metodologia/">
   <title>Metodología y Rigor | CocheCierto</title>
-  <meta name="description" content="Cómo calcula CocheCierto sus orientaciones, cómo interpretar sus fuentes y qué distingue a nuestro asesor independiente.">
+  <meta name="description" content="Nuestros principios de honestidad radical y rigor metodológico para la compra de coches.">
   <link rel="stylesheet" href="../theme.css">
   <link rel="stylesheet" href="../styles.css">
-  <link rel="stylesheet" href="../landing.css">
-  <link rel="stylesheet" href="../quality-overrides.css">
   <script src="../theme.js"></script>
   <script src="../site-header.js" defer></script>
   <style>
     .page-hero {
-      padding: 64px 0 40px;
-      max-width: 960px;
+      padding: 64px 0 36px;
+      max-width: 980px;
     }
     .page-hero h1 {
-      font-size: clamp(38px, 5.5vw, 68px);
+      font-size: clamp(36px, 5.2vw, 64px);
       line-height: 1.05;
       letter-spacing: -0.04em;
       margin: 16px 0 20px;
+      color: var(--ink-primary);
     }
     .page-hero p {
-      font-size: 20px;
+      font-size: 19px;
       line-height: 1.55;
       color: var(--ink-secondary);
-      max-width: 780px;
+      max-width: 800px;
     }
-    .grid-2col {
+    .principles-grid {
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 28px;
-      margin-top: 24px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin: 32px 0 64px;
     }
-    .panel-card {
+    .principle-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 32px;
+      padding: 32px 28px;
       box-shadow: var(--card-shadow);
     }
-    .panel-card h2 {
-      margin: 0 0 16px;
-      font-size: 24px;
+    .principle-num {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--brand-orange);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .principle-card h2 {
+      font-size: 22px;
+      margin: 0 0 12px;
+      color: var(--ink-primary);
       letter-spacing: -0.02em;
     }
-    .definition-list {
-      display: grid;
-      gap: 16px;
-    }
-    .def-item {
-      padding: 16px 20px;
-      background: var(--bg-subtle);
-      border-radius: var(--radius-md);
-      border-left: 4px solid var(--brand-orange);
-    }
-    .def-item strong {
-      color: var(--ink-primary);
-      font-size: 16px;
-      display: block;
-      margin-bottom: 4px;
-    }
-    .def-item span {
+    .principle-card p {
       color: var(--ink-secondary);
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
     }
-    .principles-box {
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .principles-box ul {
-      padding-left: 20px;
-      margin: 0 0 24px;
-      color: var(--ink-primary);
-      line-height: 1.7;
-    }
-    .principles-box li {
-      margin-bottom: 10px;
-    }
-    @media (max-width: 900px) {
-      .grid-2col { grid-template-columns: 1fr; }
+    @media (max-width: 760px) {
+      .principles-grid { grid-template-columns: 1fr; }
       .page-hero { padding: 40px 0 24px; }
-      .panel-card, .principles-box { padding: 24px 20px; }
     }
   </style>
 </head>
 <body class="inner-page">
-<main class="site-shell">
-  <header class="site-header"></header>
+  <div class="site-shell">
+    <header class="site-header"></header>
 
-  <section class="page-hero">
-    <p class="eyebrow">Transparencia y Rigor Técnico</p>
-    <h1>Cómo llegamos a cada recomendación de compra.</h1>
-    <p>Combinamos tus respuestas con fórmulas de Coste Total de Propiedad (TCO), estadísticas de mercado y supuestos explícitos para ayudarte a decidir con máximo criterio.</p>
-  </section>
+    <main class="page">
+      <section class="page-hero">
+        <p class="eyebrow">Principios Innegociables</p>
+        <h1>Nuestra Metodología</h1>
+        <p>En CocheCierto no vendemos coches ni cobramos comisiones de concesionarios. Trabajamos exclusivamente del lado del comprador con tres compromisos claros.</p>
+      </section>
 
-  <section class="grid-2col">
-    <div class="panel-card">
-      <h2>Qué distinguimos en cada informe</h2>
-      <div class="definition-list">
-        <div class="def-item">
-          <strong>Observado</strong>
-          <span>Datos aportados directamente por el usuario o procedentes de fuentes identificables y verificadas.</span>
-        </div>
-        <div class="def-item">
-          <strong>Calculado</strong>
-          <span>Resultados obtenidos mediante fórmulas matemáticas visibles (presupuestos máximos, reservas, cuotas).</span>
-        </div>
-        <div class="def-item">
-          <strong>Estimado</strong>
-          <span>Aproximaciones y medias de mercado (consumo energético por zona y km, mantenimiento por antigüedad, seguro).</span>
-        </div>
-        <div class="def-item">
-          <strong>Pendiente de verificar</strong>
-          <span>Elementos críticos que requieren comprobación documental (DGT/Registro), prueba mecánica o peritaje presencial.</span>
-        </div>
-      </div>
-    </div>
+      <section class="principles-grid">
+        <article class="principle-card">
+          <div class="principle-num">Principio 01</div>
+          <h2>Honestidad Radical en Riesgos</h2>
+          <p>Distinguimos siempre entre datos confirmados, estimaciones y validaciones pendientes. Nunca afirmaremos que un coche está perfecto sin una inspección física y documental.</p>
+        </article>
 
-    <div class="principles-box">
-      <div>
-        <h2>Qué nunca hacemos</h2>
-        <ul>
-          <li>No afirmamos que un coche usado está "perfecto" sin una inspección física profesional.</li>
-          <li>No alteramos rankings ni recomendaciones por patrocinios, comisiones o convenios de venta.</li>
-          <li>No escondemos la incertidumbre: si faltan datos de un vehículo o presupuesto, lo marcamos como riesgo.</li>
-          <li>No forzamos decisiones de compra ni financiaciones abusivas.</li>
-        </ul>
-      </div>
-      <a class="nav-cta" href="../valorador/" style="width: fit-content;">Iniciar mi diagnóstico</a>
-    </div>
-  </section>
-</main>
+        <article class="principle-card">
+          <div class="principle-num">Principio 02</div>
+          <h2>El Coste Total Manda (TCO)</h2>
+          <p>El precio anunciado en los portales es solo el inicio. Calculamos gastos obligatorios de compra, mantenimiento preventivo y colchón de imprevistos para evitar sorpresas financieras.</p>
+        </article>
+
+        <article class="principle-card">
+          <div class="principle-num">Principio 03</div>
+          <h2>Independencia de Intereses</h2>
+          <p>No promocionamos marcas ni empujamos modelos por acuerdos comerciales. Nuestras recomendaciones se basan en datos objetivos de encaje y fiabilidad.</p>
+        </article>
+
+        <article class="principle-card">
+          <div class="principle-num">Principio 04</div>
+          <h2>Comprar con Margen</h2>
+          <p>Te enseñamos a no apurar tu presupuesto al límite para que dispongas de capacidad de negociación y margen para poner al día el vehículo tras adquirirlo.</p>
+        </article>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

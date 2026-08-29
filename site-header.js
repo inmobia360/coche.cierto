@@ -1,3 +1,6 @@
+/**
+ * CocheCierto - Componente Universal de Cabecera y Navegación
+ */
 (function () {
   'use strict';
 

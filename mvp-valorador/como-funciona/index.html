@@ -9,8 +9,6 @@
   <meta name="description" content="Conoce cómo CocheCierto transforma tu situación en una estrategia de compra de coche con datos y seguridad.">
   <link rel="stylesheet" href="../theme.css">
   <link rel="stylesheet" href="../styles.css">
-  <link rel="stylesheet" href="../landing.css">
-  <link rel="stylesheet" href="../quality-overrides.css">
   <script src="../theme.js"></script>
   <script src="../site-header.js" defer></script>
   <style>
@@ -23,6 +21,7 @@
       line-height: 1.05;
       letter-spacing: -0.04em;
       margin: 16px 0 20px;
+      color: var(--ink-primary);
     }
     .page-hero p {
       font-size: 20px;
@@ -43,6 +42,7 @@
       padding: 28px 24px;
       display: flex;
       flex-direction: column;
+      box-shadow: var(--card-shadow);
     }
     .step-num {
       color: var(--brand-orange);
@@ -54,99 +54,122 @@
       font-size: 22px;
       margin: 0 0 12px;
       letter-spacing: -0.02em;
+      color: var(--ink-primary);
     }
     .step-card p {
       margin: 0;
       color: var(--ink-secondary);
       font-size: 15px;
-      line-height: 1.5;
+      line-height: 1.55;
     }
-    .delivery-box {
-      margin-top: 36px;
-      background: var(--bg-subtle);
+    .deliverable-section {
+      margin: 64px 0 80px;
+      background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 32px 36px;
-    }
-    .delivery-box h2 {
-      margin: 0 0 16px;
-      font-size: 24px;
-    }
-    .delivery-box ul {
-      margin: 0;
-      padding-left: 20px;
+      padding: clamp(32px, 5vw, 64px);
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px 32px;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      box-shadow: var(--card-shadow);
     }
-    .delivery-box li {
+    .deliverable-section h2 {
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.15;
+      margin: 0 0 16px;
+      letter-spacing: -0.03em;
       color: var(--ink-primary);
-      font-size: 16px;
-      line-height: 1.5;
     }
-    .disclaimer-note {
-      margin-top: 32px;
-      font-size: 13px;
-      color: var(--ink-muted);
+    .deliverable-section p {
+      color: var(--ink-secondary);
+      font-size: 17px;
       line-height: 1.6;
+      margin-bottom: 28px;
     }
-    @media (max-width: 980px) {
+    .deliverable-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 32px;
+    }
+    .deliverable-list li {
+      padding: 10px 0 10px 28px;
+      position: relative;
+      color: var(--ink-primary);
+      font-size: 15px;
+    }
+    .deliverable-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--brand-orange);
+      font-weight: 800;
+    }
+    @media (max-width: 960px) {
       .steps-grid { grid-template-columns: repeat(2, 1fr); }
-      .delivery-box ul { grid-template-columns: 1fr; }
+      .deliverable-section { grid-template-columns: 1fr; gap: 32px; }
     }
-    @media (max-width: 580px) {
+    @media (max-width: 600px) {
       .steps-grid { grid-template-columns: 1fr; }
-      .page-hero { padding: 40px 0 24px; }
-      .delivery-box { padding: 24px 20px; }
+      .page-hero { padding: 40px 0 28px; }
     }
   </style>
 </head>
 <body class="inner-page">
-<main class="site-shell">
-  <header class="site-header"></header>
+  <div class="site-shell">
+    <header class="site-header"></header>
 
-  <section class="page-hero">
-    <p class="eyebrow">Cómo funciona CocheCierto</p>
-    <h1>Compra con más claridad antes de comprometer tu dinero.</h1>
-    <p>CocheCierto convierte tu uso real, tu presupuesto y tus prioridades en una dirección de compra comprensible, explicada y accionable.</p>
-  </section>
+    <main class="page">
+      <section class="page-hero">
+        <p class="eyebrow">Diagnóstico y Elección Guiada</p>
+        <h1>Cómo funciona CocheCierto</h1>
+        <p>Un método claro en 4 pasos para que compres tu coche con datos, margen y total seguridad financiera y mecánica.</p>
+      </section>
 
-  <section class="steps-grid" aria-label="Pasos del diagnóstico">
-    <article class="step-card">
-      <span class="step-num">Paso 01</span>
-      <h2>Cuéntanos tu situación</h2>
-      <p>Uso previsto, kilómetros anuales, pasajeros, presupuesto disponible y tu tolerancia al riesgo o imprevistos.</p>
-    </article>
-    <article class="step-card">
-      <span class="step-num">Paso 02</span>
-      <h2>Ordenamos lo importante</h2>
-      <p>Separamos precio de compra, gastos iniciales de puesta a punto, coste mensual de uso y margen de seguridad.</p>
-    </article>
-    <article class="step-card">
-      <span class="step-num">Paso 03</span>
-      <h2>Comparamos escenarios</h2>
-      <p>Te orientamos sobre las categorías, motorizaciones y alternativas (nuevo, km 0, ocasión) que realmente encajan contigo.</p>
-    </article>
-    <article class="step-card">
-      <span class="step-num">Paso 04</span>
-      <h2>Llegas preparado</h2>
-      <p>Recibes un informe claro con checklist de comprobaciones, puntos críticos y un siguiente paso concreto para negociar con seguridad.</p>
-    </article>
-  </section>
+      <section class="steps-grid">
+        <article class="step-card">
+          <div class="step-num">Paso 01</div>
+          <h2>Tus Respuestas</h2>
+          <p>En solo 5 minutos nos cuentas tu uso real (ciudad, carretera, familia), tu presupuesto total y qué incertidumbres te preocupan más.</p>
+        </article>
 
-  <section class="delivery-box">
-    <h2>Qué recibirás en tu informe</h2>
-    <ul>
-      <li>Categoría de vehículo y etiqueta ambiental coherentes con tu vida.</li>
-      <li>Desglose de presupuesto total y coste mensual orientativo (TCO).</li>
-      <li>Escenarios comparativos de compra con perspectiva a 3–5 años.</li>
-      <li>Checklist personalizado para revisar antes de entregar una señal.</li>
-    </ul>
-  </section>
+        <article class="step-card">
+          <div class="step-num">Paso 02</div>
+          <h2>Diagnóstico de Encaje</h2>
+          <p>Analizamos qué tipo de vehículo y qué motorizaciones (gasolina, híbrido, eléctrico o diésel) se adaptan de verdad a tus kilómetros y zonas ZBE.</p>
+        </article>
 
-  <p class="disclaimer-note">
-    <strong>Independencia y transparencia:</strong> CocheCierto es un orientador y asesor independiente. La información facilitada es orientativa y no sustituye una tasación oficial, peritaje presencial ni aprobación bancaria de financiación.
-  </p>
-</main>
+        <article class="step-card">
+          <div class="step-num">Paso 03</div>
+          <h2>Coste Total y Reserva</h2>
+          <p>Desglosamos el precio del coche, seguro, puesta a punto e imprevistos. Te indicamos el precio máximo orientativo del vehículo para que no vayas al límite.</p>
+        </article>
+
+        <article class="step-card">
+          <div class="step-num">Paso 04</div>
+          <h2>Estrategia y Checklist</h2>
+          <p>Recibes una comparativa en 3 escenarios y un checklist personalizado con las preguntas y comprobaciones clave antes de pagar o transferir dinero.</p>
+        </article>
+      </section>
+
+      <section class="deliverable-section">
+        <div>
+          <p class="eyebrow">Entregable Transparente</p>
+          <h2>Tu Informe de Decisión Listo en Minutos</h2>
+          <p>Sin letras pequeñas ni acuerdos con concesionarios. Solo datos estructurados para que negocies con ventaja y tomes una decisión informada.</p>
+          <ul class="deliverable-list">
+            <li>Diferencia clara entre datos confirmados, estimaciones y validaciones pendientes.</li>
+            <li>Coste mensual estimado de propiedad (combustible, seguro, mantenimiento).</li>
+            <li>Valoración orientativa si entregas o vendes tu coche actual.</li>
+            <li>Checklist descargable para la prueba en frío y revisión del vehículo.</li>
+          </ul>
+          <a class="nav-cta" href="../valorador/">Comenzar mi valoración gratuita →</a>
+        </div>
+        <div style="text-align: center;">
+          <img src="../buyer-check.png" alt="Verificación de compra" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>
