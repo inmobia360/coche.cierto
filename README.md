@@ -1,67 +1,32 @@
-# CocheCierto
+# MVP Valorador y Orientador de Compra
 
-> **Decide con datos. Compra con seguridad.**  
-> *Asesor independiente para elegir, comparar y comprar coche.*
+Prototipo local del primer producto de captación de Auto1 Risk Lens. Ayuda a una persona que aún no sabe qué coche comprar a identificar una categoría y una orientación de motorización para un vehículo de ocasión.
 
-CocheCierto es una plataforma digital concebida para ayudar a cualquier persona a decidir qué vehículo comprar (nuevo, km 0, seminuevo o de ocasión), en qué condiciones y con qué nivel de riesgo, integrando datos económicos, técnicos y personales.
+## Probar
 
----
+Abrir `index.html` en un navegador moderno. No requiere instalación ni servidor para la demo.
 
-## 🎯 Pilares del Asesor CocheCierto
+## Recorrido activo
 
-1. **Encaje de Uso Real:** Evalúa el perfil del comprador (familiar, novel, urbano, viajes largos, autónomo/profesional) para recomendar el tipo de vehículo y etiqueta ambiental óptima.
-2. **Coste Real de Propiedad (TCO):** Analiza el coste integral mensual y anual: precio de compra / cuota de financiación, combustible o recarga eléctrica por municipio y kilometraje, seguro, mantenimiento, depreciación e impuestos.
-3. **Diagnóstico de Riesgo e Incertidumbre:** Detecta puntos críticos antes de comprar, genera checklists de verificación y mantiene honestidad radical (la ausencia de datos no es garantía de buen estado).
-4. **Decisiones Explicables y Accionables:** Genera informes claros con recomendaciones objetivas e independientes, sin sesgos comerciales (*"No vendemos coches. Te ayudamos a elegir el correcto"*).
+1. Ocasión.
+2. Uso privado o profesional.
+3. Intención y plazo.
+4. Uso, kilómetros, pasajeros, contexto y presupuesto.
+5. Preferencias y tolerancia a gastos.
+6. Resultado con confianza, estrategia, escenarios y checklist.
+7. En “Cambiar mi coche”, valoración orientativa opcional del vehículo actual.
+8. Captación simulada por email.
 
----
+## Estado
 
-## 🏗️ Estructura del Proyecto
+Es un prototipo de validación. El cálculo no consulta mercado real, no conecta CRM, no guarda datos en servidor y no constituye tasación, peritaje, asesoramiento financiero ni oferta de compra.
 
-`	ext
-coche.cierto/
-├── mvp-valorador/         # Frontend Web: Landing page, valorador interactivo, demo dashboard y recursos
-│   ├── index.html         # Landing principal
-│   ├── valorador/         # Formulario guiado de valoración paso a paso
-│   ├── demo/              # Informe diagnóstico de ejemplo interactivo
-│   ├── como-funciona/     # Explicación del proceso
-│   ├── que-analizamos/    # Métricas y variables analizadas
-│   └── metodologia/       # Principios y rigor de cálculo
-├── backend/               # Backend API Node.js / Express
-│   ├── src/server.js      # Servidor API REST y endpoints de valoración / leads
-│   ├── schema.sql         # Esquema de base de datos MySQL
-│   └── package.json       # Configuración y dependencias backend
-├── docs/                  # Documentación estratégica, constitución y guías de marca
-│   ├── constitution.md    # Principios innegociables de CocheCierto
-│   ├── Propuesta_Maestra_Marca_CocheCierto.md
-│   └── Guia_Tecnica_Implementacion_Marca_CocheCierto.md
-├── specs/                 # Especificaciones por iniciativa (Spec-Driven Development)
-└── AGENTS.md              # Contexto de agentes y gobernanza del proyecto
-`
+## Próximas integraciones, fuera del prototipo
 
----
-
-## 🚀 Inicio Rápido en Local
-
-### 1. Frontend Web
-Puedes abrir directamente mvp-valorador/index.html en el navegador o servirlo con cualquier servidor estático local:
-`ash
-# Ejemplo con npx serve
-npx serve mvp-valorador
-`
-
-### 2. Backend API
-`ash
-cd backend
-npm install
-npm run dev
-`
-
----
-
-## 📜 Gobernanza y Metodología (SDD)
-
-El desarrollo de CocheCierto se rige por **Spec-Driven Development (SDD)**:
-Constitución → Spec → Clarificación → Plan → Tareas → Implementación → Validación → Cambio.
-
-Lee [docs/constitution.md](docs/constitution.md) antes de proponer cambios funcionales.
+- backend seguro y política de retención;
+- proveedor de analítica con minimización de datos;
+- CRM con consentimiento y trazabilidad;
+- datos de mercado con licencia;
+- informe descargable o envío real;
+- recorrido de coche nuevo;
+- marketplace de unidades compatibles.
