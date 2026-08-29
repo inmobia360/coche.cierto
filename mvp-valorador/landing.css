@@ -1,7 +1,7 @@
-/* CocheCierto - Landing Styles Consolidado */
+/* CocheCierto - Landing Styles Consolidado con HUD Diagnóstico */
 
 /* ==========================================================================
-   1. HERO PANORÁMICO Y VEHÍCULO FLOTANTE
+   1. HERO PANORÁMICO Y COMPOSICIÓN HUD
    ========================================================================== */
 
 .landing-hero-panoramic {
@@ -9,20 +9,20 @@
   padding: 16px 0 44px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 32px;
 }
 
 .hero-upper-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 1.2fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(460px, 1.25fr);
   align-items: center;
   gap: clamp(24px, 4vw, 56px);
   position: relative;
-  min-height: 440px;
+  min-height: 460px;
 }
 
 .hero-copy {
-  max-width: 600px;
+  max-width: 580px;
   position: relative;
   z-index: 2;
 }
@@ -37,7 +37,7 @@
 }
 
 .hero-title {
-  font-size: clamp(40px, 5.2vw, 68px);
+  font-size: clamp(38px, 5.0vw, 64px);
   line-height: 1.02;
   letter-spacing: -0.04em;
   margin: 0 0 20px;
@@ -50,44 +50,65 @@
 }
 
 .hero-lead {
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1.55;
   color: var(--ink-secondary);
-  max-width: 540px;
-  margin: 0;
+  max-width: 520px;
+  margin: 0 0 24px;
 }
 
-/* Escenario Visual del Coche Flotante Ampliado (620px) */
+/* Trust Chips */
+.hero-trust-chips {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill, 999px);
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(8px);
+}
+
+/* ==========================================================================
+   2. ESCENARIO HUD CON TARJETAS FLOTANTES Y CONECTORES
+   ========================================================================== */
+
 .hero-visual-wrapper {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  min-height: 420px;
   width: 100%;
 }
 
-/* Círculo Trasero Difuminado Orgánico (Sin bordes) */
-.hero-circle-backdrop {
+/* Iluminación de Estudio Suave y Difuminada */
+.hero-studio-lighting {
   position: absolute;
-  width: clamp(380px, 40vw, 560px);
-  height: clamp(380px, 40vw, 560px);
+  width: clamp(360px, 45vw, 620px);
+  height: clamp(280px, 35vw, 420px);
   border-radius: 50%;
-  background: radial-gradient(circle at 45% 45%, rgba(166, 195, 208, 0.25) 0%, rgba(8, 45, 70, 0.50) 45%, rgba(2, 26, 45, 0) 75%);
-  border: none !important;
-  opacity: 0.9;
-  filter: blur(40px);
+  background: radial-gradient(ellipse at 50% 55%, rgba(166, 195, 208, 0.28) 0%, rgba(8, 45, 70, 0.45) 45%, rgba(2, 26, 45, 0) 75%);
+  filter: blur(36px);
   z-index: 1;
-  transform: translate(20px, -10px);
   pointer-events: none;
   transition: background 0.4s ease;
 }
 
-body.theme-light .hero-circle-backdrop,
-html.theme-light .hero-circle-backdrop {
-  background: radial-gradient(circle at 45% 45%, rgba(7, 34, 48, 0.15) 0%, rgba(38, 122, 99, 0.10) 50%, rgba(243, 247, 245, 0) 75%);
-  border: none !important;
-  opacity: 0.85;
+body.theme-light .hero-studio-lighting,
+html.theme-light .hero-studio-lighting {
+  background: radial-gradient(ellipse at 50% 55%, rgba(7, 34, 48, 0.12) 0%, rgba(38, 122, 99, 0.08) 45%, rgba(243, 247, 245, 0) 75%);
 }
 
 .hero-car-stage {
@@ -99,84 +120,221 @@ html.theme-light .hero-circle-backdrop {
   align-items: center;
 }
 
-/* Animación Breathing Automática con Efecto Neón Pulsante */
-@keyframes carBreathing {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.42)) drop-shadow(0 0 20px rgba(252, 76, 2, 0.30));
-  }
-  50% {
-    transform: translateY(-9px) scale(1.025);
-    filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.50)) drop-shadow(0 0 50px rgba(252, 76, 2, 0.75));
-  }
-}
-
-@keyframes carBreathingLight {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    filter: drop-shadow(0 14px 24px rgba(7, 34, 48, 0.16)) drop-shadow(0 0 20px rgba(38, 122, 99, 0.25));
-  }
-  50% {
-    transform: translateY(-9px) scale(1.025);
-    filter: drop-shadow(0 22px 34px rgba(7, 34, 48, 0.22)) drop-shadow(0 0 45px rgba(38, 122, 99, 0.65));
-  }
-}
-
 .hero-car-image, .coche-cabecera {
   width: 100% !important;
-  max-width: 620px !important;
+  max-width: 640px !important;
   height: auto !important;
   display: block !important;
-  animation: carBreathing 3.5s ease-in-out infinite !important;
   transform-origin: center bottom !important;
-  will-change: transform, filter !important;
+  filter: drop-shadow(0 20px 32px rgba(0, 0, 0, 0.45));
   transition: transform 0.3s ease !important;
 }
 
-body.theme-light .hero-car-image,
-html.theme-light .hero-car-image {
-  animation-name: carBreathingLight !important;
-}
-
-.hero-car-image:hover, .coche-cabecera:hover {
-  transform: translateY(-14px) scale(1.04) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-car-image, .coche-cabecera {
-    animation: none !important;
-    transform: none !important;
+/* Animación Pulsante / Respiración en las Tarjetas HUD */
+@keyframes hudCardPulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 16px rgba(252, 76, 2, 0.18);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 28px rgba(252, 76, 2, 0.55);
   }
 }
 
-/* Chip Flotante Conector */
-.hero-floating-chip {
-  position: absolute;
-  bottom: 12px;
-  right: 24px;
-  z-index: 3;
-  background: var(--bg-surface);
-  color: var(--ink-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill, 999px);
-  padding: 8px 18px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: var(--card-shadow);
-  backdrop-filter: blur(8px);
+@keyframes glowDotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 0 0 8px #fc4c02;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+    box-shadow: 0 0 16px #fc4c02, 0 0 24px rgba(252, 76, 2, 0.8);
+  }
 }
 
-.chip-icon {
-  color: var(--brand-orange);
-  font-weight: 900;
-  font-size: 14px;
+/* Tarjetas HUD Flotantes */
+.hud-card {
+  position: absolute;
+  z-index: 4;
+  background: rgba(7, 34, 48, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  animation: hudCardPulse 4s ease-in-out infinite;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+  user-select: none;
+}
+
+body.theme-light .hud-card,
+html.theme-light .hud-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #dce8e3;
+  box-shadow: 0 12px 30px rgba(7, 34, 48, 0.10);
+}
+
+.hud-card:hover {
+  border-color: #fc4c02;
+  transform: translateY(-8px) scale(1.04);
+}
+
+/* Posiciones HUD */
+.hud-encaje {
+  top: 18px;
+  left: 6%;
+  animation-delay: 0s;
+}
+
+.hud-coste {
+  top: 14px;
+  right: 4%;
+  animation-delay: 1.3s;
+}
+
+.hud-riesgo {
+  bottom: 24px;
+  right: 2%;
+  animation-delay: 2.6s;
+}
+
+/* Iconos HUD */
+.hud-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fc4c02;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(252, 76, 2, 0.4);
+  flex-shrink: 0;
+}
+
+.hud-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-secondary);
+  line-height: 1.2;
+}
+
+body.theme-light .hud-label {
+  color: #557280;
+}
+
+.hud-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink-primary);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+body.theme-light .hud-val {
+  color: #072230;
+}
+
+.hud-val small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+/* Líneas Conectoras de Puntos */
+.hud-connector {
+  position: absolute;
+  pointer-events: none;
+}
+
+.connector-line {
+  position: absolute;
+  border-top: 2px dashed #fc4c02;
+  opacity: 0.85;
+}
+
+.connector-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fc4c02;
+  animation: glowDotPulse 2s ease-in-out infinite;
+}
+
+/* Geometría de los conectores */
+.connector-encaje {
+  right: -55px;
+  bottom: -22px;
+  width: 60px;
+  height: 30px;
+}
+
+.connector-encaje .connector-line {
+  width: 50px;
+  transform: rotate(26deg);
+}
+
+.connector-encaje .connector-dot {
+  right: 0;
+  bottom: 0;
+}
+
+.connector-coste {
+  left: -50px;
+  bottom: -24px;
+  width: 55px;
+  height: 30px;
+}
+
+.connector-coste .connector-line {
+  width: 48px;
+  transform: rotate(-28deg);
+}
+
+.connector-coste .connector-dot {
+  left: 0;
+  bottom: 0;
+}
+
+.connector-riesgo {
+  left: -48px;
+  top: -16px;
+  width: 50px;
+  height: 25px;
+}
+
+.connector-riesgo .connector-line {
+  width: 44px;
+  transform: rotate(22deg);
+}
+
+.connector-riesgo .connector-dot {
+  left: 0;
+  top: 0;
+}
+
+@media(max-width: 900px) {
+  .hud-connector {
+    display: none;
+  }
 }
 
 /* ==========================================================================
-   2. BARRA DE VALORACIÓN HORIZONTAL CON 3 OPCIONES
+   3. BARRA DE VALORACIÓN HORIZONTAL INTEGRADA
    ========================================================================== */
 
 .hero-integrated-bar {
@@ -309,7 +467,7 @@ html.theme-light .hero-integrated-bar {
 }
 
 /* ==========================================================================
-   3. SECCIONES DE CONTENIDO
+   4. SECCIONES DE CONTENIDO
    ========================================================================== */
 
 .landing-proof {
@@ -373,7 +531,7 @@ html.theme-light .hero-integrated-bar {
 }
 
 /* ==========================================================================
-   4. RESPONSIVE BREAKPOINTS
+   5. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
 @media(max-width: 1100px) {
@@ -384,11 +542,14 @@ html.theme-light .hero-integrated-bar {
   }
 }
 
-@media(max-width: 860px) {
+@media(max-width: 900px) {
   .hero-upper-grid {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 32px;
   }
+  .hud-encaje { top: 0; left: 0; }
+  .hud-coste { top: 0; right: 0; }
+  .hud-riesgo { bottom: 0; right: 0; }
   .bar-direct-actions {
     flex-direction: column;
     width: 100%;

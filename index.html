@@ -11,17 +11,17 @@
   <meta property="og:type" content="website"><meta property="og:site_name" content="CocheCierto"><meta property="og:title" content="CocheCierto | Valora qué coche necesitas"><meta property="og:description" content="Una valoración orientativa para empezar a comprar coche con criterio."><meta property="og:image" content="https://beige-seahorse-520475.hostingersite.com/social-preview.svg"><meta property="og:image:type" content="image/svg+xml"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="CocheCierto, decide con datos y compra con seguridad">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="CocheCierto | Valora qué coche necesitas"><meta name="twitter:description" content="Una valoración orientativa para empezar a comprar coche con criterio."><meta name="twitter:image" content="https://beige-seahorse-520475.hostingersite.com/social-preview.svg"><meta name="twitter:image:alt" content="CocheCierto, decide con datos y compra con seguridad">
   
-    <link rel="stylesheet" href="theme.css?v=20260829-10">
-  <link rel="stylesheet" href="styles.css?v=20260829-10">
-  <link rel="stylesheet" href="landing.css?v=20260829-10">
-  <link rel="stylesheet" href="benefits.css?v=20260829-10">
-  <link rel="stylesheet" href="content-sections.css?v=20260829-10">
-  <link rel="stylesheet" href="visual-pain-points.css?v=20260829-10">
-  <link rel="stylesheet" href="faq.css?v=20260829-10">
-  <link rel="stylesheet" href="valuator-modal.css?v=20260829-10">
-  <script src="theme.js?v=20260829-10"></script>
-  <script src="site-header.js?v=20260829-10" defer></script>
-  <script src="app.js?v=20260829-10" defer></script>
+    <link rel="stylesheet" href="theme.css?v=20260829-11">
+  <link rel="stylesheet" href="styles.css?v=20260829-11">
+  <link rel="stylesheet" href="landing.css?v=20260829-11">
+  <link rel="stylesheet" href="benefits.css?v=20260829-11">
+  <link rel="stylesheet" href="content-sections.css?v=20260829-11">
+  <link rel="stylesheet" href="visual-pain-points.css?v=20260829-11">
+  <link rel="stylesheet" href="faq.css?v=20260829-11">
+  <link rel="stylesheet" href="valuator-modal.css?v=20260829-11">
+  <script src="theme.js?v=20260829-11"></script>
+  <script src="site-header.js?v=20260829-11" defer></script>
+  <script src="app.js?v=20260829-11" defer></script>
 </head>
 <body class="landing-page">
 <main class="landing-shell">
@@ -44,30 +44,85 @@
     </div>
   </header>
 
-      <section class="landing-hero-panoramic">
+        <section class="landing-hero-panoramic">
     <div class="hero-upper-grid">
       <div class="hero-copy">
         <p class="hero-eyebrow">— VALORADOR DE COCHES</p>
         <h1 class="hero-title">El coche correcto para<br><span class="highlight-orange">tu vida y tu bolsillo.</span></h1>
         <p class="hero-lead">Descubre qué tipo de coche estudiar, cuánto tiene sentido gastar y qué debes comprobar antes de entregar una señal.</p>
+        
+        <div class="hero-trust-chips">
+          <div class="trust-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fc4c02" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>100% independiente</span>
+          </div>
+          <div class="trust-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fc4c02" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Resultado en 5 minutos</span>
+          </div>
+        </div>
       </div>
 
-      <div class="hero-visual-wrapper" aria-label="Vehículo CocheCierto">
-        <div class="hero-circle-backdrop"></div>
-        <div class="hero-car-stage">
-          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="620" height="345">
+      <!-- Escenario del Coche con Tarjetas HUD Diagnóstico -->
+      <div class="hero-visual-wrapper" aria-label="Diagnóstico Visual CocheCierto">
+        <div class="hero-studio-lighting"></div>
+
+        <!-- Tarjeta HUD 1: Encaje -->
+        <div class="hud-card hud-encaje" aria-label="Encaje 88%">
+          <div class="hud-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path></svg>
+          </div>
+          <div class="hud-content">
+            <span class="hud-label">Encaje</span>
+            <strong class="hud-val">88%</strong>
+          </div>
+          <div class="hud-connector connector-encaje">
+            <span class="connector-line"></span>
+            <span class="connector-dot"></span>
+          </div>
         </div>
-        <div class="hero-floating-chip">
-          <span class="chip-icon">✓</span>
-          <span class="chip-text">100% Independiente</span>
+
+        <!-- Tarjeta HUD 2: Coste Real -->
+        <div class="hud-card hud-coste" aria-label="Coste real 365 €/mes">
+          <div class="hud-icon-badge">
+            <span class="hud-currency">€</span>
+          </div>
+          <div class="hud-content">
+            <span class="hud-label">Coste real</span>
+            <strong class="hud-val">365 <small>€/mes</small></strong>
+          </div>
+          <div class="hud-connector connector-coste">
+            <span class="connector-line"></span>
+            <span class="connector-dot"></span>
+          </div>
+        </div>
+
+        <!-- Coche Central Oficial -->
+        <div class="hero-car-stage">
+          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="640" height="355">
+        </div>
+
+        <!-- Tarjeta HUD 3: Riesgo Pendiente -->
+        <div class="hud-card hud-riesgo" aria-label="Riesgo pendiente Medio">
+          <div class="hud-icon-badge warning">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <div class="hud-content">
+            <span class="hud-label">Riesgo pendiente</span>
+            <strong class="hud-val highlight-orange">Medio</strong>
+          </div>
+          <div class="hud-connector connector-riesgo">
+            <span class="connector-line"></span>
+            <span class="connector-dot"></span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Barra de Valoración Horizontal con 3 Opciones -->
+    <!-- Barra de Valoración Horizontal Integrada -->
     <div class="hero-integrated-bar" id="heroValuatorBar">
       <div class="bar-intro">
-        <span class="bar-step-tag">COCHECIERTO DECIDE · 5 MINUTOS</span>
+        <span class="bar-step-tag">EMPIEZA TU DIAGNÓSTICO</span>
         <h2 class="bar-title">¿Qué quieres hacer?</h2>
         <p class="bar-desc">Orientación clara basada en tu uso real, presupuesto y prioridades.</p>
       </div>
@@ -75,7 +130,7 @@
       <div class="bar-direct-actions">
         <div class="hero-pill-choices" role="radiogroup" aria-label="¿Qué quieres hacer?">
           <button class="hero-pill-btn" data-intent="buy" type="button" role="radio" aria-checked="false">
-            <span>Comprar</span>
+            <span>Comprar coche</span>
           </button>
           <button class="hero-pill-btn selected" data-intent="change" type="button" role="radio" aria-checked="true">
             <span>Cambiar mi coche</span>
