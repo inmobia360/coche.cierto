@@ -1,6 +1,16 @@
 @media (min-width: 761px){
-  .landing-shell{max-width:1440px;padding-inline:clamp(36px,6vw,96px)}
-  .landing-nav .brand-lockup{font-size:31px}
-  .landing-nav .brand-lockup img{width:60px;height:60px}
-  .landing-hero{min-height:min(720px,56.25vw)}
+  .landing-shell, .site-shell, .page, .demo-app, .app {
+    max-width: 1440px !important;
+    padding-inline: clamp(32px, 5vw, 64px) !important;
+  }
+  .brand-lockup, .site-brand {
+    font-size: 23px !important;
+  }
+  .brand-lockup img, .site-brand img {
+    width: 38px !important;
+    height: 38px !important;
+  }
+  .landing-hero {
+    min-height: min(640px, 50vw);
+  }
 }

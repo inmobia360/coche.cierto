@@ -1,1 +1,272 @@
-:root{color-scheme:dark;--global-bg:#00263e;--global-ink:#f7f8f5;--global-muted:#b8cbd2;--global-surface:#073b57;--global-line:#1e536c}body.theme-light{color-scheme:light;--global-bg:#f3f7f4;--global-ink:#08283a;--global-muted:#527080;--global-surface:#fff;--global-line:#cbded5}.theme-control{border:1px solid currentColor;border-radius:999px;background:transparent;color:inherit;width:38px;height:38px;cursor:pointer;font-size:18px}.landing-page.theme-light{background:var(--global-bg);color:var(--global-ink)}.landing-page.theme-light .hero-lead,.landing-page.theme-light .microcopy,.landing-page.theme-light .landing-proof p,.landing-page.theme-light .demo-band p{color:var(--global-muted)}.landing-page.theme-light .demo-band{background:#e5efeb}.demo-app{max-width:none!important;width:100%;min-height:100vh;background:var(--global-bg)}body.theme-light .demo-app{background:var(--global-bg);color:var(--global-ink)}@media(min-width:761px){.landing-page .landing-shell,.demo-app{padding-left:clamp(48px,7vw,128px);padding-right:clamp(48px,7vw,128px)}}
+/* CocheCierto - Sistema de Diseño y Temas Global (Dark & Light) */
+:root {
+  color-scheme: dark;
+  --bg-base: #00263e;
+  --bg-surface: #073b57;
+  --bg-surface-elevated: #0b496c;
+  --bg-subtle: #052e46;
+  --ink-primary: #f7f8f5;
+  --ink-secondary: #b8cbd2;
+  --ink-muted: #7fa1af;
+  --brand-orange: #fc4c02;
+  --brand-orange-hover: #ff5e1c;
+  --border-subtle: #1b566c;
+  --border-active: #3488a8;
+  --card-shadow: 0 18px 50px rgba(0, 18, 30, 0.45);
+  --header-glass: rgba(0, 38, 62, 0.92);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --container-max: 1440px;
+}
+
+body.theme-light, html.theme-light {
+  color-scheme: light;
+  --bg-base: #f4f8f6;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-subtle: #e8f2ee;
+  --ink-primary: #072230;
+  --ink-secondary: #3b5c6b;
+  --ink-muted: #668694;
+  --brand-orange: #fc4c02;
+  --brand-orange-hover: #e04300;
+  --border-subtle: #d0e3db;
+  --border-active: #8db5a5;
+  --card-shadow: 0 16px 40px rgba(10, 40, 30, 0.08);
+  --header-glass: rgba(244, 248, 246, 0.94);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--ink-primary);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Contenedor Full-Width Panorámico y Fluido */
+.site-shell, .landing-shell, .page, .demo-app, .app {
+  max-width: var(--container-max) !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: clamp(20px, 4vw, 56px) !important;
+  padding-right: clamp(20px, 4vw, 56px) !important;
+  padding-top: 24px;
+  padding-bottom: 64px;
+}
+
+/* Componente Header Universal CocheCierto */
+.site-header, .landing-nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px;
+  padding: 12px 0 20px !important;
+  position: relative;
+  z-index: 100;
+}
+
+.brand-lockup, .site-brand {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  color: var(--ink-primary) !important;
+  text-decoration: none !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  flex-shrink: 0;
+}
+
+.brand-lockup img, .site-brand img {
+  width: 36px !important;
+  height: 36px !important;
+  display: block;
+}
+
+.brand-lockup strong, .site-brand strong {
+  color: var(--brand-orange) !important;
+}
+
+.nav-links, .landing-menu, .site-nav {
+  display: flex !important;
+  align-items: center !important;
+  gap: clamp(14px, 2.2vw, 32px) !important;
+  margin-left: auto !important;
+  margin-right: 18px !important;
+}
+
+.nav-links a, .landing-menu a, .site-nav a {
+  color: var(--ink-secondary) !important;
+  text-decoration: none !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+  border-radius: var(--radius-sm);
+  transition: color 0.18s ease, background-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.nav-links a:hover, .landing-menu a:hover, .site-nav a:hover,
+.nav-links a:focus-visible, .landing-menu a:focus-visible, .site-nav a:focus-visible {
+  color: var(--ink-primary) !important;
+  background-color: var(--bg-subtle);
+}
+
+.nav-links a[aria-current="page"], .landing-menu a[aria-current="page"], .site-nav a[aria-current="page"] {
+  color: var(--ink-primary) !important;
+  font-weight: 700 !important;
+  background-color: var(--bg-surface);
+}
+
+.header-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-shrink: 0;
+}
+
+.nav-cta, .site-cta, .header-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--brand-orange) !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  padding: 11px 20px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 14px rgba(252, 76, 2, 0.3);
+  white-space: nowrap;
+}
+
+.nav-cta:hover, .site-cta:hover, .header-cta:hover {
+  background: var(--brand-orange-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(252, 76, 2, 0.42);
+}
+
+.theme-toggle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-surface) !important;
+  color: var(--ink-primary) !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+  padding: 0 !important;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--border-active) !important;
+  background: var(--bg-surface-elevated) !important;
+  transform: rotate(15deg);
+}
+
+.mobile-menu-btn {
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-surface) !important;
+  color: var(--ink-primary) !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+}
+
+/* Responsividad Header */
+@media (max-width: 900px) {
+  .nav-links, .landing-menu, .site-nav {
+    display: none !important;
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--card-shadow) !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    z-index: 200;
+  }
+  .nav-links.is-open, .landing-menu.is-open, .site-nav.is-open {
+    display: flex !important;
+  }
+  .nav-links a, .landing-menu a, .site-nav a {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+  }
+  .mobile-menu-btn {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .brand-lockup span {
+    font-size: 19px !important;
+  }
+  .brand-lockup img {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  .nav-cta, .site-cta, .header-cta {
+    padding: 9px 14px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Estilos de Contenido Unificados para Toda la Plataforma */
+.eyebrow {
+  color: var(--brand-orange) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 12px !important;
+}
+
+h1, h2, h3, h4 {
+  color: var(--ink-primary);
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+p {
+  color: var(--ink-secondary);
+}
+
+.card, .panel, .step, .tool, .pillar {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover, .panel:hover, .step:hover, .tool:hover, .pillar:hover {
+  border-color: var(--border-active) !important;
+}

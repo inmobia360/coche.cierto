@@ -1,30 +1,271 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="../favicon.svg"><link rel="canonical" href="https://cochecierto.com/que-analizamos/">
-  <meta name="description" content="Descubre qué analiza CocheCierto para ayudarte a comprar un coche de ocasión con más claridad.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="canonical" href="https://cochecierto.com/que-analizamos/">
+  <meta name="description" content="Descubre qué analiza CocheCierto para ayudarte a comprar un coche con más claridad y menor incertidumbre.">
   <title>Qué analizamos antes de comprar | CocheCierto</title>
-  <link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="../landing.css">
+  <link rel="stylesheet" href="../theme.css">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../landing.css">
+  <link rel="stylesheet" href="../quality-overrides.css">
+  <script src="../theme.js"></script>
+  <script src="../site-header.js" defer></script>
   <style>
-    :root{--ink:#f7f8f5;--muted:#b8cbd2;--panel:#073b57;--line:#1b627c;--orange:#fc4c02;--cream:#f4f6f2;}
-    body{margin:0;background:#00263e;color:var(--ink);font-family:Inter,system-ui,sans-serif}.page{max-width:1280px;margin:auto;padding:28px clamp(22px,5vw,84px) 80px}.hero{padding:76px 0 42px;max-width:930px}.eyebrow{color:var(--orange);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}.hero h1{font-size:clamp(42px,6.2vw,82px);line-height:.98;letter-spacing:-.065em;margin:15px 0 22px;max-width:15ch}.hero p{color:var(--muted);font-size:19px;line-height:1.55;max-width:700px}.filters{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 24px}.filter{border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink);padding:10px 15px;cursor:pointer}.filter[aria-pressed=true],.filter:hover,.filter:focus-visible{background:var(--orange);border-color:var(--orange);color:#071521}.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.pillar{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;min-height:285px;transition:transform .2s ease,border-color .2s ease}.pillar:hover{transform:translateY(-3px);border-color:#66aabd}.pillar h2{font-size:23px;letter-spacing:-.03em;margin:9px 0}.pillar p{color:var(--muted);line-height:1.5}.pillar ul{padding-left:18px;color:#d8e4e6;line-height:1.6}.outcome{border-left:3px solid var(--orange);padding:10px 12px;margin-top:18px;background:#062f48;color:#f7f8f5}.status{display:inline-block;border:1px solid #7fa3ad;border-radius:999px;padding:4px 8px;color:#dbe8e9;font-size:11px}.status.future{border-color:#d29b3c;color:#f5c451}.closing{margin-top:54px;padding:30px;border:1px solid var(--line);border-radius:18px;background:#062f48;display:flex;align-items:center;justify-content:space-between;gap:24px}.closing h2{margin:0 0 8px;font-size:30px}.closing p{color:var(--muted);margin:0}.cta{display:inline-block;background:var(--orange);color:#071521;padding:14px 18px;border-radius:10px;text-decoration:none;font-weight:700;white-space:nowrap}.note{color:var(--muted);font-size:13px;line-height:1.5;margin-top:24px}@media(max-width:900px){.pillars{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.hero{padding-top:54px}.hero h1{max-width:13ch}.pillars{grid-template-columns:1fr}.closing{display:block}.closing .cta{margin-top:20px;width:calc(100% - 36px);text-align:center}}@media(prefers-reduced-motion:reduce){.pillar{transition:none}.pillar:hover{transform:none}}
+    .page-hero {
+      padding: 64px 0 36px;
+      max-width: 980px;
+    }
+    .page-hero h1 {
+      font-size: clamp(36px, 5.2vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin: 16px 0 20px;
+    }
+    .page-hero p {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--ink-secondary);
+      max-width: 800px;
+    }
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0 32px;
+    }
+    .filter-btn {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      background: var(--bg-surface);
+      color: var(--ink-primary);
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .filter-btn[aria-pressed="true"], .filter-btn:hover {
+      background: var(--brand-orange);
+      border-color: var(--brand-orange);
+      color: #ffffff;
+    }
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .pillar-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .pillar-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-active);
+    }
+    .pillar-status {
+      display: inline-block;
+      align-self: flex-start;
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      color: var(--ink-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+    .pillar-status.future {
+      border-color: #d97706;
+      color: #f59e0b;
+    }
+    .pillar-card h2 {
+      font-size: 22px;
+      margin: 0 0 10px;
+      letter-spacing: -0.02em;
+    }
+    .pillar-card p {
+      color: var(--ink-secondary);
+      font-size: 15px;
+      line-height: 1.5;
+      margin: 0 0 16px;
+    }
+    .pillar-card ul {
+      margin: 0 0 18px;
+      padding-left: 20px;
+      color: var(--ink-primary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .pillar-outcome {
+      margin-top: auto;
+      border-left: 3px solid var(--brand-orange);
+      padding: 10px 14px;
+      background: var(--bg-subtle);
+      color: var(--ink-primary);
+      font-size: 13px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .closing-banner {
+      margin-top: 56px;
+      padding: 36px 40px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .closing-banner h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .closing-banner p {
+      margin: 0;
+      color: var(--ink-secondary);
+      font-size: 16px;
+    }
+    .transparency-note {
+      color: var(--ink-muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 32px;
+    }
+    @media (max-width: 980px) {
+      .pillars-grid { grid-template-columns: repeat(2, 1fr); }
+      .closing-banner { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 600px) {
+      .pillars-grid { grid-template-columns: 1fr; }
+      .page-hero { padding: 40px 0 24px; }
+      .closing-banner { padding: 24px 20px; }
+    }
   </style>
 </head>
-<body><main class="page">
-  <header class="nav"><a class="brand" href="../">Coche<span>Cierto</span></a><a class="cta" href="../valorador/">Empezar diagnóstico</a></header>
-  <section class="hero"><p class="eyebrow">El análisis CocheCierto</p><h1>No analizamos solo el coche. Analizamos si es una buena compra para ti.</h1><p>Combinamos tu presupuesto, tu forma de uso, el coste de tenerlo y las comprobaciones pendientes para que sepas qué mirar antes de comprometer tu dinero.</p></section>
-  <div class="filters" role="toolbar" aria-label="Filtrar análisis"><button class="filter" type="button" aria-pressed="true" data-filter="all">Ver todo</button><button class="filter" type="button" aria-pressed="false" data-filter="coste">Presupuesto y coste</button><button class="filter" type="button" aria-pressed="false" data-filter="uso">Uso y necesidades</button><button class="filter" type="button" aria-pressed="false" data-filter="compra">Antes de comprar</button></div>
-  <section class="pillars" aria-label="Pilares del análisis">
-    <article class="pillar" data-category="coste"><span class="status">Calculado</span><h2>Lo que puedes asumir</h2><p>Calculamos un rango prudente sin dejar fuera seguro, puesta a punto ni margen para imprevistos.</p><ul><li>Presupuesto y reserva</li><li>Coste mensual orientativo</li><li>Escenarios de compra</li></ul><div class="outcome">Resultado: sabes cuánto puedes gastar sin mirar solo el precio.</div></article>
-    <article class="pillar" data-category="uso"><span class="status">Aportado</span><h2>El coche que encaja contigo</h2><p>Convertimos tus trayectos, ocupantes y prioridades en una categoría de coche que puedas estudiar.</p><ul><li>Ciudad, carretera o mixto</li><li>Espacio y aparcamiento</li><li>Uso privado o profesional</li></ul><div class="outcome">Resultado: una dirección de búsqueda, no una marca impuesta.</div></article>
-    <article class="pillar" data-category="coste"><span class="status">Estimado</span><h2>Lo que te costará cada mes</h2><p>Separamos precio, energía, seguro, mantenimiento y otros gastos para acercarte al coste real de propiedad.</p><ul><li>Combustible o recarga</li><li>Mantenimiento y neumáticos</li><li>Margen para imprevistos</li></ul><div class="outcome">Resultado: comparas alternativas por coste total.</div></article>
-    <article class="pillar" data-category="compra"><span class="status future">Próximamente</span><h2>Cuánto pagarás de verdad</h2><p>Cuando esté activa la integración, compararemos contado y financiación incluyendo intereses, comisiones y seguros vinculados.</p><ul><li>Cuota y plazo</li><li>TAE y coste total</li><li>Pago final y permanencia</li></ul><div class="outcome">Límite: no es una oferta financiera ni asesoramiento bancario.</div></article>
-    <article class="pillar" data-category="compra"><span class="status future">Con referencias autorizadas</span><h2>Si el precio es razonable</h2><p>La siguiente fase comparará anuncios semejantes por versión, año, kilómetros, ubicación y garantía.</p><ul><li>Intervalo de mercado</li><li>Precio objetivo</li><li>Muestra, fecha y confianza</li></ul><div class="outcome">Límite: será una referencia, nunca una tasación exacta.</div></article>
-    <article class="pillar" data-category="compra"><span class="status">Por verificar</span><h2>Lo que debes comprobar</h2><p>Señalamos información ausente y preguntas pendientes antes de entregar una señal o cerrar la compra.</p><ul><li>Historial y mantenimiento</li><li>ITV, cargas y documentación</li><li>Prueba e inspección independiente</li></ul><div class="outcome">Resultado: un checklist adaptado para hablar con el vendedor.</div></article>
+<body class="inner-page">
+<main class="site-shell">
+  <header class="site-header"></header>
+
+  <section class="page-hero">
+    <p class="eyebrow">El análisis CocheCierto</p>
+    <h1>No analizamos solo el coche. Analizamos si es una buena compra para ti.</h1>
+    <p>Combinamos tu presupuesto, tu forma de uso real, el coste total de tenerlo (TCO) y las comprobaciones pendientes para que sepas qué mirar antes de comprometer tu dinero.</p>
   </section>
-  <p class="note"><strong>Transparencia:</strong> “Aportado” procede de tus respuestas; “Calculado” usa una fórmula; “Estimado” depende de supuestos; “Por verificar” requiere documentación o revisión. CocheCierto orienta y no sustituye una inspección profesional.</p>
-  <section class="closing"><div><h2>Convierte tus dudas en una decisión de compra.</h2><p>Cuéntanos tu situación y recibe una orientación inicial sobre qué coche estudiar y qué comprobar.</p></div><a class="cta" href="../valorador/">Hacer mi valoración</a></section>
-</main><script src="../site-header.js?v=20260829-2"></script><script>
-  document.querySelectorAll('.filter').forEach(button=>button.addEventListener('click',()=>{const value=button.dataset.filter;document.querySelectorAll('.filter').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));document.querySelectorAll('.pillar').forEach(card=>{card.hidden=value!=='all'&&card.dataset.category!==value})}));
-</script></body></html>
+
+  <div class="filters-bar" role="toolbar" aria-label="Filtrar análisis">
+    <button class="filter-btn" type="button" aria-pressed="true" data-filter="all">Ver todo</button>
+    <button class="filter-btn" type="button" aria-pressed="false" data-filter="coste">Presupuesto y coste</button>
+    <button class="filter-btn" type="button" aria-pressed="false" data-filter="uso">Uso y necesidades</button>
+    <button class="filter-btn" type="button" aria-pressed="false" data-filter="compra">Antes de comprar</button>
+  </div>
+
+  <section class="pillars-grid" aria-label="Pilares del análisis">
+    <article class="pillar-card" data-category="coste">
+      <span class="pillar-status">Calculado</span>
+      <h2>Lo que puedes asumir</h2>
+      <p>Calculamos un rango prudente sin dejar fuera seguro, puesta a punto inicial ni margen para imprevistos.</p>
+      <ul>
+        <li>Presupuesto y reserva de seguridad</li>
+        <li>Coste mensual orientativo total</li>
+        <li>Escenarios de compra adaptados</li>
+      </ul>
+      <div class="pillar-outcome"><strong>Resultado:</strong> Sabes cuánto puedes gastar sin mirar solo el precio del anuncio.</div>
+    </article>
+
+    <article class="pillar-card" data-category="uso">
+      <span class="pillar-status">Aportado</span>
+      <h2>El coche que encaja contigo</h2>
+      <p>Convertimos tus trayectos, ocupantes y prioridades en una categoría de coche que puedas estudiar.</p>
+      <ul>
+        <li>Ciudad, carretera o mixto</li>
+        <li>Espacio, maletero y plazas</li>
+        <li>Uso particular o profesional</li>
+      </ul>
+      <div class="pillar-outcome"><strong>Resultado:</strong> Una dirección de búsqueda sólida, sin marcas impuestas.</div>
+    </article>
+
+    <article class="pillar-card" data-category="coste">
+      <span class="pillar-status">Estimado</span>
+      <h2>Lo que te costará cada mes</h2>
+      <p>Separamos precio de adquisición, energía (combustible o recarga), seguro, mantenimiento y desgaste para acercarte al coste real (TCO).</p>
+      <ul>
+        <li>Combustible o electricidad por zona</li>
+        <li>Mantenimiento, neumáticos e ITV</li>
+        <li>Margen para imprevistos</li>
+      </ul>
+      <div class="pillar-outcome"><strong>Resultado:</strong> Comparas alternativas por coste total de propiedad.</div>
+    </article>
+
+    <article class="pillar-card" data-category="compra">
+      <span class="pillar-status future">Próximamente</span>
+      <h2>Cuánto pagarás de verdad</h2>
+      <p>Comparamos compra al contado vs financiación incluyendo intereses reales, comisiones de apertura y seguros vinculados.</p>
+      <ul>
+        <li>Cuota mensual y plazo</li>
+        <li>TAE y coste total financiado</li>
+        <li>Pago final y permanencia</li>
+      </ul>
+      <div class="pillar-outcome"><strong>Límite:</strong> No es una oferta vinculante ni asesoramiento bancario.</div>
+    </article>
+
+    <article class="pillar-card" data-category="compra">
+      <span class="pillar-status future">Con referencias</span>
+      <h2>Si el precio es razonable</h2>
+      <p>Compara anuncios semejantes por versión, año, kilometraje, ubicación y tipo de garantía.</p>
+      <ul>
+        <li>Intervalo razonable de mercado</li>
+        <li>Precio objetivo de negociación</li>
+        <li>Muestra, frescura y confianza</li>
+      </ul>
+      <div class="pillar-outcome"><strong>Límite:</strong> Referencia estadística, nunca una tasación exacta.</div>
+    </article>
+
+    <article class="pillar-card" data-category="compra">
+      <span class="pillar-status">Por verificar</span>
+      <h2>Lo que debes comprobar</h2>
+      <p>Señalamos información ausente y preguntas pendientes antes de entregar una señal o cerrar la compra.</p>
+      <ul>
+        <li>Historial de mantenimiento y averías</li>
+        <li>ITV, cargas registrales y documentación</li>
+        <li>Prueba dinámica e inspección independiente</li>
+      </ul>
+      <div class="pillar-outcome"><strong>Resultado:</strong> Un checklist adaptado para hablar con el vendedor.</div>
+    </article>
+  </section>
+
+  <p class="transparency-note">
+    <strong>Transparencia:</strong> “Aportado” procede de tus respuestas directas; “Calculado” utiliza una fórmula matemática explícita; “Estimado” depende de supuestos de mercado y kilometraje; “Por verificar” requiere documentación o revisión física. CocheCierto orienta objetivamente y no sustituye un peritaje profesional.
+  </p>
+
+  <section class="closing-banner">
+    <div>
+      <h2>Convierte tus dudas en una decisión segura.</h2>
+      <p>Cuéntanos tu situación y recibe tu diagnóstico personalizado sobre qué coche buscar y qué verificar.</p>
+    </div>
+    <a class="nav-cta" href="../valorador/">Hacer mi valoración</a>
+  </section>
+</main>
+
+<script>
+  document.querySelectorAll('.filter-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const value = button.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      document.querySelectorAll('.pillar-card').forEach(card => {
+        card.style.display = (value === 'all' || card.dataset.category === value) ? 'flex' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>
