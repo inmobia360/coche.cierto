@@ -92,12 +92,39 @@
   z-index: 2;
 }
 
-.hero-car-image {
+/* Animación de latido suave / respiración */
+@keyframes carBreathing {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.28));
+  }
+  50% {
+    transform: translateY(-5px) scale(1.02);
+    filter: drop-shadow(0 16px 28px rgba(252, 76, 2, 0.35)); /* Resplandor cálido al compás */
+  }
+}
+
+.hero-car-image, .coche-cabecera {
   width: 100%;
   max-width: 360px;
   height: auto;
   display: block;
-  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
+  animation: carBreathing 3.5s ease-in-out infinite;
+  transform-origin: center bottom;
+  will-change: transform, filter;
+  transition: transform 0.3s ease;
+}
+
+.hero-car-image:hover, .coche-cabecera:hover {
+  transform: translateY(-7px) scale(1.035);
+}
+
+/* Accesibilidad: desactivar si el usuario prefiere movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .hero-car-image, .coche-cabecera {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
 .mini-form {
