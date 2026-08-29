@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="canonical" href="https://cochecierto.com/que-analizamos/">
+  <meta name="description" content="Descubre qué analiza CocheCierto para ayudarte a comprar un coche con más claridad y menor incertidumbre.">
+  <title>Qué analizamos antes de comprar | CocheCierto</title>
+  <link rel="stylesheet" href="../theme.css">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../theme.js"></script>
+  <script src="../site-header.js" defer></script>
+  <style>
+    .page-hero {
+      padding: 64px 0 36px;
+      max-width: 980px;
+    }
+    .page-hero h1 {
+      font-size: clamp(36px, 5.2vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin: 16px 0 20px;
+      color: var(--ink-primary);
+    }
+    .page-hero p {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--ink-secondary);
+      max-width: 800px;
+    }
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0 32px;
+    }
+    .filter-btn {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      background: var(--bg-surface);
+      color: var(--ink-primary);
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .filter-btn[aria-pressed="true"], .filter-btn:hover {
+      background: var(--brand-orange);
+      border-color: var(--brand-orange);
+      color: #ffffff;
+    }
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+    .pillar-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .pillar-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-orange);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .pillar-card h2 {
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+      color: var(--ink-primary);
+    }
+    .pillar-card p {
+      color: var(--ink-secondary);
+      font-size: 15px;
+      line-height: 1.55;
+      margin: 0 0 18px;
+      flex-grow: 1;
+    }
+    .pillar-checks {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+    }
+    .pillar-checks li {
+      font-size: 13px;
+      color: var(--ink-primary);
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+    .pillar-checks li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--brand-orange);
+      font-weight: bold;
+    }
+    @media (max-width: 960px) {
+      .pillars-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .pillars-grid { grid-template-columns: 1fr; }
+      .page-hero { padding: 40px 0 24px; }
+    }
+  </style>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="site-header"></header>
+
+    <main class="page">
+      <section class="page-hero">
+        <p class="eyebrow">Metodología de Evaluación</p>
+        <h1>Qué analizamos para orientar tu compra</h1>
+        <p>No nos limitamos a mirar el precio del anuncio. Evaluamos tu situación personal, los costes reales de mantenimiento y las señales de alerta mecánica y legal.</p>
+
+        <div class="filters-bar" role="toolbar" aria-label="Filtros de pilares">
+          <button class="filter-btn" aria-pressed="true" data-filter="all" type="button">Ver todos los pilares</button>
+          <button class="filter-btn" aria-pressed="false" data-filter="budget" type="button">Presupuesto y TCO</button>
+          <button class="filter-btn" aria-pressed="false" data-filter="usage" type="button">Uso y Encaje</button>
+          <button class="filter-btn" aria-pressed="false" data-filter="risk" type="button">Riesgo y Verificación</button>
+        </div>
+      </section>
+
+      <section class="pillars-grid" id="pillarsGrid">
+        <article class="pillar-card" data-category="usage">
+          <span class="pillar-tag">Uso real</span>
+          <h2>Encaje con tus trayectos</h2>
+          <p>Comprobamos si el tipo de motor (gasolina, diésel, híbrido o eléctrico) es el idóneo para tus kilómetros y si necesitas etiqueta C o ECO/CERO para tu ciudad.</p>
+          <ul class="pillar-checks">
+            <li>Kilometraje anual previsto</li>
+            <li>Zonas ZBE y restricciones</li>
+            <li>Tipo de trayecto (urbano vs autopista)</li>
+          </ul>
+        </article>
+
+        <article class="pillar-card" data-category="budget">
+          <span class="pillar-tag">Coste total</span>
+          <h2>Presupuesto y TCO a 3–5 años</h2>
+          <p>Calculamos lo que realmente te costará el coche cada mes: combustible, seguro estimado, mantenimiento preventivo y provisión para imprevistos.</p>
+          <ul class="pillar-checks">
+            <li>Gastos de transferencia e ITV</li>
+            <li>Seguro según perfil y vehículo</li>
+            <li>Coste mensual de uso por kilómetro</li>
+          </ul>
+        </article>
+
+        <article class="pillar-card" data-category="risk">
+          <span class="pillar-tag">Seguridad</span>
+          <h2>Riesgo y Puntos Críticos</h2>
+          <p>Identificamos qué elementos específicos debes comprobar antes de entregar señal: historial de distribución, embrague, mantenimientos en factura y pruebas en frío.</p>
+          <ul class="pillar-checks">
+            <li>Historial documental e ITV</li>
+            <li>Puntos débiles habituales del modelo</li>
+            <li>Checklist de prueba y revisión</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+        btn.setAttribute('aria-pressed', 'true');
+        const filter = btn.dataset.filter;
+        document.querySelectorAll('.pillar-card').forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

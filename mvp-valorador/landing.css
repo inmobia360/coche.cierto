@@ -1,0 +1,577 @@
+/* CocheCierto - Landing Styles Consolidado con HUD Diagnóstico */
+
+/* ==========================================================================
+   1. HERO PANORÁMICO Y COMPOSICIÓN HUD
+   ========================================================================== */
+
+.landing-hero-panoramic {
+  position: relative;
+  padding: 16px 0 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.hero-upper-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(460px, 1.25fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  position: relative;
+  min-height: 440px;
+}
+
+.hero-copy {
+  max-width: 580px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-eyebrow {
+  margin: 0 0 16px;
+  color: var(--brand-orange);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: clamp(38px, 5.0vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin: 0 0 20px;
+  color: var(--ink-primary);
+  font-weight: 800;
+}
+
+.highlight-orange {
+  color: var(--brand-orange);
+}
+
+.hero-lead {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink-secondary);
+  max-width: 520px;
+  margin: 0 0 24px;
+}
+
+/* Trust Chips */
+.hero-trust-chips {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill, 999px);
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(8px);
+}
+
+/* ==========================================================================
+   2. ESCENARIO HUD CON TARJETAS FLOTANTES Y CONECTORES
+   ========================================================================== */
+
+.hero-visual-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 420px;
+  width: 100%;
+}
+
+/* Iluminación de Estudio Suave y Difuminada */
+.hero-studio-lighting {
+  position: absolute;
+  width: clamp(360px, 45vw, 620px);
+  height: clamp(280px, 35vw, 420px);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 55%, rgba(166, 195, 208, 0.28) 0%, rgba(8, 45, 70, 0.45) 45%, rgba(2, 26, 45, 0) 75%);
+  filter: blur(36px);
+  z-index: 1;
+  pointer-events: none;
+  transition: background 0.4s ease;
+}
+
+body.theme-light .hero-studio-lighting,
+html.theme-light .hero-studio-lighting {
+  background: radial-gradient(ellipse at 50% 55%, rgba(7, 34, 48, 0.12) 0%, rgba(38, 122, 99, 0.08) 45%, rgba(243, 247, 245, 0) 75%);
+}
+
+.hero-car-stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-car-image, .coche-cabecera {
+  width: 100% !important;
+  max-width: 640px !important;
+  height: auto !important;
+  display: block !important;
+  transform-origin: center bottom !important;
+  filter: drop-shadow(0 20px 32px rgba(0, 0, 0, 0.45));
+  transition: transform 0.3s ease !important;
+}
+
+/* Animación Pulsante / Respiración en las Tarjetas HUD */
+@keyframes hudCardPulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 16px rgba(252, 76, 2, 0.18);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 28px rgba(252, 76, 2, 0.55);
+  }
+}
+
+@keyframes glowDotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 0 0 8px #fc4c02;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+    box-shadow: 0 0 16px #fc4c02, 0 0 24px rgba(252, 76, 2, 0.8);
+  }
+}
+
+/* Tarjetas HUD Flotantes */
+.hud-card {
+  position: absolute;
+  z-index: 4;
+  background: rgba(7, 34, 48, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  animation: hudCardPulse 4s ease-in-out infinite;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+  user-select: none;
+}
+
+body.theme-light .hud-card,
+html.theme-light .hud-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #dce8e3;
+  box-shadow: 0 12px 30px rgba(7, 34, 48, 0.10);
+}
+
+.hud-card:hover {
+  border-color: #fc4c02;
+  transform: translateY(-8px) scale(1.04);
+}
+
+/* Posiciones HUD */
+.hud-encaje {
+  top: 18px;
+  left: 6%;
+  animation-delay: 0s;
+}
+
+.hud-coste {
+  top: 14px;
+  right: 4%;
+  animation-delay: 1.3s;
+}
+
+.hud-riesgo {
+  bottom: 24px;
+  right: 2%;
+  animation-delay: 2.6s;
+}
+
+/* Iconos HUD */
+.hud-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fc4c02;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 17px;
+  box-shadow: 0 4px 12px rgba(252, 76, 2, 0.4);
+  flex-shrink: 0;
+}
+
+.hud-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-secondary);
+  line-height: 1.2;
+}
+
+body.theme-light .hud-label {
+  color: #557280;
+}
+
+.hud-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink-primary);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+body.theme-light .hud-val {
+  color: #072230;
+}
+
+.hud-val small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+/* Líneas Conectoras de Puntos */
+.hud-connector {
+  position: absolute;
+  pointer-events: none;
+}
+
+.connector-line {
+  position: absolute;
+  border-top: 2px dashed #fc4c02;
+  opacity: 0.85;
+}
+
+.connector-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fc4c02;
+  animation: glowDotPulse 2s ease-in-out infinite;
+}
+
+/* Geometría de los conectores */
+.connector-encaje {
+  right: -55px;
+  bottom: -22px;
+  width: 60px;
+  height: 30px;
+}
+
+.connector-encaje .connector-line {
+  width: 50px;
+  transform: rotate(26deg);
+}
+
+.connector-encaje .connector-dot {
+  right: 0;
+  bottom: 0;
+}
+
+.connector-coste {
+  left: -50px;
+  bottom: -24px;
+  width: 55px;
+  height: 30px;
+}
+
+.connector-coste .connector-line {
+  width: 48px;
+  transform: rotate(-28deg);
+}
+
+.connector-coste .connector-dot {
+  left: 0;
+  bottom: 0;
+}
+
+.connector-riesgo {
+  left: -48px;
+  top: -16px;
+  width: 50px;
+  height: 25px;
+}
+
+.connector-riesgo .connector-line {
+  width: 44px;
+  transform: rotate(22deg);
+}
+
+.connector-riesgo .connector-dot {
+  left: 0;
+  top: 0;
+}
+
+@media(max-width: 900px) {
+  .hud-connector {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   3. BARRA DE VALORACIÓN HORIZONTAL CON 3 SELECTORES
+   ========================================================================== */
+
+.hero-integrated-bar {
+  background: #ffffff !important;
+  color: #072230 !important;
+  border-radius: 22px !important;
+  padding: 24px 34px !important;
+  box-shadow: 0 24px 65px rgba(0, 14, 25, 0.32) !important;
+  border: 1px solid #dce8e3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  position: relative !important;
+  z-index: 4 !important;
+}
+
+body.theme-light .hero-integrated-bar,
+html.theme-light .hero-integrated-bar {
+  background: #ffffff !important;
+  border: 1px solid #dce8e3 !important;
+  box-shadow: 0 16px 45px rgba(7, 34, 48, 0.08) !important;
+}
+
+.bar-tag-row {
+  display: flex;
+}
+
+.bar-step-tag {
+  color: #fc4c02;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bar-controls-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1.2fr auto;
+  align-items: flex-end;
+  gap: 20px;
+  width: 100%;
+}
+
+.bar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bar-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #072230;
+  white-space: nowrap;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.select-wrapper select {
+  width: 100% !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: #f7faf8 !important;
+  border: 1.5px solid #d2e0d8 !important;
+  border-radius: 14px !important;
+  padding: 14px 38px 14px 16px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #072230 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.18s ease !important;
+  font-family: inherit !important;
+}
+
+.select-wrapper select:hover {
+  border-color: #fc4c02 !important;
+  background-color: #ffffff !important;
+}
+
+.select-wrapper select:focus {
+  border-color: #fc4c02 !important;
+  box-shadow: 0 0 0 3px rgba(252, 76, 2, 0.18) !important;
+  background-color: #ffffff !important;
+}
+
+.select-wrapper::after {
+  content: '⌄';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-58%);
+  color: #64818f;
+  font-size: 16px;
+  pointer-events: none;
+  font-weight: 700;
+}
+
+.bar-action {
+  display: flex;
+  align-items: flex-end;
+}
+
+.bar-submit-btn {
+  background-color: #fc4c02 !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  padding: 14px 28px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 6px 20px rgba(252, 76, 2, 0.38) !important;
+  transition: all 0.18s ease !important;
+  height: 50px !important;
+  text-decoration: none !important;
+}
+
+.bar-submit-btn:hover {
+  background-color: #ff5e1c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.48) !important;
+}
+
+.bar-submit-btn svg {
+  transition: transform 0.18s ease;
+}
+
+.bar-submit-btn:hover svg {
+  transform: translateX(3px);
+}
+
+/* ==========================================================================
+   4. SECCIONES DE CONTENIDO
+   ========================================================================== */
+
+.landing-proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  border-top: 1px solid var(--border-subtle);
+  padding: 48px 0;
+}
+
+.landing-proof article {
+  padding-right: 20px;
+}
+
+.landing-proof span {
+  color: var(--brand-orange);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.landing-proof h2 {
+  font-size: 22px;
+  margin: 12px 0 8px;
+  color: var(--ink-primary);
+  letter-spacing: -0.02em;
+}
+
+.landing-proof p, .demo-band p {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  font-size: 15px;
+}
+
+.demo-band {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  margin: 20px 0 60px;
+  box-shadow: var(--card-shadow);
+}
+
+.demo-band h2 {
+  margin: 8px 0;
+  color: var(--ink-primary);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.landing-footer {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-muted);
+  font-size: 13px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   5. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+@media(max-width: 1060px) {
+  .bar-controls-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bar-action {
+    grid-column: span 2;
+  }
+  .bar-submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media(max-width: 900px) {
+  .hero-upper-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .hud-encaje { top: 0; left: 0; }
+  .hud-coste { top: 0; right: 0; }
+  .hud-riesgo { bottom: 0; right: 0; }
+}
+
+@media(max-width: 540px) {
+  .bar-controls-grid {
+    grid-template-columns: 1fr;
+  }
+  .bar-action {
+    grid-column: span 1;
+  }
+}

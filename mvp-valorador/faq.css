@@ -1,0 +1,73 @@
+/* CocheCierto - FAQ Styles */
+.faq-section {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) 1.2fr;
+  gap: clamp(35px, 6vw, 80px);
+  padding: 64px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.faq-section h2 {
+  font-size: clamp(30px, 3.8vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 10px 0 16px;
+  color: var(--ink-primary);
+}
+
+.faq-intro {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  max-width: 470px;
+  font-size: 16px;
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-list details {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 14px);
+  background: var(--bg-surface);
+  padding: 0 24px;
+  box-shadow: var(--card-shadow);
+}
+
+.faq-list summary {
+  cursor: pointer;
+  padding: 20px 0;
+  font-weight: 700;
+  font-size: 16px;
+  list-style: none;
+  color: var(--ink-primary);
+}
+
+.faq-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-list summary:after {
+  content: '+';
+  float: right;
+  color: var(--brand-orange);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.faq-list details[open] summary:after {
+  content: '−';
+}
+
+.faq-list details p {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  padding: 0 0 20px;
+  margin: 0;
+  font-size: 15px;
+}
+
+@media(max-width: 760px) {
+  .faq-section { grid-template-columns: 1fr; padding: 44px 0; }
+}

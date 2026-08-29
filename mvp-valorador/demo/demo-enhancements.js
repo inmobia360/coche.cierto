@@ -1,0 +1,6 @@
+(()=>{
+  const run=()=>{const dashboard=document.querySelector('#dashboard');if(!dashboard||dashboard.dataset.enhanced)return;dashboard.dataset.enhanced='true';
+    const add=()=>{const head=dashboard.querySelector('.dashboard-head');if(!head||head.querySelector('.demo-primary-cta'))return;const cta=document.createElement('a');cta.className='demo-primary-cta';cta.href='../valorador/?source=demo&intent=buy';cta.textContent='Crear mi diagnóstico gratuito';head.append(cta);const note=document.createElement('p');note.className='demo-explainer';note.textContent='Lectura orientativa basada en encaje, presupuesto y coste de referencia. Datos simulados.';head.querySelector('div')?.append(note)};add();
+    [...document.querySelectorAll('.profile-tab')].forEach((tab,i,all)=>{tab.id='profile-tab-'+i;tab.setAttribute('aria-controls','dashboard');tab.setAttribute('aria-selected',String(i===0));tab.addEventListener('keydown',e=>{if(!['ArrowRight','ArrowLeft'].includes(e.key))return;e.preventDefault();const n=(i+(e.key==='ArrowRight'?1:-1)+all.length)%all.length;all[n].focus();all[n].click()})});
+    new MutationObserver(add).observe(dashboard,{childList:true,subtree:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+})();

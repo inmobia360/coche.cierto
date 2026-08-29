@@ -1,0 +1,21 @@
+CREATE TABLE leads (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(40) NULL,
+  name VARCHAR(120) NULL,
+  intent VARCHAR(20) NOT NULL,
+  purchase_window VARCHAR(20) NOT NULL,
+  recommended_category VARCHAR(80) NOT NULL,
+  usage_type VARCHAR(20) NOT NULL,
+  questionnaire_version VARCHAR(40) NOT NULL,
+  recommendation_version VARCHAR(40) NOT NULL,
+  consent_result BOOLEAN NOT NULL,
+  consent_commercial BOOLEAN NOT NULL DEFAULT FALSE,
+  consent_at DATETIME NOT NULL,
+  verified_at DATETIME NULL,
+  verification_token_hash CHAR(64) NULL,
+  verification_expires_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_leads_email (email),
+  INDEX idx_leads_intent_window (intent, purchase_window)
+);

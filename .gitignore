@@ -1,0 +1,19 @@
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+
+# Dependencias y salidas locales
+node_modules/
+dist/
+build/
+coverage/
+
+# Paquetes/exportaciones históricas de despliegue
+*.zip
+
+# Temporales del sistema y del editor
+.DS_Store
+Thumbs.db
+*.tmp
+*.log

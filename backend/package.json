@@ -1,0 +1,17 @@
+{
+  "name": "cochecierto-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API del MVP de diagnóstico y captación de CocheCierto",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node src/server.js", "dev": "node --watch src/server.js", "check": "node --check src/server.js" },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mysql2": "^3.14.1",
+    "nodemailer": "^7.0.3"
+  }
+}

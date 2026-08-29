@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="canonical" href="https://cochecierto.com/recursos/">
+  <title>Recursos y Herramientas para Compradores | CocheCierto</title>
+  <meta name="description" content="Guías prácticas, checklists y calculadoras para comprar coche con datos y seguridad.">
+  <link rel="stylesheet" href="../theme.css">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../theme.js"></script>
+  <script src="../site-header.js" defer></script>
+  <style>
+    .page-hero {
+      padding: 64px 0 36px;
+      max-width: 980px;
+    }
+    .page-hero h1 {
+      font-size: clamp(36px, 5.2vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin: 16px 0 20px;
+      color: var(--ink-primary);
+    }
+    .page-hero p {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--ink-secondary);
+      max-width: 800px;
+    }
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin: 32px 0 64px;
+    }
+    .resource-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .resource-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-orange);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .resource-card h2 {
+      font-size: 20px;
+      margin: 0 0 10px;
+      color: var(--ink-primary);
+      letter-spacing: -0.02em;
+    }
+    .resource-card p {
+      color: var(--ink-secondary);
+      font-size: 14px;
+      line-height: 1.55;
+      margin: 0 0 20px;
+      flex-grow: 1;
+    }
+    .resource-link {
+      color: var(--brand-orange);
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .resource-link:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 960px) {
+      .resources-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .resources-grid { grid-template-columns: 1fr; }
+      .page-hero { padding: 40px 0 24px; }
+    }
+  </style>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="site-header"></header>
+
+    <main class="page">
+      <section class="page-hero">
+        <p class="eyebrow">Herramientas y Guías</p>
+        <h1>Recursos para Compradores</h1>
+        <p>Herramientas prácticas, comprobaciones paso a paso y guías para que negocies con ventaja y evites trampas habituales.</p>
+      </section>
+
+      <section class="resources-grid">
+        <article class="resource-card">
+          <span class="resource-tag">Herramienta Interactiva</span>
+          <h2>Valorador CocheCierto Decide</h2>
+          <p>Responde 10 preguntas breves y obtén tu orientación de categoría, presupuesto máximo y escenarios recomendados.</p>
+          <a class="resource-link" href="../valorador/">Acceder al valorador →</a>
+        </article>
+
+        <article class="resource-card">
+          <span class="resource-tag">Ejemplo Completo</span>
+          <h2>Informe Demo Interactivo</h2>
+          <p>Explora cómo se estructura el informe real con 4 perfiles simulados (novel, estudiante, familia, autónomo).</p>
+          <a class="resource-link" href="../demo/">Ver informe demo →</a>
+        </article>
+
+        <article class="resource-card">
+          <span class="resource-tag">Guía Práctica</span>
+          <h2>Checklist de Inspección en Frío</h2>
+          <p>Las 12 comprobaciones imprescindibles en motor, cambio, chasis y documentación antes de dar una señal.</p>
+          <a class="resource-link" href="../como-funciona/">Ver los pasos →</a>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

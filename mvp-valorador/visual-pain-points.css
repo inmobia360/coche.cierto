@@ -1,0 +1,59 @@
+/* CocheCierto - Visual Pain Points */
+.pain-visuals {
+  display: grid;
+  gap: 28px;
+  padding: 20px 0 64px;
+}
+
+.visual-card {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+  align-items: stretch;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+}
+
+.visual-card.reverse img {
+  order: 2;
+}
+
+.visual-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  align-self: stretch;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+}
+
+.visual-card > div {
+  padding: clamp(24px, 4vw, 48px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.visual-card h2 {
+  font-size: clamp(26px, 3.2vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin: 10px 0 16px;
+  color: var(--ink-primary);
+}
+
+.visual-card p:not(.eyebrow) {
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  max-width: 480px;
+  font-size: 16px;
+}
+
+@media(max-width: 760px) {
+  .visual-card { grid-template-columns: 1fr; }
+  .visual-card.reverse img { order: 0; }
+  .visual-card img { height: 240px; min-height: 0; }
+}

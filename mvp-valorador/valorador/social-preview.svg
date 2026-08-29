@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">CocheCierto</title>
+  <desc id="desc">Decide con datos. Compra con seguridad.</desc>
+  <rect width="1200" height="630" fill="#00263E"/>
+  <circle cx="1050" cy="70" r="250" fill="#073B57"/>
+  <circle cx="1120" cy="590" r="180" fill="#FC4C02" opacity=".94"/>
+  <path d="M0 536C250 470 370 610 625 540s370-36 575 18V630H0Z" fill="#001B2B" opacity=".8"/>
+  <g transform="translate(112 126)">
+    <rect width="92" height="92" rx="24" fill="#FC4C02"/>
+    <path d="m23 48 14 14 33-34" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="112" y="302" fill="#F7F8F5" font-family="Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-3">Coche<tspan fill="#FC4C02">Cierto</tspan></text>
+  <rect x="116" y="350" width="92" height="6" rx="3" fill="#FC4C02"/>
+  <text x="112" y="414" fill="#F7F8F5" font-family="Arial, sans-serif" font-size="36" font-weight="700">Decide con datos.</text>
+  <text x="112" y="462" fill="#B9CBD2" font-family="Arial, sans-serif" font-size="36">Compra con seguridad.</text>
+  <text x="112" y="548" fill="#B9CBD2" font-family="Arial, sans-serif" font-size="22">Tu punto de partida para elegir coche de ocasión.</text>
+</svg>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Prueba de catálogo | CocheCierto</title><link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="enhancements.css">
+  <style>
+    body{background:#00263e;color:#f7f8f5;padding:24px}.test-shell{max-width:900px;margin:auto}.test-card{background:#f7f8f5;color:#00263e;border-radius:20px;padding:clamp(24px,5vw,48px);box-shadow:0 20px 60px #001522}.test-card h1{margin:8px 0 12px;font-size:clamp(30px,5vw,52px)}.test-card p{line-height:1.55}.status{padding:16px;border-radius:12px;background:#e9f2f1;margin:24px 0}.status.ok{border-left:5px solid #19735f}.status.error{background:#fff0eb;color:#8e260d;border-left:5px solid #fc4c02}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:24px 0}.info{border:1px solid #c9ded9;border-radius:12px;padding:16px}.info strong{display:block;font-size:24px;color:#196553}.explorer{margin-top:28px}.explorer h2{font-size:24px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#e9f2f1;border-radius:999px;padding:8px 12px;font-size:13px}.data-preview{max-height:300px;overflow:auto;background:#eef3f4;border-radius:12px;padding:14px;font:13px/1.5 ui-monospace,monospace;white-space:pre-wrap}.button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.muted{color:#607984;font-size:13px}@media(max-width:600px){body{padding:12px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="test-shell"><div class="test-card">
+    <p class="eyebrow">CocheCierto · sample técnico</p>
+    <h1>Catálogo de marcas y modelos</h1>
+    <p>Comprobamos si la configuración pública de AutoUncle puede ayudarnos a mejorar el selector del valorador.</p>
+    <div id="status" class="status" role="status" aria-live="polite">Consultando configuración…</div>
+    <section class="grid" aria-label="Resumen de la respuesta"><div class="info"><span class="muted">Formato recibido</span><strong id="format">—</strong></div><div class="info"><span class="muted">Claves principales</span><strong id="key-count">—</strong></div></section>
+    <section class="explorer"><h2>Qué podemos comprobar</h2><div id="keys" class="chips"><span class="muted">Esperando respuesta…</span></div><p id="catalog-note" class="muted">El explorador se adapta a la estructura recibida y no modifica el servicio externo.</p><details><summary>Ver respuesta técnica (recortada)</summary><div id="preview" class="data-preview" style="margin-top:12px"></div></details></section>
+    <p class="muted" style="margin-top:28px"><strong>Alcance de esta prueba:</strong> solo consulta GET de configuración. No calcula precios de mercado, no consulta anuncios, no guarda datos y no sustituye una tasación profesional.</p>
+    <p><a class="button secondary" href="./">Volver a la landing</a> <a class="button primary" href="./valorador/">Abrir valorador</a></p>
+  </div></main>
+  <script>
+    const endpoint='https://www.autouncle.es/api/v4/car_search_form/config'; const $=id=>document.getElementById(id);
+    const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function collectCandidates(value,path='',found=[]){if(!value||typeof value!=='object'||found.length>=12)return found;Object.entries(value).forEach(([key,item])=>{const next=path?path+'.'+key:key;if(Array.isArray(item)&&item.length)found.push({path:next,count:item.length});else if(item&&typeof item==='object')collectCandidates(item,next,found)});return found}
+    fetch(endpoint,{method:'GET',headers:{Accept:'application/json'}}).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.json()}).then(data=>{const keys=Object.keys(data&&typeof data==='object'&&!Array.isArray(data)?data:{});const json=JSON.stringify(data,null,2);const candidates=collectCandidates(data);$('status').className='status ok';$('status').textContent='Endpoint accesible · configuración JSON recibida';$('format').textContent=Array.isArray(data)?'Lista':'JSON';$('key-count').textContent=keys.length;$('keys').innerHTML=keys.length?keys.map(key=>'<span class="chip">'+escapeHtml(key)+'</span>').join(''):'<span class="muted">Sin claves de primer nivel</span>';$('catalog-note').textContent=candidates.length?'Colecciones detectadas: '+candidates.map(item=>item.path+' ('+item.count+')').join(' · '):'No se detectaron colecciones de catálogo en la respuesta; revisaremos la estructura antes de conectar el selector.';$('preview').textContent=json.slice(0,6000)+(json.length>6000?'\n… respuesta recortada':'')}).catch(error=>{$('status').className='status error';$('status').textContent='No se pudo consultar desde el navegador';$('keys').innerHTML='<span class="muted">Sin datos disponibles</span>';$('catalog-note').textContent='Motivo técnico: '+error.message+'. Puede ser un bloqueo CORS o una limitación del endpoint. No se ha enviado ningún dato.'});
+  </script>
+</body>
+</html>
