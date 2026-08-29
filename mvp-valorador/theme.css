@@ -21,21 +21,24 @@
   --container-max: 1440px;
 }
 
-body.theme-light, html.theme-light {
+:root[data-theme="light"],
+html.theme-light,
+body.theme-light,
+.theme-light {
   color-scheme: light;
-  --bg-base: #f3f7f5;
-  --bg-surface: #ffffff;
-  --bg-surface-elevated: #ffffff;
-  --bg-subtle: #e8f0ec;
-  --ink-primary: #072230;
-  --ink-secondary: #3d5a68;
-  --ink-muted: #6e8996;
-  --brand-orange: #fc4c02;
-  --brand-orange-hover: #e04300;
-  --border-subtle: #d0e0d8;
-  --border-active: #208560;
-  --card-shadow: 0 12px 36px rgba(7, 34, 48, 0.07);
-  --header-glass: rgba(243, 247, 245, 0.94);
+  --bg-base: #f3f7f5 !important;
+  --bg-surface: #ffffff !important;
+  --bg-surface-elevated: #ffffff !important;
+  --bg-subtle: #e8f0ec !important;
+  --ink-primary: #072230 !important;
+  --ink-secondary: #3d5a68 !important;
+  --ink-muted: #6e8996 !important;
+  --brand-orange: #fc4c02 !important;
+  --brand-orange-hover: #e04300 !important;
+  --border-subtle: #d0e0d8 !important;
+  --border-active: #208560 !important;
+  --card-shadow: 0 12px 36px rgba(7, 34, 48, 0.07) !important;
+  --header-glass: rgba(243, 247, 245, 0.94) !important;
 }
 
 * {
@@ -52,7 +55,6 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Contenedor Full-Width Panorámico y Fluido */
 .site-shell, .landing-shell, .page, .demo-app, .app {
   max-width: var(--container-max) !important;
   width: 100% !important;
@@ -64,7 +66,6 @@ body {
   padding-bottom: 64px;
 }
 
-/* Componente Header Universal CocheCierto */
 .site-header, .landing-nav {
   display: flex !important;
   align-items: center !important;

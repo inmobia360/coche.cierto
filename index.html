@@ -59,17 +59,27 @@
       </div>
       <p class="microcopy">Gratis · Sin compromiso · Orientación independiente</p>
     </div>
-    <div class="hero-visual" aria-label="Comienza tu valoración">
-      <div class="mini-form">
-        <p class="eyebrow">CocheCierto Decide · 5 minutos</p>
-        <h2>¿Qué quieres hacer ahora?</h2>
-        <div class="mini-choices">
-          <button class="mini-choice selected" data-intent="buy">Comprar</button>
-          <button class="mini-choice" data-intent="change">Cambiar mi coche</button>
-          <button class="mini-choice" data-intent="inform">Solo informarme</button>
+        <div class="hero-visual" aria-label="Comienza tu valoración">
+      <div class="hero-card-container">
+        <div class="hero-card-header-art">
+          <img src="hero-car-header.png" alt="CocheCierto Decide" class="hero-car-image" width="380" height="170">
         </div>
-        <button class="button mini-submit" id="miniStart" type="button">Continuar</button>
-        <p class="mini-note">Sin registro para empezar</p>
+        <div class="mini-form" id="miniForm">
+          <p class="mini-eyebrow">COCHECIERTO DECIDE - 5 MINUTOS</p>
+          <div class="mini-choices" role="radiogroup" aria-label="Objetivo de compra">
+            <button class="mini-choice" data-intent="buy" type="button" role="radio" aria-checked="false">
+              <span>Comprar</span>
+            </button>
+            <button class="mini-choice selected" data-intent="change" type="button" role="radio" aria-checked="true">
+              <span>Cambiar mi coche</span>
+            </button>
+            <button class="mini-choice" data-intent="explore" type="button" role="radio" aria-checked="false">
+              <span>Solo informarme</span>
+            </button>
+          </div>
+          <button class="button mini-submit" id="miniStart" type="button">Continuar</button>
+          <p class="mini-note">Sin registro para empezar</p>
+        </div>
       </div>
     </div>
   </section>

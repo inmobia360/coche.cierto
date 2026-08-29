@@ -2,14 +2,14 @@
 .landing-hero {
   min-height: 580px;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(380px, 0.85fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
   align-items: center;
-  gap: clamp(40px, 6vw, 90px);
-  padding: 32px 0 60px;
+  gap: clamp(36px, 5vw, 80px);
+  padding: 24px 0 54px;
 }
 
 .hero-copy h1 {
-  font-size: clamp(44px, 5.8vw, 82px);
+  font-size: clamp(44px, 5.6vw, 80px);
   line-height: 1.0;
   letter-spacing: -0.04em;
   max-width: 760px;
@@ -21,7 +21,7 @@
   font-size: 20px;
   line-height: 1.55;
   color: var(--ink-secondary);
-  max-width: 650px;
+  max-width: 620px;
 }
 
 .hero-actions {
@@ -66,73 +66,136 @@
   color: var(--ink-muted);
 }
 
+/* Mockup Hero Card Container */
 .hero-visual {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-card-container {
+  width: min(100%, 390px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.hero-card-header-art {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: -22px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-car-image {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
 }
 
 .mini-form {
   position: relative;
   z-index: 1;
-  background: var(--bg-surface);
-  color: var(--ink-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg, 20px);
-  padding: 32px 28px;
-  width: min(100%, 420px);
-  box-shadow: var(--card-shadow);
+  background: #fafbf9;
+  color: #072230;
+  border-radius: 28px;
+  padding: 36px 26px 24px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(0, 14, 25, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.mini-form h2 {
-  font-size: 24px;
-  line-height: 1.15;
-  margin: 12px 0 20px;
-  color: var(--ink-primary);
-  letter-spacing: -0.02em;
+body.theme-light .mini-form, html.theme-light .mini-form {
+  background: #ffffff;
+  border: 1px solid #dce8e3;
+  box-shadow: 0 20px 50px rgba(7, 34, 48, 0.10);
+}
+
+.mini-eyebrow {
+  color: #fc4c02;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0 0 18px;
 }
 
 .mini-choices {
   display: grid;
-  gap: 10px;
+  gap: 11px;
 }
 
 .mini-choice {
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm, 10px);
-  color: var(--ink-primary);
+  background: #ffffff;
+  border: 1px solid #d6e2dd;
+  border-radius: 14px;
+  color: #072230;
   cursor: pointer;
   font: inherit;
   font-size: 15px;
-  font-weight: 500;
-  padding: 14px 18px;
+  font-weight: 600;
+  padding: 15px 18px;
   text-align: left;
   transition: all 0.18s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
 }
 
 .mini-choice:hover {
-  border-color: var(--brand-orange);
-  background: var(--bg-surface);
+  border-color: #fc4c02;
+  transform: translateY(-1px);
 }
 
 .mini-choice.selected {
-  border-color: var(--brand-orange);
-  background: rgba(252, 76, 2, 0.10);
-  box-shadow: 0 0 0 1px var(--brand-orange);
+  background: #eaf4f0 !important;
+  border: 1.5px solid #287a61 !important;
+  color: #072230 !important;
+  box-shadow: 0 4px 14px rgba(40, 122, 97, 0.14) !important;
+  position: relative;
+}
+
+.mini-choice.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  background: #fc4c02;
+  border-radius: 0 4px 4px 0;
 }
 
 .mini-submit {
   width: 100%;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 18px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 14px;
+  background: #fc4c02;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(252, 76, 2, 0.38);
+}
+
+.mini-submit:hover {
+  background: #ff5e1c;
 }
 
 .mini-note {
-  color: var(--ink-muted);
+  color: #6a8694;
   font-size: 12px;
   text-align: center;
-  margin: 14px 0 0;
+  margin: 12px 0 0;
 }
 
 .landing-proof {
@@ -199,8 +262,8 @@
   .landing-hero {
     grid-template-columns: 1fr;
     min-height: auto;
-    padding: 30px 0 40px;
-    gap: 32px;
+    padding: 24px 0 40px;
+    gap: 36px;
   }
   .landing-proof { grid-template-columns: 1fr; gap: 20px; }
   .demo-band { flex-direction: column; align-items: flex-start; }

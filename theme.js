@@ -14,9 +14,22 @@
 
   function applyTheme(theme) {
     const isLight = theme === 'light';
-    document.documentElement.classList.toggle('theme-light', isLight);
+    if (isLight) {
+      document.documentElement.classList.add('theme-light');
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.classList.remove('theme-light');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    
     if (document.body) {
-      document.body.classList.toggle('theme-light', isLight);
+      if (isLight) {
+        document.body.classList.add('theme-light');
+        document.body.setAttribute('data-theme', 'light');
+      } else {
+        document.body.classList.remove('theme-light');
+        document.body.setAttribute('data-theme', 'dark');
+      }
     }
     updateButtons(isLight);
   }
