@@ -31,7 +31,18 @@
         document.body.setAttribute('data-theme', 'dark');
       }
     }
+    updateCarImage(isLight);
     updateButtons(isLight);
+  }
+
+  function updateCarImage(isLight) {
+    const carImg = document.querySelector('#heroCarImg');
+    if (carImg) {
+      const targetSrc = isLight ? 'hero-car-light.png' : 'hero-car-dark.png';
+      if (!carImg.src.endsWith(targetSrc)) {
+        carImg.src = targetSrc;
+      }
+    }
   }
 
   function updateButtons(isLight) {
