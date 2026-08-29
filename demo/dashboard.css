@@ -1,17 +1,6 @@
 /* CocheCierto - Demo Dashboard Styles */
-.demo-app {
-  max-width: var(--container-max, 1440px);
-  margin: 0 auto;
-  padding: 24px clamp(20px, 4vw, 56px) 60px;
-}
-
-.eyebrow {
-  margin: 0;
-  color: var(--brand-orange);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.demo-page {
+  padding: 0 0 60px;
 }
 
 .demo-intro {
@@ -19,7 +8,7 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 40px;
-  padding: 48px 0 40px;
+  padding: 48px 0 36px;
 }
 
 .demo-intro h1 {
@@ -350,6 +339,68 @@
   color: var(--ink-secondary);
 }
 
+.search-spec {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.search-spec div {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 10px);
+  padding: 14px 16px;
+}
+
+.search-spec span {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-secondary);
+  margin-bottom: 4px;
+}
+
+.search-spec strong {
+  display: block;
+  font-size: 15px;
+  color: var(--ink-primary);
+}
+
+.cost-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.cost-list div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.cost-list div span {
+  color: var(--ink-secondary);
+}
+
+.cost-list div strong {
+  color: var(--ink-primary);
+}
+
+.cost-list div.cost-total {
+  border-top: 2px solid var(--border-subtle);
+  border-bottom: 0;
+  padding-top: 12px;
+  font-size: 16px;
+}
+
+.cost-list div.cost-total strong {
+  color: var(--brand-orange);
+  font-size: 18px;
+}
+
 .scenario-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -374,6 +425,7 @@
   font-weight: 700;
   color: var(--brand-orange);
   letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .scenario h4 {
@@ -388,8 +440,14 @@
 }
 
 .scenario small {
-  margin-top: 14px;
+  margin-top: 6px;
   font-size: 12px;
+}
+
+.scenario p {
+  font-size: 13px;
+  margin-top: 12px;
+  color: var(--ink-primary);
 }
 
 .lower {
@@ -465,10 +523,11 @@
   .profile-tabs { justify-content: flex-start; margin-top: 16px; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
   .content-grid { grid-template-columns: 1fr; }
+  .search-spec { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media(max-width: 600px) {
-  .metric-grid, .scenario-grid { grid-template-columns: 1fr; }
+  .metric-grid, .scenario-grid, .search-spec { grid-template-columns: 1fr; }
   .panel-top { display: block; }
   .panel-top > strong { display: block; margin-top: 8px; }
   .demo-footer { flex-direction: column; }

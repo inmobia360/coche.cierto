@@ -20,40 +20,40 @@
   <script src="../site-header.js" defer></script>
 </head>
 <body class="inner-page">
-<main class="demo-app">
-  <header class="site-header"></header>
+  <div class="site-shell">
+    <header class="site-header"></header>
 
-  <section class="demo-intro">
-    <div>
-      <p class="eyebrow">Muestra interactiva CocheCierto</p>
-      <h1>Compra con más claridad antes de comprometer tu dinero.</h1>
-      <p>Elige un perfil y descubre cómo nuestro informe convierte tus respuestas en una estrategia práctica de compra y verificación.</p>
-    </div>
-    <div class="demo-actions">
-      <a class="nav-cta" href="../valorador/?source=demo&intent=buy">Crear mi diagnóstico</a>
-      <button class="demo-button demo-button-light" id="printReport" type="button">Descargar PDF</button>
-      <button class="demo-button demo-button-light" id="shareReport" type="button">Compartir demo</button>
-    </div>
-  </section>
+    <main class="page demo-page">
+      <section class="demo-intro">
+        <div>
+          <p class="eyebrow">Muestra interactiva CocheCierto</p>
+          <h1>Compra con más claridad antes de comprometer tu dinero.</h1>
+          <p>Elige un perfil y descubre cómo nuestro informe convierte tus respuestas en una estrategia práctica de compra y verificación.</p>
+        </div>
+        <div class="demo-actions">
+          <a class="nav-cta" href="../valorador/?source=demo&intent=buy">Crear mi diagnóstico</a>
+          <button class="demo-button demo-button-light" id="printReport" type="button">Descargar PDF</button>
+          <button class="demo-button demo-button-light" id="shareReport" type="button">Compartir demo</button>
+        </div>
+      </section>
 
-  <section class="profile-picker" aria-labelledby="profileTitle">
-    <div>
-      <p class="eyebrow">Explora un caso real</p>
-      <h2 id="profileTitle">¿Qué situación se parece más a la tuya?</h2>
-    </div>
-    <div class="profile-tabs" id="profileTabs" role="tablist" aria-label="Perfiles del informe"></div>
-  </section>
+      <section class="profile-picker" aria-labelledby="profileTitle">
+        <div>
+          <p class="eyebrow">Explora un caso real</p>
+          <h2 id="profileTitle">¿Qué situación se parece más a la tuya?</h2>
+        </div>
+        <div class="profile-tabs" id="profileTabs" role="tablist" aria-label="Perfiles del informe"></div>
+      </section>
 
-  <section id="dashboard" aria-live="polite"></section>
+      <section id="dashboard" aria-live="polite"></section>
 
-  <footer class="demo-footer">
-    <span>Datos simulados para ilustrar la metodología y el formato del informe.</span>
-    <a href="../valorador/?source=demo&intent=buy">Hacer mi valoración real →</a>
-  </footer>
-</main>
+      <footer class="demo-footer">
+        <span>Datos simulados para ilustrar la metodología y el formato del informe.</span>
+        <a href="../valorador/?source=demo&intent=buy">Hacer mi valoración real →</a>
+      </footer>
+    </main>
+  </div>
 
-<script src="dashboard.js?v=20260829-3"></script>
-<script src="demo-enhancements.js?v=20260829-2"></script>
-<script src="demo-detail.js?v=20260829-2"></script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
