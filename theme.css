@@ -82,15 +82,15 @@ body {
   gap: 10px !important;
   color: var(--ink-primary) !important;
   text-decoration: none !important;
-  font-size: 22px !important;
+  font-size: 25px !important;
   font-weight: 800 !important;
   letter-spacing: -0.04em !important;
   flex-shrink: 0;
 }
 
 .brand-lockup img, .site-brand img {
-  width: 36px !important;
-  height: 36px !important;
+  width: 42px !important;
+  height: 42px !important;
   display: block;
 }
 
@@ -110,8 +110,8 @@ body {
 .nav-links a, .landing-menu a, .site-nav a {
   color: var(--ink-secondary) !important;
   text-decoration: none !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
   transition: color 0.18s ease !important;
   position: relative;
   padding: 6px 0;
@@ -133,7 +133,8 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
+  box-shadow: 0 0 10px var(--brand-orange), 0 0 18px rgba(252, 76, 2, 0.55);
   background-color: var(--brand-orange);
   border-radius: 2px;
 }
@@ -205,27 +206,41 @@ body {
 }
 
 @media (max-width: 880px) {
+  .site-header, .landing-nav { padding: 8px 0 16px !important; }
+  .brand-lockup, .site-brand { font-size: 22px !important; }
+  .brand-lockup img, .site-brand img { width: 38px !important; height: 38px !important; }
   .mobile-menu-btn {
     display: inline-flex !important;
   }
   .nav-links, .landing-menu, .site-nav {
     display: none !important;
     position: absolute !important;
-    top: 100% !important;
+    top: calc(100% + 8px) !important;
     left: 0 !important;
     right: 0 !important;
     background: var(--bg-surface-elevated) !important;
     border: 1px solid var(--border-subtle) !important;
     border-radius: var(--radius-md) !important;
-    padding: 20px !important;
+    padding: 12px !important;
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 16px !important;
+    gap: 4px !important;
     box-shadow: var(--card-shadow) !important;
   }
   .nav-links.is-open, .landing-menu.is-open, .site-nav.is-open {
     display: flex !important;
   }
+  .nav-links a, .landing-menu a, .site-nav a {
+    width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 16px !important;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible,
+  .landing-menu a:hover, .landing-menu a:focus-visible { background: var(--bg-subtle); }
 }
 
 .eyebrow {

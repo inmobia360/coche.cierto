@@ -47,8 +47,8 @@
           <section class="landing-hero-panoramic">
     <div class="hero-upper-grid">
       <div class="hero-copy">
-        <p class="hero-eyebrow">— VALORADOR DE COCHES</p>
-        <h1 class="hero-title">El coche correcto para<br><span class="highlight-orange">tu vida y tu bolsillo.</span></h1>
+        <p class="hero-eyebrow">— VALORADOR INDEPENDIENTE DE COCHES</p>
+        <h1 class="hero-title">El coche correcto<br>para <span class="highlight-orange">tu vida</span> y<br><span class="highlight-orange">tu bolsillo.</span></h1>
         <p class="hero-lead">Descubre qué tipo de coche estudiar, cuánto tiene sentido gastar y qué debes comprobar antes de entregar una señal.</p>
         
         <div class="hero-trust-chips">
@@ -68,13 +68,13 @@
         <div class="hero-studio-lighting"></div>
 
         <!-- Tarjeta HUD 1: Encaje (Puzzle) -->
-        <div class="hud-card hud-encaje" aria-label="Encaje 88%">
+        <div class="hud-card hud-encaje" aria-label="Encaje según tu perfil">
           <div class="hud-icon-badge">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7s2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"/></svg>
           </div>
           <div class="hud-content">
             <span class="hud-label">Encaje</span>
-            <strong class="hud-val">88%</strong>
+            <strong class="hud-val">A tu medida</strong>
           </div>
           <div class="hud-connector connector-encaje">
             <span class="connector-line"></span>
@@ -83,13 +83,13 @@
         </div>
 
         <!-- Tarjeta HUD 2: Coste Real (Euro) -->
-        <div class="hud-card hud-coste" aria-label="Coste real 365 €/mes">
+        <div class="hud-card hud-coste" aria-label="Coste real según tu perfil">
           <div class="hud-icon-badge">
             <span class="hud-currency">€</span>
           </div>
           <div class="hud-content">
             <span class="hud-label">Coste real</span>
-            <strong class="hud-val">365 <small>€/mes</small></strong>
+            <strong class="hud-val">Según tu perfil</strong>
           </div>
           <div class="hud-connector connector-coste">
             <span class="connector-line"></span>
@@ -99,17 +99,18 @@
 
         <!-- Coche Central Oficial en Escenario de Estudio -->
         <div class="hero-car-stage">
-          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="640" height="350">
+          <img id="heroSuvImg" src="hero-suv-orange-anonimo.png" alt="SUV genérico naranja de referencia para el diagnóstico CocheCierto" class="hero-car-image coche-cabecera hero-suv-anonymous hero-suv-orange" width="640" height="427">
+          <img src="hero-suv-blue-anonimo.png" alt="SUV genérico azul de referencia para el diagnóstico CocheCierto" class="hero-car-image coche-cabecera hero-suv-anonymous hero-suv-blue" width="640" height="427" aria-hidden="true">
         </div>
 
         <!-- Tarjeta HUD 3: Riesgo Pendiente (Warning) -->
-        <div class="hud-card hud-riesgo" aria-label="Riesgo pendiente Medio">
+        <div class="hud-card hud-riesgo" aria-label="Puntos pendientes de comprobar">
           <div class="hud-icon-badge warning">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           </div>
           <div class="hud-content">
             <span class="hud-label">Riesgo pendiente</span>
-            <strong class="hud-val highlight-orange">Medio</strong>
+            <strong class="hud-val highlight-orange">Por comprobar</strong>
           </div>
           <div class="hud-connector connector-riesgo">
             <span class="connector-line"></span>
@@ -122,15 +123,15 @@
     <!-- Barra de Valoración Horizontal con 3 Selectores -->
     <div class="hero-integrated-bar" id="heroValuatorBar">
       <div class="bar-tag-row">
-        <span class="bar-step-tag">EMPIEZA TU DIAGNÓSTICO</span>
+        <span class="bar-step-tag">VALORADOR GRATUITO AL INSTANTE</span>
       </div>
 
       <form class="bar-controls-grid" id="heroQuickForm" onsubmit="return false;">
         <div class="bar-field">
-          <label for="quickIntent">¿Qué quieres hacer?</label>
+          <label for="quickIntent">¿Qué quieres hacer ahora?</label>
           <div class="select-wrapper">
             <select id="quickIntent" name="intent">
-              <option value="buy" selected>Comprar coche</option>
+              <option value="buy" selected>Comprar</option>
               <option value="change">Cambiar mi coche</option>
               <option value="inform">Solo informarme</option>
             </select>
@@ -138,28 +139,26 @@
         </div>
 
         <div class="bar-field">
-          <label for="quickUse">¿Para qué lo usarás?</label>
+          <label for="quickWindow">¿Cuándo crees que decidirás?</label>
           <div class="select-wrapper">
-            <select id="quickUse" name="use">
-              <option value="mixed" selected>Ciudad y carretera</option>
-              <option value="city">Principalmente ciudad</option>
-              <option value="road">Mucha carretera</option>
-              <option value="family">Uso familiar</option>
-              <option value="work">Trabajo o negocio</option>
+            <select id="quickWindow" name="window">
+              <option value="0-3" selected>En 0–3 meses</option>
+              <option value="3-6">En 3–6 meses</option>
+              <option value="6+">En más de 6 meses</option>
+              <option value="unknown">Todavía no lo sé</option>
             </select>
           </div>
         </div>
 
         <div class="bar-field">
-          <label for="quickBudget">Presupuesto total</label>
+          <label for="quickUse">¿Para qué usarás principalmente el coche?</label>
           <div class="select-wrapper">
-            <select id="quickBudget" name="budget">
-              <option value="3-5">3.000 – 5.000 €</option>
-              <option value="5-8" selected>5.000 – 8.000 €</option>
-              <option value="8-15">8.000 – 15.000 €</option>
-              <option value="15-25">15.000 – 25.000 €</option>
-              <option value="25-40">25.000 – 40.000 €</option>
-              <option value="over-40">Más de 40.000 €</option>
+            <select id="quickUse" name="use">
+              <option value="mixed" selected>Ciudad y carretera</option>
+              <option value="city">Ciudad</option>
+              <option value="road">Carretera</option>
+              <option value="work">Trabajo</option>
+              <option value="family">Familia</option>
             </select>
           </div>
         </div>
@@ -194,6 +193,17 @@
     </div>
   </section>
 
+  <section class="pain-visuals" aria-label="Decisiones reales de compra">
+    <article class="visual-card">
+      <img src="buyer-check.png" alt="Comprador revisando una lista antes de adquirir un coche de ocasión">
+      <div>
+        <p class="eyebrow">Antes de mirar anuncios</p>
+        <h2>Primero entiende qué puedes asumir.</h2>
+        <p>Una decisión tranquila empieza por conocer tus prioridades, tu margen y las comprobaciones que no debes saltarte.</p>
+      </div>
+    </article>
+  </section>
+
   <section class="pain-points" aria-labelledby="pain-title">
     <div>
       <p class="eyebrow">Comprar ocasión sin ir a ciegas</p>
@@ -207,15 +217,7 @@
     </div>
   </section>
 
-  <section class="pain-visuals" aria-label="Decisiones reales de compra">
-    <article class="visual-card">
-      <img src="buyer-check.png" alt="Comprador revisando una lista antes de adquirir un coche de ocasión">
-      <div>
-        <p class="eyebrow">Antes de mirar anuncios</p>
-        <h2>Primero entiende qué puedes asumir.</h2>
-        <p>Una decisión tranquila empieza por conocer tus prioridades, tu margen y las comprobaciones que no debes saltarte.</p>
-      </div>
-    </article>
+  <section class="pain-visuals" aria-label="Decisiones reales de compra: comprobar el encaje">
     <article class="visual-card reverse">
       <img src="family-fit.png" alt="Familia comprobando el espacio del maletero de un coche de ocasión">
       <div>
@@ -259,7 +261,7 @@
       <h2>Mira cómo es el informe.</h2>
       <p>Consulta una muestra del resultado para saber qué información recibirás.</p>
     </div>
-    <a class="button secondary" href="./demo/">Abrir informe demo</a>
+    <a class="button demo-cta" href="./demo/" aria-label="Ver un ejemplo del informe CocheCierto">Ver el informe demo <span aria-hidden="true">→</span></a>
   </section>
 
   <footer class="landing-footer">

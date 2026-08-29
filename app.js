@@ -8,11 +8,12 @@
   if (quickSubmit) {
     quickSubmit.addEventListener('click', () => {
       const intent = document.querySelector('#quickIntent')?.value || 'buy';
+      const windowValue = document.querySelector('#quickWindow')?.value || '0-3';
       const use = document.querySelector('#quickUse')?.value || 'mixed';
-      const budget = document.querySelector('#quickBudget')?.value || '5-8';
       
-      const query = new URLSearchParams({ intent, use, budget, skipIntro: '1' }).toString();
-      window.location.href = './valorador/?' + query;
+      const query = new URLSearchParams({ intent, window: windowValue, use, skipIntro: '1' }).toString();
+      const nextUrl = './valorador/?' + query;
+      window.open(nextUrl, '_blank', 'noopener,noreferrer');
     });
   }
 

@@ -130,14 +130,25 @@ html.theme-light .hero-studio-lighting {
   transition: transform 0.3s ease !important;
 }
 
+.hero-car-image.hero-suv-blue { display: none !important; }
+
+body.theme-light .hero-car-image.hero-suv-orange,
+html.theme-light .hero-car-image.hero-suv-orange { display: none !important; }
+
+body.theme-light .hero-car-image.hero-suv-blue,
+html.theme-light .hero-car-image.hero-suv-blue {
+  display: block !important;
+  mix-blend-mode: screen;
+}
+
 /* Animación Pulsante / Respiración en las Tarjetas HUD */
 @keyframes hudCardPulse {
   0%, 100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(0.92);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 16px rgba(252, 76, 2, 0.18);
   }
   50% {
-    transform: translateY(-6px) scale(1.03);
+    transform: translateY(-4px) scale(0.95);
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 28px rgba(252, 76, 2, 0.55);
   }
 }
@@ -162,10 +173,12 @@ html.theme-light .hero-studio-lighting {
   background: rgba(7, 34, 48, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
-  padding: 12px 18px;
+  padding: 9px 13px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  transform: scale(0.92);
+  transform-origin: center;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(14px);
   animation: hudCardPulse 4s ease-in-out infinite;
@@ -182,7 +195,7 @@ html.theme-light .hud-card {
 
 .hud-card:hover {
   border-color: #fc4c02;
-  transform: translateY(-8px) scale(1.04);
+  transform: translateY(-6px) scale(0.97);
 }
 
 /* Posiciones HUD */
@@ -252,6 +265,12 @@ body.theme-light .hud-val {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-secondary);
+}
+
+.hud-encaje .hud-val,
+.hud-coste .hud-val,
+.hud-riesgo .hud-val {
+  font-size: clamp(16px, 1.35vw, 20px);
 }
 
 /* Líneas Conectoras de Puntos */
@@ -388,7 +407,8 @@ html.theme-light .hero-integrated-bar {
   font-size: 13px;
   font-weight: 700;
   color: #072230;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .select-wrapper {
@@ -568,10 +588,26 @@ html.theme-light .hero-integrated-bar {
 }
 
 @media(max-width: 540px) {
+  .landing-hero-panoramic { padding-top: 4px; gap: 24px; }
+  .hero-title { font-size: clamp(34px, 10vw, 48px); line-height: 1.02; }
+  .hero-lead { font-size: 16px; }
+  .hero-visual-wrapper { min-height: 300px; }
+  .hero-car-image, .coche-cabecera { max-width: 100% !important; }
+  .hud-card { padding: 7px 9px; gap: 7px; }
+  .hud-icon-badge { width: 32px; height: 32px; }
+  .hud-label { font-size: 10px; }
+  .hud-encaje { left: -8px; }
+  .hud-coste { right: -8px; }
+  .hud-riesgo { right: -8px; bottom: 4px; }
+  .hero-integrated-bar { padding: 20px 16px !important; border-radius: 18px !important; }
   .bar-controls-grid {
     grid-template-columns: 1fr;
   }
   .bar-action {
     grid-column: span 1;
   }
+  .bar-submit-btn { width: 100% !important; }
+  .landing-proof { grid-template-columns: 1fr; gap: 24px; padding: 36px 0; }
+  .demo-band { flex-direction: column; align-items: stretch; padding: 28px 22px; }
+  .demo-cta { width: 100%; }
 }

@@ -57,7 +57,7 @@
   function updateCarImage(isLight) {
     const carImg = document.querySelector('#heroCarImg');
     if (carImg) {
-      const targetSrc = isLight ? 'hero-car-light.png' : 'hero-car-dark.png';
+      const targetSrc = 'hero-suv-anonimo.png';
       if (!carImg.src.endsWith(targetSrc)) {
         carImg.src = targetSrc;
       }
