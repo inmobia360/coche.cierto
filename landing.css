@@ -1,24 +1,28 @@
-/* CocheCierto - Landing Panoramic Hero Styles */
+/* CocheCierto - Landing Styles Consolidado */
+
+/* ==========================================================================
+   1. HERO PANORÁMICO Y VEHÍCULO FLOTANTE
+   ========================================================================== */
 
 .landing-hero-panoramic {
   position: relative;
-  padding: 24px 0 48px;
+  padding: 16px 0 48px;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 32px;
 }
 
 .hero-upper-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
   align-items: center;
-  gap: clamp(32px, 5vw, 70px);
+  gap: clamp(32px, 5vw, 60px);
   position: relative;
-  min-height: 420px;
+  min-height: 380px;
 }
 
 .hero-copy {
-  max-width: 680px;
+  max-width: 650px;
   position: relative;
   z-index: 2;
 }
@@ -26,17 +30,17 @@
 .hero-eyebrow {
   margin: 0 0 16px;
   color: var(--brand-orange);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .hero-title {
-  font-size: clamp(44px, 5.8vw, 76px);
-  line-height: 1.0;
+  font-size: clamp(40px, 5.5vw, 72px);
+  line-height: 1.02;
   letter-spacing: -0.04em;
-  margin: 0 0 22px;
+  margin: 0 0 20px;
   color: var(--ink-primary);
   font-weight: 800;
 }
@@ -49,29 +53,29 @@
   font-size: 19px;
   line-height: 1.55;
   color: var(--ink-secondary);
-  max-width: 580px;
+  max-width: 560px;
   margin: 0;
 }
 
-/* Visual Stage con Círculo y Coche */
+/* Escenario Visual del Coche Flotante */
 .hero-visual-wrapper {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 380px;
+  min-height: 340px;
 }
 
 .hero-circle-backdrop {
   position: absolute;
-  width: clamp(280px, 32vw, 420px);
-  height: clamp(280px, 32vw, 420px);
+  width: clamp(260px, 28vw, 380px);
+  height: clamp(260px, 28vw, 380px);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fc4c02 0%, #f59e0b 55%, rgba(252, 76, 2, 0.15) 100%);
-  opacity: 0.88;
+  opacity: 0.85;
   filter: blur(1px);
   z-index: 1;
-  transform: translate(20px, -10px);
+  transform: translate(25px, -10px);
   transition: background 0.3s ease;
 }
 
@@ -90,15 +94,15 @@ html.theme-light .hero-circle-backdrop {
   align-items: center;
 }
 
-/* Animación Breathing en el Coche */
+/* Animación Breathing en el Coche Flotante */
 @keyframes carBreathing {
   0%, 100% {
     transform: translateY(0) scale(1);
-    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35));
   }
   50% {
-    transform: translateY(-6px) scale(1.02);
-    filter: drop-shadow(0 18px 32px rgba(252, 76, 2, 0.40));
+    transform: translateY(-8px) scale(1.025);
+    filter: drop-shadow(0 22px 38px rgba(252, 76, 2, 0.45));
   }
 }
 
@@ -114,7 +118,7 @@ html.theme-light .hero-circle-backdrop {
 }
 
 .hero-car-image:hover, .coche-cabecera:hover {
-  transform: translateY(-8px) scale(1.035);
+  transform: translateY(-10px) scale(1.04);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -127,14 +131,14 @@ html.theme-light .hero-circle-backdrop {
 /* Chip Flotante Conector */
 .hero-floating-chip {
   position: absolute;
-  bottom: 12px;
-  right: 28px;
+  bottom: 8px;
+  right: 24px;
   z-index: 3;
   background: var(--bg-surface);
   color: var(--ink-primary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill, 999px);
-  padding: 8px 16px;
+  padding: 8px 18px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -150,27 +154,30 @@ html.theme-light .hero-circle-backdrop {
   font-size: 14px;
 }
 
-/* Barra de Valoración Horizontal Integrada */
+/* ==========================================================================
+   2. BARRA DE VALORACIÓN HORIZONTAL INTEGRADA
+   ========================================================================== */
+
 .hero-integrated-bar {
-  background: #ffffff;
-  color: #072230;
-  border-radius: 20px;
-  padding: 24px 32px;
-  box-shadow: 0 20px 50px rgba(0, 14, 25, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  display: grid;
-  grid-template-columns: minmax(220px, 1.1fr) minmax(0, 2.5fr);
-  align-items: center;
-  gap: 32px;
-  position: relative;
-  z-index: 4;
+  background: #ffffff !important;
+  color: #072230 !important;
+  border-radius: 20px !important;
+  padding: 24px 32px !important;
+  box-shadow: 0 20px 60px rgba(0, 14, 25, 0.28) !important;
+  border: 1px solid #dce8e3 !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2.6fr) !important;
+  align-items: center !important;
+  gap: 32px !important;
+  position: relative !important;
+  z-index: 4 !important;
 }
 
 body.theme-light .hero-integrated-bar,
 html.theme-light .hero-integrated-bar {
-  background: #ffffff;
-  border: 1px solid #dce8e3;
-  box-shadow: 0 16px 45px rgba(7, 34, 48, 0.08);
+  background: #ffffff !important;
+  border: 1px solid #dce8e3 !important;
+  box-shadow: 0 16px 45px rgba(7, 34, 48, 0.08) !important;
 }
 
 .bar-intro {
@@ -229,30 +236,31 @@ html.theme-light .hero-integrated-bar {
 }
 
 .select-wrapper select {
-  width: 100%;
-  appearance: none;
-  background-color: #f7faf8;
-  border: 1px solid #d2e0d8;
-  border-radius: 12px;
-  padding: 13px 36px 13px 14px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #072230;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.18s ease;
-  font-family: inherit;
+  width: 100% !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: #f7faf8 !important;
+  border: 1.5px solid #d2e0d8 !important;
+  border-radius: 12px !important;
+  padding: 13px 36px 13px 14px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #072230 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.18s ease !important;
+  font-family: inherit !important;
 }
 
 .select-wrapper select:hover {
-  border-color: #fc4c02;
-  background-color: #ffffff;
+  border-color: #fc4c02 !important;
+  background-color: #ffffff !important;
 }
 
 .select-wrapper select:focus {
-  border-color: #fc4c02;
-  box-shadow: 0 0 0 3px rgba(252, 76, 2, 0.15);
-  background-color: #ffffff;
+  border-color: #fc4c02 !important;
+  box-shadow: 0 0 0 3px rgba(252, 76, 2, 0.18) !important;
+  background-color: #ffffff !important;
 }
 
 .select-wrapper::after {
@@ -273,28 +281,30 @@ html.theme-light .hero-integrated-bar {
 }
 
 .bar-submit-btn {
-  background-color: #fc4c02;
-  color: #ffffff;
-  border: 0;
-  border-radius: 12px;
-  padding: 13px 22px;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(252, 76, 2, 0.35);
-  transition: all 0.18s ease;
-  height: 46px;
+  background-color: #fc4c02 !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  padding: 13px 24px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 6px 18px rgba(252, 76, 2, 0.35) !important;
+  transition: all 0.18s ease !important;
+  height: 46px !important;
+  text-decoration: none !important;
 }
 
 .bar-submit-btn:hover {
-  background-color: #ff5e1c;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.45);
+  background-color: #ff5e1c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.45) !important;
 }
 
 .bar-submit-btn svg {
@@ -305,7 +315,10 @@ html.theme-light .hero-integrated-bar {
   transform: translate(2px, -2px);
 }
 
-/* Landing Proofs & Content */
+/* ==========================================================================
+   3. SECCIONES DE CONTENIDO
+   ========================================================================== */
+
 .landing-proof {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -366,12 +379,15 @@ html.theme-light .hero-integrated-bar {
   border-top: 1px solid var(--border-subtle);
 }
 
-/* Responsiveness */
+/* ==========================================================================
+   4. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
 @media(max-width: 1060px) {
   .hero-integrated-bar {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 24px;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 24px !important;
   }
 }
 
@@ -398,5 +414,9 @@ html.theme-light .hero-integrated-bar {
   }
   .bar-action {
     grid-column: span 1;
+  }
+  .demo-band {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
