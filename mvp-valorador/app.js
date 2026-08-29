@@ -4,30 +4,17 @@
 (function () {
   'use strict';
 
-  // Mini-form selección de objetivo
-  const miniForm = document.querySelector('#miniForm');
-  if (miniForm) {
-    const choices = miniForm.querySelectorAll('.mini-choice');
-    let selectedIntent = 'change';
-
-    choices.forEach(btn => {
-      btn.addEventListener('click', () => {
-        choices.forEach(b => {
-          b.classList.remove('selected');
-          b.setAttribute('aria-checked', 'false');
-        });
-        btn.classList.add('selected');
-        btn.setAttribute('aria-checked', 'true');
-        selectedIntent = btn.dataset.intent || 'buy';
-      });
+  // Barra de Valoración Rápida en Hero
+  const quickSubmit = document.querySelector('#heroQuickSubmit');
+  if (quickSubmit) {
+    quickSubmit.addEventListener('click', () => {
+      const intent = document.querySelector('#quickIntent')?.value || 'buy';
+      const budget = document.querySelector('#quickBudget')?.value || '12000';
+      const fuel = document.querySelector('#quickFuel')?.value || 'any';
+      
+      const query = new URLSearchParams({ intent, budget, fuel }).toString();
+      window.location.href = './valorador/?' + query;
     });
-
-    const startBtn = document.querySelector('#miniStart');
-    if (startBtn) {
-      startBtn.addEventListener('click', () => {
-        window.location.href = './valorador/?intent=' + encodeURIComponent(selectedIntent);
-      });
-    }
   }
 
   // FAQ Accordion

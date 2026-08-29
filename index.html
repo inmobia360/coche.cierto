@@ -48,39 +48,78 @@
     </div>
   </header>
 
-  <section class="landing-hero">
-    <div class="hero-copy">
-      <p class="eyebrow">Valorador de coche de ocasión</p>
-      <h1>El coche correcto<br>para <em>tu vida</em><br>y <em>tu bolsillo</em>.</h1>
-      <p class="hero-lead">Responde unas preguntas y recibe una orientación clara sobre qué tipo de coche estudiar, cuánto tiene sentido gastar y qué debes comprobar antes de comprar.</p>
-      <div class="hero-actions">
-        <button class="button" id="openValuator" type="button">Valorar mi caso</button>
-        <a class="button secondary" href="./demo/">Ver informe demo</a>
+    <section class="landing-hero-panoramic">
+    <div class="hero-upper-grid">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">— VALORADOR DE COCHES</p>
+        <h1 class="hero-title">Tu próximo coche,<br><span class="highlight-orange">con certeza.</span></h1>
+        <p class="hero-lead">El coche correcto para tu vida y tu bolsillo. Descubre qué tipo de coche estudiar, cuánto tiene sentido gastar y qué debes comprobar antes de entregar una señal.</p>
       </div>
-      <p class="microcopy">Gratis · Sin compromiso · Orientación independiente</p>
+
+      <div class="hero-visual-wrapper" aria-label="Vehículo CocheCierto">
+        <div class="hero-circle-backdrop"></div>
+        <div class="hero-car-stage">
+          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="460" height="216">
+        </div>
+        <div class="hero-floating-chip">
+          <span class="chip-icon">✓</span>
+          <span class="chip-text">100% Independiente</span>
+        </div>
+      </div>
     </div>
-                <div class="hero-visual" aria-label="Comienza tu valoración">
-      <div class="hero-card-container">
-        <div class="hero-card-header-art">
-          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="380" height="155">
-        </div>
-        <div class="mini-form" id="miniForm">
-          <p class="mini-eyebrow">COCHECIERTO DECIDE - 5 MINUTOS</p>
-          <div class="mini-choices" role="radiogroup" aria-label="Objetivo de compra">
-            <button class="mini-choice" data-intent="buy" type="button" role="radio" aria-checked="false">
-              <span>Comprar</span>
-            </button>
-            <button class="mini-choice selected" data-intent="change" type="button" role="radio" aria-checked="true">
-              <span>Cambiar mi coche</span>
-            </button>
-            <button class="mini-choice" data-intent="explore" type="button" role="radio" aria-checked="false">
-              <span>Solo informarme</span>
-            </button>
-          </div>
-          <button class="button mini-submit" id="miniStart" type="button">Continuar</button>
-          <p class="mini-note">Sin registro para empezar</p>
-        </div>
+
+    <!-- Barra de Valoración Horizontal Integrada -->
+    <div class="hero-integrated-bar" id="heroValuatorBar">
+      <div class="bar-intro">
+        <span class="bar-step-tag">01 — EMPEZAMOS POR TI</span>
+        <h2 class="bar-title">Dinos qué coche buscas</h2>
+        <p class="bar-desc">Solo necesitamos tres datos para empezar a orientarte.</p>
       </div>
+
+      <form class="bar-controls" id="heroQuickForm" onsubmit="return false;">
+        <div class="bar-field">
+          <label for="quickIntent">¿Qué buscas?</label>
+          <div class="select-wrapper">
+            <select id="quickIntent" name="intent">
+              <option value="buy" selected>Comprar de ocasión</option>
+              <option value="change">Cambiar mi coche</option>
+              <option value="explore">Solo informarme</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bar-field">
+          <label for="quickBudget">Presupuesto máximo</label>
+          <div class="select-wrapper">
+            <select id="quickBudget" name="budget">
+              <option value="6000">Hasta 6.000 €</option>
+              <option value="12000" selected>6.000 – 12.000 €</option>
+              <option value="20000">12.000 – 20.000 €</option>
+              <option value="30000">Más de 20.000 €</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bar-field">
+          <label for="quickFuel">Combustible / Uso</label>
+          <div class="select-wrapper">
+            <select id="quickFuel" name="fuel">
+              <option value="any" selected>Indiferente</option>
+              <option value="gasolina">Gasolina</option>
+              <option value="diesel">Diésel</option>
+              <option value="hibrido">Híbrido / ECO</option>
+              <option value="electrico">Eléctrico / CERO</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bar-action">
+          <button class="bar-submit-btn" id="heroQuickSubmit" type="button">
+            <span>CONTINUAR</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </button>
+        </div>
+      </form>
     </div>
   </section>
 
