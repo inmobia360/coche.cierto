@@ -1,26 +1,24 @@
-# Contexto del proyecto: CocheCierto
+# Contexto del proyecto
 
-CocheCierto es una plataforma digital inteligente concebida como asesor independiente para la toma de decisión de compra de vehículos (nuevo, km 0, seminuevo y ocasión). Combina encaje de uso y perfil de vida, asequibilidad financiera y TCO (Coste Total de Propiedad), diagnóstico de riesgos e incertidumbres y recomendaciones accionables.
+Auto1 Risk Lens es una extensión Chrome Manifest V3 que analiza datos visibles de vehículos de subasta en Auto1 y muestra un ranking y diagnóstico de riesgo orientativo. Su evolución prevista es una plataforma independiente que combine encaje de uso, asequibilidad, coste total, selección y verificación de compra.
 
 ## Flujo de desarrollo
 
-Usar Spec-Driven Development (SDD): Constitución → Spec → Clarificación → Plan → Tareas → Implementación → Validación → Cambio. El agente orquestador principal es COCHECIERTO.md (o AUTO-VALORADOR.md).
+Usar Spec-Driven Development: Constitución → Spec → Clarificación → Plan → Tareas → Implementación → Validación → Cambio. El agente principal es `AUTO-VALORADOR.md`.
 
 ## Archivos de contexto
 
-- docs/constitution.md: principios innegociables de CocheCierto.
-- docs/Propuesta_Maestra_Marca_CocheCierto.md: identidad, promesa y estrategia de marca.
-- docs/Propuesta_Plataforma_Inteligente_Compra_Coche_Nuevo_Usado.md: modelo de producto y negocio.
-- specs/: requisitos y especificaciones aprobadas por iniciativa.
+- `docs/constitution.md`: principios innegociables.
+- `Propuesta_Plataforma_Inteligente_Compra_Coche_Nuevo_Usado.md`: visión y modelo de negocio.
+- `specs/`: requisitos aprobados por iniciativa.
 
-## Reglas innegociables
+## Reglas
 
-- Leer la constitución y la spec activa antes de modificar código.
-- No presentar estimaciones como hechos ni afirmar que una unidad está mecánicamente impecable sin inspección presencial o peritaje oficial.
-- No añadir integraciones externas, analíticas no declaradas, pagos o tratamiento de datos personales sin spec aprobada y revisión de seguridad.
-- Mantener la separación limpia y modular entre el Frontend web (mvp-valorador/) y el Backend API (ackend/).
+- Leer la constitución y la spec activa antes de tocar código.
+- No presentar estimaciones como hechos ni afirmar que una unidad está mecánicamente bien sin inspección profesional.
+- No añadir integraciones, scraping, pagos, cuentas o datos personales sin spec y revisión de seguridad.
+- Mantener compatibilidad con Chrome Manifest V3.
 
 ## Verificación
 
-Tras cada cambio, validar JavaScript con 
-ode --check, verificar la integridad de enlaces/rutas y ejecutar las pruebas definidas en la spec. Documentar cualquier prueba o evidencia.
+Tras cada cambio, revisar `manifest.json`, validar JavaScript con `node --check` cuando esté disponible y ejecutar las pruebas definidas por la iniciativa. Documentar cualquier prueba no ejecutada.

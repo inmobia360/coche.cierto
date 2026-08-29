@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Auto1 Risk Lens",
+  "version": "0.1.0",
+  "description": "Prioriza vehículos de Auto1 por nivel de riesgo explicable.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.auto1.com/*"],
+  "action": {
+    "default_title": "Auto1 Risk Lens",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.auto1.com/es/app/merchant/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
