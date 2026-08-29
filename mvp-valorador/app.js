@@ -9,10 +9,10 @@
   if (quickSubmit) {
     quickSubmit.addEventListener('click', () => {
       const intent = document.querySelector('#quickIntent')?.value || 'buy';
-      const budget = document.querySelector('#quickBudget')?.value || '12000';
-      const fuel = document.querySelector('#quickFuel')?.value || 'any';
+      const use = document.querySelector('#quickUse')?.value || 'mixed';
+      const budget = document.querySelector('#quickBudget')?.value || '5-8';
       
-      const query = new URLSearchParams({ intent, budget, fuel }).toString();
+      const query = new URLSearchParams({ intent, use, budget, skipIntro: '1' }).toString();
       window.location.href = './valorador/?' + query;
     });
   }
