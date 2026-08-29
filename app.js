@@ -4,16 +4,25 @@
 (function () {
   'use strict';
 
-  // Barra de Valoración Rápida en Hero
+  let selectedIntent = 'change';
+
+  const pillButtons = document.querySelectorAll('.hero-pill-btn');
+  pillButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pillButtons.forEach(b => {
+        b.classList.remove('selected');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('selected');
+      btn.setAttribute('aria-checked', 'true');
+      selectedIntent = btn.dataset.intent || 'change';
+    });
+  });
+
   const quickSubmit = document.querySelector('#heroQuickSubmit');
   if (quickSubmit) {
     quickSubmit.addEventListener('click', () => {
-      const intent = document.querySelector('#quickIntent')?.value || 'buy';
-      const use = document.querySelector('#quickUse')?.value || 'mixed';
-      const budget = document.querySelector('#quickBudget')?.value || '5-8';
-      
-      const query = new URLSearchParams({ intent, use, budget, skipIntro: '1' }).toString();
-      window.location.href = './valorador/?' + query;
+      window.location.href = './valorador/?intent=' + encodeURIComponent(selectedIntent) + '&skipIntro=1';
     });
   }
 

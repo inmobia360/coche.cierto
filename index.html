@@ -11,17 +11,17 @@
   <meta property="og:type" content="website"><meta property="og:site_name" content="CocheCierto"><meta property="og:title" content="CocheCierto | Valora qué coche necesitas"><meta property="og:description" content="Una valoración orientativa para empezar a comprar coche con criterio."><meta property="og:image" content="https://beige-seahorse-520475.hostingersite.com/social-preview.svg"><meta property="og:image:type" content="image/svg+xml"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="CocheCierto, decide con datos y compra con seguridad">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="CocheCierto | Valora qué coche necesitas"><meta name="twitter:description" content="Una valoración orientativa para empezar a comprar coche con criterio."><meta name="twitter:image" content="https://beige-seahorse-520475.hostingersite.com/social-preview.svg"><meta name="twitter:image:alt" content="CocheCierto, decide con datos y compra con seguridad">
   
-    <link rel="stylesheet" href="theme.css?v=20260829-9">
-  <link rel="stylesheet" href="styles.css?v=20260829-9">
-  <link rel="stylesheet" href="landing.css?v=20260829-9">
-  <link rel="stylesheet" href="benefits.css?v=20260829-9">
-  <link rel="stylesheet" href="content-sections.css?v=20260829-9">
-  <link rel="stylesheet" href="visual-pain-points.css?v=20260829-9">
-  <link rel="stylesheet" href="faq.css?v=20260829-9">
-  <link rel="stylesheet" href="valuator-modal.css?v=20260829-9">
-  <script src="theme.js?v=20260829-9"></script>
-  <script src="site-header.js?v=20260829-9" defer></script>
-  <script src="app.js?v=20260829-9" defer></script>
+    <link rel="stylesheet" href="theme.css?v=20260829-10">
+  <link rel="stylesheet" href="styles.css?v=20260829-10">
+  <link rel="stylesheet" href="landing.css?v=20260829-10">
+  <link rel="stylesheet" href="benefits.css?v=20260829-10">
+  <link rel="stylesheet" href="content-sections.css?v=20260829-10">
+  <link rel="stylesheet" href="visual-pain-points.css?v=20260829-10">
+  <link rel="stylesheet" href="faq.css?v=20260829-10">
+  <link rel="stylesheet" href="valuator-modal.css?v=20260829-10">
+  <script src="theme.js?v=20260829-10"></script>
+  <script src="site-header.js?v=20260829-10" defer></script>
+  <script src="app.js?v=20260829-10" defer></script>
 </head>
 <body class="landing-page">
 <main class="landing-shell">
@@ -44,7 +44,7 @@
     </div>
   </header>
 
-    <section class="landing-hero-panoramic">
+      <section class="landing-hero-panoramic">
     <div class="hero-upper-grid">
       <div class="hero-copy">
         <p class="hero-eyebrow">— VALORADOR DE COCHES</p>
@@ -55,7 +55,7 @@
       <div class="hero-visual-wrapper" aria-label="Vehículo CocheCierto">
         <div class="hero-circle-backdrop"></div>
         <div class="hero-car-stage">
-          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="460" height="216">
+          <img id="heroCarImg" src="hero-car-dark.png" alt="CocheCierto Decide" class="hero-car-image coche-cabecera" width="620" height="345">
         </div>
         <div class="hero-floating-chip">
           <span class="chip-icon">✓</span>
@@ -64,61 +64,31 @@
       </div>
     </div>
 
-        <!-- Barra de Valoración Horizontal Integrada -->
+    <!-- Barra de Valoración Horizontal con 3 Opciones -->
     <div class="hero-integrated-bar" id="heroValuatorBar">
       <div class="bar-intro">
         <span class="bar-step-tag">COCHECIERTO DECIDE · 5 MINUTOS</span>
-        <h2 class="bar-title">¿Qué estás buscando?</h2>
+        <h2 class="bar-title">¿Qué quieres hacer?</h2>
         <p class="bar-desc">Orientación clara basada en tu uso real, presupuesto y prioridades.</p>
       </div>
 
-      <form class="bar-controls" id="heroQuickForm" onsubmit="return false;">
-        <div class="bar-field">
-          <label for="quickIntent">¿Qué quieres hacer ahora?</label>
-          <div class="select-wrapper">
-            <select id="quickIntent" name="intent">
-              <option value="buy" selected>Comprar coche</option>
-              <option value="change">Cambiar mi coche</option>
-              <option value="inform">Solo informarme</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bar-field">
-          <label for="quickUse">¿Para qué lo usarás?</label>
-          <div class="select-wrapper">
-            <select id="quickUse" name="use">
-              <option value="mixed" selected>Ciudad y carretera</option>
-              <option value="city">Principalmente ciudad</option>
-              <option value="road">Mucha carretera</option>
-              <option value="family">Uso familiar</option>
-              <option value="work">Trabajo o negocio</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bar-field">
-          <label for="quickBudget">Presupuesto total cómodo</label>
-          <div class="select-wrapper">
-            <select id="quickBudget" name="budget">
-              <option value="3-5">3.000 – 5.000 €</option>
-              <option value="5-8" selected>5.000 – 8.000 €</option>
-              <option value="8-15">8.000 – 15.000 €</option>
-              <option value="15-25">15.000 – 25.000 €</option>
-              <option value="25-40">25.000 – 40.000 €</option>
-              <option value="over-40">Más de 40.000 €</option>
-              <option value="unknown">Aún no lo sé</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bar-action">
-          <button class="bar-submit-btn" id="heroQuickSubmit" type="button">
-            <span>CONTINUAR</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+      <div class="bar-direct-actions">
+        <div class="hero-pill-choices" role="radiogroup" aria-label="¿Qué quieres hacer?">
+          <button class="hero-pill-btn" data-intent="buy" type="button" role="radio" aria-checked="false">
+            <span>Comprar</span>
+          </button>
+          <button class="hero-pill-btn selected" data-intent="change" type="button" role="radio" aria-checked="true">
+            <span>Cambiar mi coche</span>
+          </button>
+          <button class="hero-pill-btn" data-intent="inform" type="button" role="radio" aria-checked="false">
+            <span>Solo informarme</span>
           </button>
         </div>
-      </form>
+        <button class="bar-submit-btn" id="heroQuickSubmit" type="button">
+          <span>CONTINUAR</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+        </button>
+      </div>
     </div>
   </section>
 
