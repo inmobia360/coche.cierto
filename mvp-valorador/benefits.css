@@ -1,1 +1,55 @@
-.report-benefits{display:grid;grid-template-columns:minmax(260px,.8fr) 1.2fr;gap:clamp(35px,7vw,100px);padding:76px 0;border-top:1px solid #1b4b62}.report-benefits h2{font-size:clamp(32px,4vw,54px);line-height:1;letter-spacing:-2px;margin:10px 0 18px}.report-benefits>div>p:not(.eyebrow){color:#b8cbd2;line-height:1.55;max-width:470px}.benefit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.benefit-grid article{background:#073b57;border:1px solid #1b566c;border-radius:14px;padding:23px}.benefit-grid h3{margin:0 0 9px;font-size:19px}.benefit-grid p{color:#b8cbd2;line-height:1.45;margin:0;font-size:14px}@media(max-width:760px){.report-benefits{grid-template-columns:1fr;padding:55px 0}.benefit-grid{grid-template-columns:1fr}}
+/* CocheCierto - Benefits Styles */
+.report-benefits {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) 1.2fr;
+  gap: clamp(35px, 6vw, 80px);
+  padding: 64px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.report-benefits h2 {
+  font-size: clamp(30px, 3.8vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 10px 0 16px;
+  color: var(--ink-primary);
+}
+
+.report-benefits > div > p:not(.eyebrow) {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  max-width: 470px;
+}
+
+.benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.benefit-grid article {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 14px);
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+}
+
+.benefit-grid h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  color: var(--ink-primary);
+  letter-spacing: -0.02em;
+}
+
+.benefit-grid p {
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin: 0;
+  font-size: 14px;
+}
+
+@media(max-width: 760px) {
+  .report-benefits { grid-template-columns: 1fr; padding: 44px 0; }
+  .benefit-grid { grid-template-columns: 1fr; }
+}

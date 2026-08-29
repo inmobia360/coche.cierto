@@ -1,1 +1,115 @@
-.modal-open{overflow:hidden}.valuator-modal[hidden]{display:none}.valuator-modal{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px}.valuator-backdrop{position:absolute;inset:0;background:rgba(0,18,30,.78);backdrop-filter:blur(5px)}.valuator-dialog{position:relative;z-index:1;width:min(100%,520px);padding:clamp(28px,5vw,46px);border-radius:24px;background:#f7f8f5;color:#00263e;box-shadow:0 25px 100px rgba(0,0,0,.4)}.valuator-dialog h2{font-size:clamp(28px,4vw,40px);margin:12px 0 22px}.valuator-close{position:absolute;top:14px;right:16px;z-index:2;width:40px;height:40px;border:1px solid #c8d9dc;border-radius:50%;background:transparent;color:#00263e;font-size:27px;line-height:1;cursor:pointer}.modal-choices{display:grid;gap:10px}.modal-choices .mini-choice{min-height:54px}.valuator-dialog .mini-submit{width:100%;margin-top:18px;text-align:center}.valuator-dialog .mini-note{text-align:center}.valuator-dialog--flow{width:min(100%,900px);height:min(92vh,820px);padding:0;overflow:hidden}.valuator-dialog--flow iframe{width:100%;height:100%;border:0;border-radius:24px;background:#071521}@media(max-width:760px){.valuator-modal{padding:0;align-items:stretch}.valuator-dialog{width:100%;min-height:100%;border-radius:0;padding:92px 24px 32px;display:flex;flex-direction:column;justify-content:center}.valuator-dialog h2{font-size:clamp(32px,9vw,44px)}.modal-choices{gap:12px}.modal-choices .mini-choice{min-height:58px}.valuator-dialog .mini-submit{min-height:54px}.valuator-close{top:24px;right:20px}.valuator-dialog--flow{height:100%;padding:0;border-radius:0;justify-content:stretch}.valuator-dialog--flow iframe{border-radius:0}}
+/* CocheCierto - Valuator Modal */
+.modal-open {
+  overflow: hidden;
+}
+
+.valuator-modal[hidden] {
+  display: none;
+}
+
+.valuator-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.valuator-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 18, 30, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.valuator-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+  padding: clamp(28px, 5vw, 44px);
+  border-radius: var(--radius-lg, 24px);
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+}
+
+.valuator-dialog h2 {
+  font-size: clamp(26px, 4vw, 36px);
+  margin: 12px 0 22px;
+  color: var(--ink-primary);
+  letter-spacing: -0.03em;
+}
+
+.valuator-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  color: var(--ink-primary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.valuator-close:hover {
+  border-color: var(--brand-orange);
+  color: var(--brand-orange);
+}
+
+.modal-choices {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-choices .mini-choice {
+  min-height: 52px;
+  border-radius: var(--radius-sm, 10px);
+}
+
+.valuator-dialog .mini-submit {
+  width: 100%;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.valuator-dialog .mini-note {
+  text-align: center;
+}
+
+.valuator-dialog--flow {
+  width: min(100%, 960px);
+  height: min(92vh, 840px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.valuator-dialog--flow iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: var(--radius-lg, 24px);
+  background: var(--bg-base);
+}
+
+@media(max-width: 760px) {
+  .valuator-modal { padding: 0; }
+  .valuator-dialog {
+    width: 100%;
+    min-height: 100%;
+    border-radius: 0;
+    padding: 80px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}

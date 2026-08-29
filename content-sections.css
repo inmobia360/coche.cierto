@@ -1,1 +1,83 @@
-.pain-points,.audience-band{display:grid;grid-template-columns:minmax(260px,.85fr) 1.15fr;gap:clamp(35px,7vw,100px);padding:76px 0;border-top:1px solid #1b4b62}.pain-points h2,.audience-band h2{font-size:clamp(32px,4vw,54px);line-height:1;letter-spacing:-2px;margin:10px 0 18px}.pain-points>div>p:not(.eyebrow){color:#b8cbd2;line-height:1.55;max-width:470px}.pain-list{display:grid;gap:12px}.pain-list article{padding:22px 24px;border-left:3px solid #fc4c02;background:#073b57;border-radius:0 12px 12px 0}.pain-list strong{font-size:18px}.pain-list p,.audience-grid p{color:#b8cbd2;line-height:1.45;margin:8px 0 0}.audience-band{display:block}.audience-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:32px}.audience-grid article{padding:22px;border:1px solid #1b566c;border-radius:14px}.audience-grid h3{font-size:18px;margin:0}@media(max-width:760px){.pain-points{grid-template-columns:1fr;padding:55px 0}.audience-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:480px){.audience-grid{grid-template-columns:1fr}}
+/* CocheCierto - Content Sections */
+.pain-points, .audience-band {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) 1.15fr;
+  gap: clamp(35px, 6vw, 80px);
+  padding: 64px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pain-points h2, .audience-band h2 {
+  font-size: clamp(30px, 3.8vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 10px 0 16px;
+  color: var(--ink-primary);
+}
+
+.pain-points > div > p:not(.eyebrow) {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  max-width: 470px;
+}
+
+.pain-list {
+  display: grid;
+  gap: 14px;
+}
+
+.pain-list article {
+  padding: 22px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--brand-orange);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--card-shadow);
+}
+
+.pain-list strong {
+  font-size: 18px;
+  color: var(--ink-primary);
+  display: block;
+}
+
+.pain-list p, .audience-grid p {
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.audience-band {
+  display: block;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.audience-grid article {
+  padding: 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+}
+
+.audience-grid h3 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+@media(max-width: 900px) {
+  .audience-grid { grid-template-columns: repeat(2, 1fr); }
+  .pain-points { grid-template-columns: 1fr; padding: 44px 0; }
+}
+
+@media(max-width: 500px) {
+  .audience-grid { grid-template-columns: 1fr; }
+}

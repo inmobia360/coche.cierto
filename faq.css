@@ -1,1 +1,73 @@
-.faq-section{display:grid;grid-template-columns:minmax(260px,.8fr) 1.2fr;gap:clamp(35px,7vw,100px);padding:76px 0;border-top:1px solid #1b4b62}.faq-section h2{font-size:clamp(32px,4vw,54px);line-height:1;letter-spacing:-2px;margin:10px 0 18px}.faq-intro{color:#b8cbd2;line-height:1.55;max-width:470px}.faq-list{display:grid;gap:10px}.faq-list details{border:1px solid #1b566c;border-radius:12px;background:#073b57;padding:0 20px}.faq-list summary{cursor:pointer;padding:19px 0;font-weight:600;list-style:none}.faq-list summary::-webkit-details-marker{display:none}.faq-list summary:after{content:'+';float:right;color:#fc4c02;font-size:22px}.faq-list details[open] summary:after{content:'−'}.faq-list details p{color:#b8cbd2;line-height:1.5;padding:0 0 18px;margin:0}@media(max-width:760px){.faq-section{grid-template-columns:1fr;padding:55px 0}}
+/* CocheCierto - FAQ Styles */
+.faq-section {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) 1.2fr;
+  gap: clamp(35px, 6vw, 80px);
+  padding: 64px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.faq-section h2 {
+  font-size: clamp(30px, 3.8vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 10px 0 16px;
+  color: var(--ink-primary);
+}
+
+.faq-intro {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  max-width: 470px;
+  font-size: 16px;
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-list details {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 14px);
+  background: var(--bg-surface);
+  padding: 0 24px;
+  box-shadow: var(--card-shadow);
+}
+
+.faq-list summary {
+  cursor: pointer;
+  padding: 20px 0;
+  font-weight: 700;
+  font-size: 16px;
+  list-style: none;
+  color: var(--ink-primary);
+}
+
+.faq-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-list summary:after {
+  content: '+';
+  float: right;
+  color: var(--brand-orange);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.faq-list details[open] summary:after {
+  content: '−';
+}
+
+.faq-list details p {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  padding: 0 0 20px;
+  margin: 0;
+  font-size: 15px;
+}
+
+@media(max-width: 760px) {
+  .faq-section { grid-template-columns: 1fr; padding: 44px 0; }
+}
