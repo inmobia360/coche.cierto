@@ -18,7 +18,7 @@
   align-items: center;
   gap: clamp(24px, 4vw, 56px);
   position: relative;
-  min-height: 460px;
+  min-height: 440px;
 }
 
 .hero-copy {
@@ -159,7 +159,7 @@ html.theme-light .hero-studio-lighting {
 .hud-card {
   position: absolute;
   z-index: 4;
-  background: rgba(7, 34, 48, 0.82);
+  background: rgba(7, 34, 48, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
   padding: 12px 18px;
@@ -175,7 +175,7 @@ html.theme-light .hero-studio-lighting {
 
 body.theme-light .hud-card,
 html.theme-light .hud-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid #dce8e3;
   box-shadow: 0 12px 30px rgba(7, 34, 48, 0.10);
 }
@@ -206,8 +206,8 @@ html.theme-light .hud-card {
 
 /* Iconos HUD */
 .hud-icon-badge {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #fc4c02;
   color: #ffffff;
@@ -215,7 +215,7 @@ html.theme-light .hud-card {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 17px;
   box-shadow: 0 4px 12px rgba(252, 76, 2, 0.4);
   flex-shrink: 0;
 }
@@ -334,7 +334,7 @@ body.theme-light .hud-val {
 }
 
 /* ==========================================================================
-   3. BARRA DE VALORACIÓN HORIZONTAL INTEGRADA
+   3. BARRA DE VALORACIÓN HORIZONTAL CON 3 SELECTORES
    ========================================================================== */
 
 .hero-integrated-bar {
@@ -342,12 +342,11 @@ body.theme-light .hud-val {
   color: #072230 !important;
   border-radius: 22px !important;
   padding: 24px 34px !important;
-  box-shadow: 0 22px 65px rgba(0, 14, 25, 0.30) !important;
+  box-shadow: 0 24px 65px rgba(0, 14, 25, 0.32) !important;
   border: 1px solid #dce8e3 !important;
-  display: grid !important;
-  grid-template-columns: minmax(240px, 1fr) minmax(0, 2.2fr) !important;
-  align-items: center !important;
-  gap: 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
   position: relative !important;
   z-index: 4 !important;
 }
@@ -359,76 +358,87 @@ html.theme-light .hero-integrated-bar {
   box-shadow: 0 16px 45px rgba(7, 34, 48, 0.08) !important;
 }
 
-.bar-intro {
+.bar-tag-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .bar-step-tag {
   color: #fc4c02;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.bar-title {
-  font-size: 24px;
-  font-weight: 800;
-  color: #072230;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.bar-desc {
-  color: #64818f;
-  font-size: 13px;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.bar-direct-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.bar-controls-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1.2fr auto;
+  align-items: flex-end;
+  gap: 20px;
   width: 100%;
 }
 
-.hero-pill-choices {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  flex: 1;
+.bar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.hero-pill-btn {
-  background: #f5f8f7;
-  border: 1.5px solid #d6e2dd;
-  border-radius: 14px;
-  color: #072230;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
+.bar-field label {
+  font-size: 13px;
   font-weight: 700;
-  padding: 13px 16px;
-  text-align: center;
-  transition: all 0.18s ease;
+  color: #072230;
   white-space: nowrap;
 }
 
-.hero-pill-btn:hover {
-  border-color: #fc4c02;
-  background: #ffffff;
-  transform: translateY(-1px);
+.select-wrapper {
+  position: relative;
+  width: 100%;
 }
 
-.hero-pill-btn.selected {
-  background: #eaf4f0 !important;
-  border: 2px solid #287a61 !important;
+.select-wrapper select {
+  width: 100% !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: #f7faf8 !important;
+  border: 1.5px solid #d2e0d8 !important;
+  border-radius: 14px !important;
+  padding: 14px 38px 14px 16px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
   color: #072230 !important;
-  box-shadow: 0 4px 14px rgba(40, 122, 97, 0.16) !important;
-  position: relative;
+  cursor: pointer !important;
+  outline: none !important;
+  transition: all 0.18s ease !important;
+  font-family: inherit !important;
+}
+
+.select-wrapper select:hover {
+  border-color: #fc4c02 !important;
+  background-color: #ffffff !important;
+}
+
+.select-wrapper select:focus {
+  border-color: #fc4c02 !important;
+  box-shadow: 0 0 0 3px rgba(252, 76, 2, 0.18) !important;
+  background-color: #ffffff !important;
+}
+
+.select-wrapper::after {
+  content: '⌄';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-58%);
+  color: #64818f;
+  font-size: 16px;
+  pointer-events: none;
+  font-weight: 700;
+}
+
+.bar-action {
+  display: flex;
+  align-items: flex-end;
 }
 
 .bar-submit-btn {
@@ -436,7 +446,7 @@ html.theme-light .hero-integrated-bar {
   color: #ffffff !important;
   border: 0 !important;
   border-radius: 14px !important;
-  padding: 13px 26px !important;
+  padding: 14px 28px !important;
   font-size: 14px !important;
   font-weight: 800 !important;
   letter-spacing: 0.04em !important;
@@ -446,16 +456,16 @@ html.theme-light .hero-integrated-bar {
   justify-content: center !important;
   gap: 8px !important;
   white-space: nowrap !important;
-  box-shadow: 0 6px 18px rgba(252, 76, 2, 0.35) !important;
+  box-shadow: 0 6px 20px rgba(252, 76, 2, 0.38) !important;
   transition: all 0.18s ease !important;
-  height: 48px !important;
+  height: 50px !important;
   text-decoration: none !important;
 }
 
 .bar-submit-btn:hover {
   background-color: #ff5e1c !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.48) !important;
 }
 
 .bar-submit-btn svg {
@@ -463,7 +473,7 @@ html.theme-light .hero-integrated-bar {
 }
 
 .bar-submit-btn:hover svg {
-  transform: translate(2px, -2px);
+  transform: translateX(3px);
 }
 
 /* ==========================================================================
@@ -534,11 +544,16 @@ html.theme-light .hero-integrated-bar {
    5. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
-@media(max-width: 1100px) {
-  .hero-integrated-bar {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-    padding: 24px !important;
+@media(max-width: 1060px) {
+  .bar-controls-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bar-action {
+    grid-column: span 2;
+  }
+  .bar-submit-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -550,21 +565,13 @@ html.theme-light .hero-integrated-bar {
   .hud-encaje { top: 0; left: 0; }
   .hud-coste { top: 0; right: 0; }
   .hud-riesgo { bottom: 0; right: 0; }
-  .bar-direct-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  .hero-pill-choices {
-    width: 100%;
-  }
-  .bar-submit-btn {
-    width: 100%;
-    justify-content: center;
-  }
 }
 
 @media(max-width: 540px) {
-  .hero-pill-choices {
+  .bar-controls-grid {
     grid-template-columns: 1fr;
+  }
+  .bar-action {
+    grid-column: span 1;
   }
 }
