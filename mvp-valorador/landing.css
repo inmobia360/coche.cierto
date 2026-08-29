@@ -268,3 +268,33 @@ body.theme-light .mini-form, html.theme-light .mini-form {
   .landing-proof { grid-template-columns: 1fr; gap: 20px; }
   .demo-band { flex-direction: column; align-items: flex-start; }
 }
+
+/* Soporte Dinámico para Coche Naranja (Oscuro) vs Coche Corporativo (Claro) */
+.hero-car-dark {
+  display: block;
+}
+
+.hero-car-light {
+  display: none;
+}
+
+body.theme-light .hero-car-dark,
+html.theme-light .hero-car-dark,
+[data-theme="light"] .hero-car-dark {
+  display: none !important;
+}
+
+body.theme-light .hero-car-light,
+html.theme-light .hero-car-light,
+[data-theme="light"] .hero-car-light {
+  display: block !important;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .hero-car-dark {
+    display: none;
+  }
+  :root:not([data-theme="dark"]) .hero-car-light {
+    display: block;
+  }
+}
