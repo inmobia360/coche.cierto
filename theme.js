@@ -55,13 +55,17 @@
   }
 
   function updateCarImage(isLight) {
-    const carImg = document.querySelector('#heroCarImg');
-    if (carImg) {
-      const targetSrc = 'hero-suv-anonimo.png';
-      if (!carImg.src.endsWith(targetSrc)) {
-        carImg.src = targetSrc;
-      }
-    }
+    const orange = document.querySelector('.hero-suv-orange');
+    const blue = document.querySelector('.hero-suv-blue');
+    if (!orange || !blue) return;
+    const active = isLight ? blue : orange;
+    active.loading = 'eager';
+    active.fetchPriority = 'high';
+    active.removeAttribute('aria-hidden');
+    const inactive = isLight ? orange : blue;
+    inactive.loading = 'lazy';
+    inactive.fetchPriority = 'low';
+    inactive.setAttribute('aria-hidden', 'true');
   }
 
   function updateButtons(isLight) {

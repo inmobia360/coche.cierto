@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="canonical" href="https://cochecierto.com/que-analizamos/">
-  <meta name="description" content="Descubre qué analiza CocheCierto para ayudarte a comprar un coche con más claridad y menor incertidumbre.">
+  <meta property="og:type" content="website"><meta property="og:locale" content="es_ES"><meta property="og:url" content="https://cochecierto.com/que-analizamos/"><meta property="og:title" content="Qué analizar antes de comprar un coche"><meta property="og:description" content="Presupuesto, uso, coste total, documentación y riesgos: conoce los factores que conviene revisar."><meta property="og:image" content="https://cochecierto.com/social/cochecierto-social.png">
+  <meta name="description" content="Revisa qué analizar antes de comprar coche: presupuesto, uso, coste total, documentación, financiación y señales de riesgo.">
   <title>Qué analizamos antes de comprar | CocheCierto</title>
-  <link rel="stylesheet" href="../theme.css">
-  <link rel="stylesheet" href="../styles.css">
-  <script src="../theme.js"></script>
-  <script src="../site-header.js" defer></script>
+  <link rel="stylesheet" href="../theme.css?v=20260829-14">
+  <link rel="stylesheet" href="../styles.css?v=20260829-14">
+  <script src="../theme.js?v=20260829-14"></script>
+  <script src="../site-header.js?v=20260829-14" defer></script>
   <style>
     .page-hero {
       padding: 64px 0 36px;
@@ -168,6 +169,30 @@
           </ul>
         </article>
       </section>
+
+      <section class="context-panel" aria-labelledby="context-title">
+        <p class="eyebrow">Según tu situación</p>
+        <h2 id="context-title">No todos los compradores necesitan comprobar lo mismo</h2>
+        <p class="context-intro">Elige el caso que más se parece al tuyo para ver qué suele preocupar y qué conviene preparar antes de visitar un coche.</p>
+        <div class="context-controls" role="tablist" aria-label="Perfiles de compra">
+          <button type="button" class="context-tab is-active" data-profile="novel" role="tab" aria-selected="true">Es mi primer coche</button>
+          <button type="button" class="context-tab" data-profile="change" role="tab" aria-selected="false">Voy a cambiar de coche</button>
+          <button type="button" class="context-tab" data-profile="family" role="tab" aria-selected="false">Lo necesito para mi familia</button>
+          <button type="button" class="context-tab" data-profile="work" role="tab" aria-selected="false">Lo usaré para trabajar</button>
+        </div>
+        <article class="context-result" id="contextResult" aria-live="polite"></article>
+      </section>
+
+      <section class="next-step-panel" aria-labelledby="analysis-next-step">
+        <p class="eyebrow">Para avanzar sin complicarte</p>
+        <h2 id="analysis-next-step">Lleva tres cosas preparadas</h2>
+        <div class="next-step-grid">
+          <div><strong>1. Tu uso real</strong><p>Cuántos kilómetros haces, dónde aparcas y quién viajará contigo.</p></div>
+          <div><strong>2. Tu margen</strong><p>Qué puedes pagar hoy y qué reserva necesitas para poner el coche al día.</p></div>
+          <div><strong>3. Tus preguntas</strong><p>Qué documentos pedir y qué probar antes de entregar dinero.</p></div>
+        </div>
+        <a class="button primary" href="../valorador/">Crear mi orientación</a>
+      </section>
     </main>
   </div>
   <script>
@@ -185,6 +210,17 @@
         });
       });
     });
+
+    const profileCopy = {
+      novel: { title: 'Primer coche: reducir la incertidumbre', body: 'Te ayudamos a separar lo imprescindible de lo que puede esperar: coste mensual, documentación básica, prueba sencilla y preguntas para no depender solo de lo que diga el anuncio.', action: 'Empieza por tu presupuesto y tus trayectos.' },
+      change: { title: 'Cambio de coche: comparar sin perder perspectiva', body: 'Ponemos en contexto el coste de entregar tu coche actual, los gastos de cambio y lo que necesitas conservar para que el siguiente vehículo sea una mejora real.', action: 'Compara el coste total, no solo la cuota.' },
+      family: { title: 'Familia: comprobar espacio y uso diario', body: 'La orientación prioriza plazas, maletero, accesos, seguridad de uso y los cambios previsibles de tu familia. Así la visita sirve para comprobar lo que de verdad importa.', action: 'Anota quién viaja y qué cargas llevas.' },
+      work: { title: 'Trabajo: que el coche sostenga tu actividad', body: 'Consideramos kilómetros, carga, disponibilidad y coste por jornada. La cifra es orientativa: tendrás que ajustar los supuestos a tu actividad y a tus rutas.', action: 'Calcula el coste por uso antes de decidir.' }
+    };
+    const contextResult = document.getElementById('contextResult');
+    const renderProfile = profile => { const item = profileCopy[profile]; contextResult.innerHTML = `<h3>${item.title}</h3><p>${item.body}</p><strong>${item.action}</strong>`; };
+    document.querySelectorAll('.context-tab').forEach(tab => tab.addEventListener('click', () => { document.querySelectorAll('.context-tab').forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); }); tab.classList.add('is-active'); tab.setAttribute('aria-selected','true'); renderProfile(tab.dataset.profile); }));
+    renderProfile('novel');
   </script>
 </body>
 </html>

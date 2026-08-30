@@ -320,12 +320,15 @@
   const shareBtn = document.querySelector('#shareReport');
   if (shareBtn) {
     shareBtn.onclick = async () => {
-      const data = { title: 'CocheCierto · Informe demo', text: 'Explora este informe demo de CocheCierto.', url: location.href };
-      if (navigator.share) {
-        try { await navigator.share(data); } catch(e) {}
-      } else {
-        try { await navigator.clipboard.writeText(location.href); alert('Enlace copiado para compartirlo.'); } catch(e) { alert(location.href); }
+      let dialog = document.querySelector('#sharePreview');
+      if (!dialog) {
+        dialog = document.createElement('dialog'); dialog.id = 'sharePreview'; dialog.className = 'share-preview';
+        dialog.innerHTML = '<form method="dialog"><button class="share-close" aria-label="Cerrar">×</button></form><p class="eyebrow">Vista previa para compartir</p><h2>Ayúdame a decidir</h2><p>Este resumen no incluye tu presupuesto personal ni datos del vendedor.</p><div class="share-summary"><strong>SUV compacto · ficha simulada</strong><span>Precio anunciado: 11.900 € · Coste estimado: 365 €/mes</span><span>Encaje orientativo: alto · Riesgo pendiente: medio</span><span>3 comprobaciones antes de pagar</span></div><p class="share-note">Es una demostración con datos ficticios. Un informe real podrá tener controles de acceso, caducidad y revocación cuando exista el backend correspondiente.</p><div class="share-actions"><button type="button" class="demo-button demo-button-primary" id="nativeShare">Compartir</button><button type="button" class="demo-button demo-button-light" id="copyShare">Copiar enlace</button></div>';
+        document.body.appendChild(dialog);
+        dialog.querySelector('#nativeShare').onclick = async () => { const data = { title: 'CocheCierto · Ayúdame a decidir', text: 'Estoy valorando este coche. ¿Lo revisarías antes de comprarlo?', url: location.href + '?shared=demo' }; if (navigator.share) { try { await navigator.share(data); } catch(e) {} } else { dialog.querySelector('#copyShare').click(); } };
+        dialog.querySelector('#copyShare').onclick = async () => { try { await navigator.clipboard.writeText(location.href + '?shared=demo'); dialog.querySelector('#copyShare').textContent = 'Enlace copiado'; } catch(e) { window.prompt('Copia este enlace:', location.href + '?shared=demo'); } };
       }
+      if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open','');
     };
   }
 })();

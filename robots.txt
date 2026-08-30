@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /backend/
+Disallow: /mvp-valorador/
 
 Sitemap: https://cochecierto.com/sitemap.xml

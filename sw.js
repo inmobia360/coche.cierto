@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cochecierto-shell-v2';
+const CACHE_NAME = 'cochecierto-shell-v3';
 const SHELL = ['./', './como-funciona/', './que-analizamos/', './demo/', './metodologia/', './recursos/', './recursos/checklist-inspeccion.html', './theme.css', './theme.js', './site-header.js', './favicon.svg', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
@@ -9,12 +9,23 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
   event.respondWith((async () => {
+    // Las páginas deben consultar la red primero para no ocultar un despliegue nuevo.
+    if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+      try {
+        const fresh = await fetch(event.request, { cache: 'no-store' });
+        if (fresh.ok) {
+          event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, fresh.clone())));
+          return fresh;
+        }
+      } catch (_) {}
+      return caches.match(event.request) || caches.match('./') || Response.error();
+    }
     const cached = await caches.match(event.request);
     if (cached) {
       event.waitUntil(fetch(event.request).then(response => {
