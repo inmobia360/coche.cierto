@@ -110,7 +110,18 @@ const drawBrandLogo = (doc) => {
     .fillColor('#fc4c02').text('Cierto');
   doc.y = y + 34;
 };
+const situationPack = (report) => {
+  const packs = {
+    'first-car': ['Primer coche', 'margen, seguro, sencillez y documentación', 'Compara tres unidades sencillas dentro del precio prudente y pide su documentación antes de desplazarte.'],
+    'budget-tight': ['Presupuesto ajustado', 'precio prudente, reserva y coste de una avería', 'Define primero la reserva mínima y descarta cualquier unidad que te deje sin margen.'],
+    'family-space': ['Compra familiar', 'espacio, seguridad, carga y cambios previsibles', 'Prueba el coche con el equipamiento familiar real antes de negociar.'],
+    'professional-use': ['Uso profesional', 'coste por kilómetro, disponibilidad y tiempo parado', 'Calcula el coste de un día parado y confirma garantía, factura y mantenimiento.'],
+    'urban-use': ['Uso urbano', 'maniobrabilidad, etiqueta, trayectos cortos y ZBE', 'Comprueba la etiqueta ambiental y calcula el coste con tus trayectos urbanos reales.']
+  };
+  return packs[report.situation] || ['Situación por concretar', 'uso, presupuesto y comprobaciones pendientes', 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.'];
+};
 const writeReportPdf = async (res, report) => {
+  const situation = situationPack(report);
   const qr = await QRCode.toDataURL('https://cochecierto.com/recursos/', { margin: 1, width: 96 });
   let ineContext = 'No disponible en esta consulta';
   try {
@@ -127,6 +138,8 @@ const writeReportPdf = async (res, report) => {
   res.setHeader('Content-Disposition', 'attachment; filename="informe-cochecierto.pdf"');
   doc.pipe(res);
   drawBrandLogo(doc);
+  doc.moveDown(.3).fillColor('#082333').font('Helvetica-Bold').fontSize(12).text(`Situación de compra: ${situation[0]}`);
+  doc.font('Helvetica').fontSize(10).fillColor('#58717d').text(`La valoración prioriza ${situation[1]}.`);
   doc.moveDown(1).fillColor('#ff4d00').fontSize(10).font('Helvetica-Bold').text('INFORME DE ORIENTACIÓN · VERSIÓN BETA');
   doc.moveDown(.5).fillColor('#082333').fontSize(24).text('Una decisión explicada, no una cifra aislada');
   doc.fillColor('#58717d').fontSize(11).font('Helvetica').text('Este informe es orientativo y se genera a partir de las respuestas aportadas. No es una tasación, peritaje ni aprobación de financiación.');
