@@ -5,6 +5,7 @@
   const questions = [
     ['¿Qué quieres hacer ahora?', [['buy','Comprar'],['change','Cambiar mi coche'],['inform','Solo informarme']], 'intent'],
     ['¿Cuándo crees que decidirás?', [['0-3','En 0–3 meses'],['3-6','En 3–6 meses'],['6+','En más de 6 meses'],['unknown','Todavía no lo sé']], 'window'],
+    ['¿Qué describe mejor tu búsqueda?', [['first-car','Busco mi primer coche'],['budget-tight','Quiero cuidar el presupuesto'],['family-space','Necesito espacio para mi día a día'],['professional-use','Lo necesito para trabajar'],['urban-use','Me moveré sobre todo por ciudad'],['many-km','Haré muchos kilómetros'],['compare','Estoy comparando opciones'],['finalists','Ya tengo coches finalistas'],['used','Busco un coche usado'],['unknown','No estoy seguro todavía']], 'situation'],
     ['¿Para qué usarás principalmente el coche?', [['city','Ciudad'],['mixed','Ciudad y carretera'],['road','Carretera'],['work','Trabajo'],['family','Familia']], 'use'],
     ['¿Cuántos kilómetros harás al año?', [['low','Menos de 10.000'],['medium','10.000–20.000'],['high','20.000–30.000'],['very-high','Más de 30.000'],['unknown','No lo sé']], 'km'],
     ['¿Cuántas personas viajarán normalmente?', [['one-two','1–2'],['three-four','3–4'],['five-plus','5 o más']], 'people'],

@@ -3,7 +3,7 @@
 
   const profiles = {
     novel: {
-      label: 'Conductor novel',
+      label: 'Primer coche',
       title: 'Un primer coche que no te deje sin margen',
       summary: 'Priorizamos manejo sencillo, seguro asumible y una compra fácil de verificar.',
       category: 'Utilitario sencillo',
@@ -35,7 +35,7 @@
       ]
     },
     student: {
-      label: 'Estudiante',
+      label: 'Presupuesto ajustado',
       title: 'Moverte sin convertir el coche en una carga',
       summary: 'El presupuesto manda: dejamos espacio para seguro, combustible y reparaciones.',
       category: 'Compacto económico',
@@ -67,7 +67,7 @@
       ]
     },
     family: {
-      label: 'Familia',
+      label: 'Compra familiar',
       title: 'Que el coche encaje también fuera de la pantalla',
       summary: 'Medimos espacio, seguridad, coste total y cambios previsibles en los próximos años.',
       category: 'Compacto familiar',
@@ -99,7 +99,7 @@
       ]
     },
     business: {
-      label: 'Profesional o negocio',
+      label: 'Uso profesional',
       title: 'Proteger tu disponibilidad y tu coste por kilómetro',
       summary: 'Una parada puede afectar a tus ingresos: valoramos carga, uso intensivo y continuidad.',
       category: 'Vehículo profesional',
@@ -184,7 +184,7 @@
     dashboard.innerHTML = [
       '<div class="dashboard-head">',
       '  <div>',
-      '    <p class="eyebrow">Perfil seleccionado</p>',
+      '    <p class="eyebrow">Situación seleccionada</p>',
       '    <h2>' + p.title + '</h2>',
       '    <p>' + p.summary + '</p>',
       '  </div>',
@@ -252,7 +252,7 @@
       '</div>',
       '<section class="panel detail-panel" style="margin-top:14px">',
       '  <p class="eyebrow">Ficha de búsqueda recomendada · simulada</p>',
-      '  <h3>Qué buscar para este perfil</h3>',
+      '  <h3>Qué buscar en esta situación</h3>',
       '  <div class="search-spec">',
       '    <div><span>Carrocería</span><strong>' + p.bodyType + '</strong></div>',
       '    <div><span>Antigüedad</span><strong>' + p.maxAge + '</strong></div>',
