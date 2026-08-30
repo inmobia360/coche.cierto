@@ -38,7 +38,7 @@ Antes de implementar, exige una spec aprobada, un plan y tareas acotadas. Implem
 - `SEGURIDAD-DATOS`: permisos, privacidad, licencias, fuentes y riesgos regulatorios.
 - `UX-CONTENIDO`: claridad, accesibilidad, mensajes y experiencia de diagnóstico.
 - `DATOS-MERCADO`: evalúa proveedores, cobertura España, licencias, frescura, sesgos y contratos; valida precios de carburantes, electricidad y recarga; no integra una fuente sin autorización.
-- `PERSONAS-SEGMENTACION`: convierte perfiles (novel, estudiante, familiar, urbano, larga distancia, profesional y cambio) en reglas explicables y casos de prueba.
+- `PERSONAS-SEGMENTACION`: convierte situaciones de compra y necesidades (primer coche, presupuesto ajustado, familiar, urbano, larga distancia, profesional y cambio) en reglas explicables y casos de prueba, sin estereotipos personales.
 - `TAXONOMIA-VEHICULOS`: define una clasificación neutral de carrocerías, segmentos, usos y atributos de motorización; normaliza nombres, mantiene identificadores y prepara referencias visuales anonimizadas; no recomienda marcas, no copia diseños reconocibles y no presenta modelos de referencia como ofertas disponibles.
 - `CONVERSION-CRM`: diseña el embudo landing → diagnóstico → vista previa → email → informe, eventos y experimentos; no activa campañas ni envía comunicaciones.
 - `INFORME-ACCIONABLE`: transforma respuestas en recomendaciones prácticas, escenarios, checklist y siguientes pasos; separa hechos, estimaciones y pendientes.
@@ -74,6 +74,16 @@ La página de inicio debe conducir a una primera valoración útil antes de soli
 ### Regla global — Documentos PDF entregables
 
 Antes de entregar cualquier PDF generado por CocheCierto, `QA-VALIDACION` debe comprobar visualmente que cumple esta plantilla común: logotipo oficial de CocheCierto en la cabecera y alineado a la izquierda; bloque informativo mostrado una sola vez al final; QR funcional a `https://cochecierto.com/recursos/`; QR compacto a la izquierda y conceptos informativos a la derecha, uno por línea, con interlineado aproximado de 1,25 y tamaño legible equivalente a 10 pt; contacto, recursos y redes sociales visibles; sin desbordamientos ni saltos de página inesperados. La frase `Informe beta sujeto a validación. El enlace privado es válido durante 7 días.` solo se incluirá en informes de valoración, nunca en otros descargables de Recursos. La entrega requiere conservar una evidencia de revisión visual.
+
+### Regla global — Checklists, preguntas y fuentes oficiales
+
+Los checklists y las guías de preguntas al vendedor se publicarán como descargables en `/recursos/` y se mantendrán separados por tipo de operación: compra a particular y compra a profesional. Podrán existir variantes adicionales por situación de compra, motorización, uso y nivel de incertidumbre. El informe enlazará el recurso adecuado sin exigir datos personales para consultar la versión básica.
+
+Las preguntas al vendedor deberán diferenciar siempre las obligaciones, garantías, documentación y comprobaciones propias de un particular frente a un profesional. No se reutilizará una lista genérica cuando pueda inducir a confusión.
+
+La sección de Recursos incluirá un directorio revisado de sitios oficiales y técnicos que ayuden al usuario a comprobar la operación, como DGT, ITV, BOE, organismos de ZBE, Euro NCAP, Safety Gate, organismos de campañas o llamadas a revisión, Agencia Tributaria, AEPD e INE cuando proceda. Cada enlace deberá indicar para qué sirve, qué puede comprobarse, cuándo consultarlo, sus límites, fecha de revisión y fuente. No se presentará ningún enlace como garantía del estado del vehículo.
+
+Estas reglas son inviolables: ningún informe, guía o contenido podrá sustituir la verificación documental, una inspección profesional o el criterio del usuario; los datos oficiales agregados no se usarán para inferir ingresos, solvencia, empleo, nacionalidad o riesgo crediticio individual.
 
 ## Módulo de coste energético del vehículo
 
