@@ -33,9 +33,9 @@
       const token = params.get('token');
       const download = document.querySelector('#download');
       if (!token) { title.textContent='Enlace incompleto'; message.textContent='Solicita un nuevo informe para recibir otro enlace de validación.'; message.className='error'; return; }
-      fetch(`/api/verify-email?token=${encodeURIComponent(token)}`)
+      fetch(`https://api.cochecierto.com/api/verify-email?token=${encodeURIComponent(token)}`)
         .then(response => response.json().then(data => ({ok:response.ok,data})))
-        .then(result => { if (!result.ok) throw new Error(result.data.error); title.textContent='Email confirmado'; message.textContent='Tu dirección está validada. Puedes descargar tu informe durante los próximos 7 días.'; message.className=''; download.href=result.data.downloadUrl; download.hidden=false; })
+        .then(result => { if (!result.ok) throw new Error(result.data.error); title.textContent='Email confirmado'; message.textContent='Tu dirección está validada. Puedes descargar tu informe durante los próximos 7 días.'; message.className=''; download.href=`https://api.cochecierto.com${result.data.downloadUrl}`; download.hidden=false; })
         .catch(error => { title.textContent='No hemos podido confirmar el email'; message.textContent=error.message || 'El enlace no es válido o ha caducado. Solicita otro informe.'; message.className='error'; });
     })();
   </script>

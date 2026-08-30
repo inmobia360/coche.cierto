@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  // Proxy same-origin en Hostinger; evita bloqueos del subdominio de la API.
-  window.COCHECIERTO_API = window.COCHECIERTO_API || '/api';
+  // La API Node operativa se mantiene en su subdominio hasta validar el proxy.
+  window.COCHECIERTO_API = window.COCHECIERTO_API || 'https://api.cochecierto.com/api';
   const questions = [
     ['¿Qué quieres hacer ahora?', [['buy','Comprar'],['change','Cambiar mi coche'],['inform','Solo informarme']], 'intent'],
     ['¿Cuándo crees que decidirás?', [['0-3','En 0–3 meses'],['3-6','En 3–6 meses'],['6+','En más de 6 meses'],['unknown','Todavía no lo sé']], 'window'],
