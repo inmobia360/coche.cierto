@@ -12,14 +12,16 @@ from dataforseo_api import api_post, get_result
 def main():
     parser = argparse.ArgumentParser(description="Google Autocomplete keyword suggestions")
     parser.add_argument("keyword", help="Seed keyword for autocomplete")
-    parser.add_argument("--location", "-loc", type=int, default=2840,
-                        help="Location code (default: 2840 = US)")
+    parser.add_argument("--location", "-loc", type=int, default=2724,
+                        help="Location code (default: 2724 = Spain)")
+    parser.add_argument("--language", "-lang", default="es",
+                        help="Language code (default: es = Spanish)")
     args = parser.parse_args()
 
     data = [{
         "keyword": args.keyword,
         "location_code": args.location,
-        "language_code": "en"
+        "language_code": args.language
     }]
     
     response = api_post("serp/google/autocomplete/live/advanced", data)
@@ -27,6 +29,7 @@ def main():
     
     print(f"keyword: {args.keyword}")
     print(f"location: {args.location}")
+    print(f"language: {args.language}")
     print()
     
     if results:

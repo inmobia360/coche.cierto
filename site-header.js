@@ -27,19 +27,19 @@
     if (path.indexOf('/como-funciona/') !== -1) currentKey = 'como-funciona';
     else if (path.indexOf('/que-analizamos/') !== -1) currentKey = 'que-analizamos';
     else if (path.indexOf('/demo/') !== -1) currentKey = 'demo';
-    else if (path.indexOf('/metodologia/') !== -1) currentKey = 'metodologia';
+    else if (path.indexOf('/casos-reales/') !== -1) currentKey = 'casos-reales';
     else if (path.indexOf('/valorador/') !== -1) currentKey = 'valorador';
     else if (path.indexOf('/recursos/') !== -1) currentKey = 'recursos';
 
     var headerHTML = '<a class="brand-lockup" href="/" aria-label="CocheCierto, inicio">' +
-      '<img src="/' + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36">' +
+      '<img src="' + base + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36" onerror="this.onerror=null;this.src=\'' + base + 'favicon.svg\';">' +
       '<span>Coche<strong>Cierto</strong></span>' +
       '</a>' +
       '<nav class="nav-links" aria-label="Navegación principal">' +
       '<a href="' + base + 'como-funciona/"' + (currentKey === 'como-funciona' ? ' aria-current="page"' : '') + '>' + navIcon('home') + '<span>Cómo funciona</span></a>' +
       '<a href="' + base + 'que-analizamos/"' + (currentKey === 'que-analizamos' ? ' aria-current="page"' : '') + '>' + navIcon('scan') + '<span>Qué analizamos</span></a>' +
       '<a href="' + base + 'demo/"' + (currentKey === 'demo' ? ' aria-current="page"' : '') + '>' + navIcon('report') + '<span>Informe demo</span></a>' +
-      '<a href="' + base + 'metodologia/"' + (currentKey === 'metodologia' ? ' aria-current="page"' : '') + '>' + navIcon('method') + '<span>Metodología</span></a>' +
+      '<a href="' + base + 'casos-reales/"' + (currentKey === 'casos-reales' ? ' aria-current="page"' : '') + '>' + navIcon('report') + '<span>Casos reales</span></a>' +
       '<a href="' + base + 'recursos/"' + (currentKey === 'recursos' ? ' aria-current="page"' : '') + '>' + navIcon('tools') + '<span>Recursos</span></a>' +
       '</nav>' +
       '<div class="header-actions">' +
@@ -93,11 +93,17 @@
         });
       }
 
-      if (!document.querySelector('.legal-footer')) {
-        var footer = document.createElement('footer');
+      var footer = document.querySelector('.legal-footer');
+      if (!footer) {
+        footer = document.createElement('footer');
         footer.className = 'legal-footer';
-        footer.innerHTML = '<nav aria-label="Información legal"><a href="' + base + 'legal/">Información legal</a> · <a href="' + base + 'legal/aviso-legal.html">Aviso legal</a> · <a href="' + base + 'legal/privacidad.html">Privacidad</a> · <a href="' + base + 'legal/cookies.html">Cookies</a> · <a href="' + base + 'legal/condiciones.html">Condiciones</a> · <a href="' + base + 'legal/accesibilidad.html">Accesibilidad</a> · <a href="mailto:hola@cochecierto.com">Contacto</a></nav>';
         (document.querySelector('.site-shell') || document.body).appendChild(footer);
+      }
+      if (!footer.innerHTML.trim()) {
+        footer.innerHTML = '<div class="footer-inner"><div class="footer-brand"><strong>CocheCierto</strong><span>Información clara para decidir mejor antes de comprar.</span></div><div class="footer-social" aria-label="Redes sociales"><span class="footer-social-label">Síguenos</span><a class="social-link" href="#" aria-label="Facebook · perfil pendiente" title="Facebook · perfil pendiente"><span aria-hidden="true">f</span></a><a class="social-link" href="#" aria-label="Instagram · perfil pendiente" title="Instagram · perfil pendiente"><span aria-hidden="true">ig</span></a><a class="social-link" href="#" aria-label="YouTube · perfil pendiente" title="YouTube · perfil pendiente"><span aria-hidden="true">▶</span></a><a class="social-link" href="#" aria-label="TikTok · perfil pendiente" title="TikTok · perfil pendiente"><span aria-hidden="true">♪</span></a><a class="social-link" href="#" aria-label="LinkedIn · perfil pendiente" title="LinkedIn · perfil pendiente"><span aria-hidden="true">in</span></a><a class="social-link" href="#" aria-label="X · perfil pendiente" title="X · perfil pendiente"><span aria-hidden="true">𝕏</span></a></div><nav class="footer-legal" aria-label="Información legal"><a href="' + base + 'legal/">Información legal</a><a href="' + base + 'legal/aviso-legal.html">Aviso legal</a><a href="' + base + 'legal/privacidad.html">Privacidad</a><a href="' + base + 'legal/cookies.html">Cookies</a><a href="' + base + 'legal/condiciones.html">Condiciones</a><a href="' + base + 'legal/accesibilidad.html">Accesibilidad</a><a href="mailto:hola@cochecierto.com">Contacto</a></nav><div class="footer-bottom"><span>© ' + new Date().getFullYear() + ' CocheCierto · Todos los derechos reservados</span><span>Decide con datos. Compra con seguridad.</span></div></div>';
+        footer.querySelectorAll('.social-link').forEach(function (link) {
+          link.addEventListener('click', function (event) { event.preventDefault(); });
+        });
       }
 
       if (!document.querySelector('.beta-notice')) {

@@ -1,5 +1,7 @@
-const CACHE_NAME = 'cochecierto-shell-v3';
-const SHELL = ['./', './como-funciona/', './que-analizamos/', './demo/', './metodologia/', './recursos/', './recursos/checklist-inspeccion.html', './theme.css', './theme.js', './site-header.js', './favicon.svg', './manifest.webmanifest'];
+// Incrementar esta versión en cada actualización de archivos compartidos.
+// Evita que la primera visita reciba una cabecera/footer antiguos desde el SW.
+const CACHE_NAME = 'cochecierto-shell-v9';
+const SHELL = ['./', './como-funciona/', './que-analizamos/', './demo/', './casos-reales/', './recursos/', './recursos/checklist-inspeccion.html', './theme.css', './theme.js', './site-header.js', './favicon.svg', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => Promise.all(SHELL.map(url => fetch(url).then(response => {

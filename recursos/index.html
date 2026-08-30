@@ -6,12 +6,14 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="canonical" href="https://cochecierto.com/recursos/">
   <meta property="og:type" content="website"><meta property="og:locale" content="es_ES"><meta property="og:url" content="https://cochecierto.com/recursos/"><meta property="og:title" content="Guías y herramientas para comprar coche"><meta property="og:description" content="Checklists, guías y calculadoras para revisar anuncios, documentos, costes y riesgos."><meta property="og:image" content="https://cochecierto.com/social/cochecierto-social.png">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Guías y herramientas para comprar coche"><meta name="twitter:description" content="Recursos prácticos para comprar con más claridad."><meta name="twitter:image" content="https://cochecierto.com/social/cochecierto-social.png">
   <title>Recursos y Herramientas para Compradores | CocheCierto</title>
   <meta name="description" content="Accede a guías, checklists y calculadoras para revisar anuncios, documentos, costes y riesgos antes de comprar un coche de ocasión.">
-  <link rel="stylesheet" href="../theme.css?v=20260829-14">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Recursos y herramientas para compradores","url":"https://cochecierto.com/recursos/","description":"Guías, checklists y herramientas orientativas para acompañar la compra de un coche."}</script>
+  <link rel="stylesheet" href="../theme.css?v=20260830-04">
   <link rel="stylesheet" href="../styles.css?v=20260829-14">
-  <script src="../theme.js?v=20260829-14"></script>
-  <script src="../site-header.js?v=20260829-14" defer></script>
+  <script src="../theme.js?v=20260830-04"></script>
+  <script src="../site-header.js?v=20260830-04" defer></script>
   <style>
     .page-hero {
       padding: 64px 0 36px;
@@ -78,6 +80,22 @@
     .resource-link:hover {
       text-decoration: underline;
     }
+    .resource-submit {
+      min-height: 48px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .resource-submit span {
+      display: inline-block;
+      margin-left: 6px;
+      transition: transform .2s ease;
+    }
+    .resource-submit:hover span,
+    .resource-submit:focus-visible span {
+      transform: translateX(3px);
+    }
     @media (max-width: 960px) {
       .resources-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -132,7 +150,7 @@
             <option value="work">Necesito el coche para trabajar</option>
             <option value="docs">Quiero revisar documentos y contrato</option>
           </select>
-          <button class="button primary" type="submit">Mostrar recursos</button>
+          <button class="button primary resource-submit" type="submit">Ver mis recursos <span aria-hidden="true">→</span></button>
         </form>
         <div class="resource-recommendation" id="resourceRecommendation" aria-live="polite"></div>
       </section>
@@ -143,7 +161,7 @@
       first: ['Valorador CocheCierto Decide', '../valorador/', 'Ordena tu presupuesto, uso y prioridades antes de mirar anuncios.', 'Checklist de Inspección en Frío', '../recursos/checklist-inspeccion.html', 'Sigue una revisión sencilla antes de entregar una señal.'],
       change: ['Informe Demo Interactivo', '../demo/', 'Mira cómo se separan encaje, coste y riesgos en una decisión de cambio.', 'Valorador CocheCierto Decide', '../valorador/', 'Compara tu situación actual con lo que necesitas del siguiente coche.'],
       work: ['Valorador CocheCierto Decide', '../valorador/', 'Incluye kilómetros, uso y margen para que la decisión sea sostenible.', 'Informe Demo Interactivo', '../demo/', 'Consulta un ejemplo de cómo se explican costes y siguientes pasos.'],
-      docs: ['Checklist de Inspección en Frío', '../recursos/checklist-inspeccion.html', 'Prepara preguntas y comprobaciones para la visita.', 'Aviso sobre datos pendientes', '../metodologia/', 'Entiende qué debe confirmarse antes de tomar una decisión.']
+      docs: ['Checklist de Inspección en Frío', '../recursos/checklist-inspeccion.html', 'Prepara preguntas y comprobaciones para la visita.', 'Cómo funciona CocheCierto', '../como-funciona/', 'Entiende qué debe confirmarse antes de tomar una decisión.']
     };
     const finder = document.getElementById('resourceFinderForm'); const recommendation = document.getElementById('resourceRecommendation');
     finder.addEventListener('submit', event => { event.preventDefault(); const data = recommendations[finder.need.value]; recommendation.innerHTML = `<h3>Te recomendamos empezar por aquí</h3><p><a href="${data[1]}">${data[0]}</a><br>${data[2]}</p><p><a href="${data[4]}">${data[3]}</a><br>${data[5]}</p>`; });

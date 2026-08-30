@@ -1,6 +1,11 @@
 DirectoryIndex index.html
 Options -Indexes
 
+# Metodología se integró en Cómo funciona; conservar enlaces antiguos sin
+# mantener una segunda sección indexable.
+Redirect 301 /metodologia/ /como-funciona/
+Redirect 301 /informe-demo.html /demo/
+
 # Compresión GZIP y cabeceras de caché
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
@@ -13,3 +18,7 @@ Options -Indexes
   ExpiresByType text/css "access plus 1 week"
   ExpiresByType application/javascript "access plus 1 week"
 </IfModule>
+
+<FilesMatch "^(popup|test-autouncle)\.html$">
+  Header set X-Robots-Tag "noindex, nofollow, noarchive"
+</FilesMatch>

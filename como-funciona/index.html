@@ -7,10 +7,12 @@
   <link rel="canonical" href="https://cochecierto.com/como-funciona/">
   <title>Cómo funciona | CocheCierto</title>
   <meta name="description" content="Conoce cómo CocheCierto transforma tu situación en una estrategia de compra de coche con datos y seguridad.">
-  <link rel="stylesheet" href="../theme.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Cómo funciona CocheCierto","url":"https://cochecierto.com/como-funciona/","description":"Flujo orientativo para ordenar una compra de coche según las necesidades, el presupuesto y las comprobaciones pendientes."}</script>
+  <meta property="og:type" content="website"><meta property="og:locale" content="es_ES"><meta property="og:url" content="https://cochecierto.com/como-funciona/"><meta property="og:title" content="Cómo funciona CocheCierto"><meta property="og:description" content="Descubre el flujo de CocheCierto: perfil, presupuesto, coste total, comprobaciones y próximos pasos."><meta property="og:image" content="https://cochecierto.com/social/cochecierto-social.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Cómo funciona CocheCierto"><meta name="twitter:description" content="Un flujo claro para ordenar tu compra de coche."><meta name="twitter:image" content="https://cochecierto.com/social/cochecierto-social.png">
+  <link rel="stylesheet" href="../theme.css?v=20260830-04">
   <link rel="stylesheet" href="../styles.css">
-  <script src="../theme.js"></script>
-  <script src="../site-header.js" defer></script>
+  <script src="../theme.js?v=20260830-04"></script>
+  <script src="../site-header.js?v=20260830-04" defer></script>
   <style>
     .page-hero {
       padding: 64px 0 44px;
@@ -105,9 +107,47 @@
       color: var(--brand-orange);
       font-weight: 800;
     }
+    .plans-section {
+      margin: 0 0 80px;
+    }
+    .plans-intro {
+      max-width: 720px;
+      margin-bottom: 24px;
+    }
+    .plans-intro h2 {
+      color: var(--ink-primary);
+      font-size: clamp(30px, 4vw, 44px);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin: 8px 0 14px;
+    }
+    .plans-intro p { color: var(--ink-secondary); line-height: 1.6; font-size: 17px; }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .plan-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .plan-card.featured { border-color: var(--brand-orange); }
+    .plan-card h3 { color: var(--ink-primary); font-size: 22px; margin: 8px 0 12px; }
+    .plan-card p { color: var(--ink-secondary); line-height: 1.55; min-height: 74px; }
+    .plan-card ul { padding-left: 20px; color: var(--ink-primary); line-height: 1.7; flex: 1; }
+    .plan-card li::marker { color: var(--brand-orange); }
+    .plan-status { color: var(--brand-orange); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .plan-button { margin-top: 20px; width: 100%; opacity: .58; cursor: not-allowed; }
+    .plan-note { color: var(--ink-muted); font-size: 13px; margin: 12px 0 0; }
     @media (max-width: 960px) {
       .steps-grid { grid-template-columns: repeat(2, 1fr); }
       .deliverable-section { grid-template-columns: 1fr; gap: 32px; }
+      .plans-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
       .steps-grid { grid-template-columns: 1fr; }
@@ -166,8 +206,68 @@
           <a class="nav-cta" href="../valorador/">Comenzar mi valoración gratuita →</a>
         </div>
         <div style="text-align: center;">
-          <img src="../buyer-check.png" alt="Verificación de compra" width="960" height="640" loading="lazy" decoding="async" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <img src="./flujo-compra-vertical.png" alt="Persona revisando su coche y siguiendo un recorrido de compra en cuatro pasos" width="1024" height="1536" loading="lazy" decoding="async" style="display: block; width: min(100%, 420px); height: auto; margin: 0 auto; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
         </div>
+      </section>
+
+      <section class="plans-section" aria-labelledby="plans-title">
+        <div class="plans-intro">
+          <p class="eyebrow">Qué recibes en cada fase</p>
+          <h2 id="plans-title">Empieza gratis y decide con más contexto</h2>
+          <p>La primera orientación sirve para saber si CocheCierto encaja contigo. Las fases ampliadas están preparadas para el futuro, pero todavía no se pueden contratar: esta es una versión beta y no hay pasarela de pago activa.</p>
+        </div>
+        <div class="plans-grid">
+          <article class="plan-card featured">
+            <span class="plan-status">Disponible en beta</span>
+            <h3>Orientación gratuita</h3>
+            <p>Una primera respuesta útil antes de pedirte que tomes una decisión.</p>
+            <ul>
+              <li>Perfil de uso y prioridades.</li>
+              <li>Tipo de coche y motorización a comparar.</li>
+              <li>Presupuesto y coste inicial orientativos.</li>
+              <li>Riesgos y comprobaciones prioritarias.</li>
+            </ul>
+            <a class="button plan-button" href="../valorador/" aria-label="Crear una valoración gratuita">Crear mi valoración gratuita →</a>
+          </article>
+          <article class="plan-card">
+            <span class="plan-status">Preparado · no activo</span>
+            <h3>Análisis de una unidad</h3>
+            <p>Para revisar un anuncio concreto con más detalle antes de desplazarte o negociar.</p>
+            <ul>
+              <li>Lectura ordenada de los datos del anuncio.</li>
+              <li>Coste total y señales documentales pendientes.</li>
+              <li>Preguntas para el vendedor.</li>
+              <li>Checklist de verificación de esa unidad.</li>
+            </ul>
+            <button class="button plan-button" type="button" disabled>Próximamente</button>
+            <p class="plan-note">No se solicita pago ni se crea una compra.</p>
+          </article>
+          <article class="plan-card">
+            <span class="plan-status">Preparado · no activo</span>
+            <h3>Búsqueda asistida</h3>
+            <p>Para convertir tus criterios en una búsqueda comparada y con siguientes pasos claros.</p>
+            <ul>
+              <li>Brief de búsqueda según tu perfil.</li>
+              <li>Comparación de alternativas.</li>
+              <li>Contexto de mercado y coste total.</li>
+              <li>Borradores de contacto y decisión.</li>
+            </ul>
+            <button class="button plan-button" type="button" disabled>Próximamente</button>
+            <p class="plan-note">Las condiciones y precios se publicarán antes de activarlo.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="method-flow" aria-labelledby="next-step-title">
+        <p class="eyebrow">Después del informe</p>
+        <h2 id="next-step-title">No te dejamos solo con una cifra</h2>
+        <div class="flow-grid">
+          <article><span>01</span><h3>Entender</h3><p>Sabes qué tipo de coche encaja contigo y qué límites conviene respetar.</p></article>
+          <article><span>02</span><h3>Comparar</h3><p>Conviertes tus prioridades en preguntas sencillas para leer anuncios con criterio.</p></article>
+          <article><span>03</span><h3>Comprobar</h3><p>Identificas documentos, costes y señales que siguen pendientes antes de pagar.</p></article>
+          <article><span>04</span><h3>Actuar</h3><p>Eliges el siguiente paso: pedir datos, negociar, visitar o buscar ayuda profesional.</p></article>
+        </div>
+        <div class="method-note"><strong>También puedes ver ejemplos:</strong> consulta <a href="../casos-reales/">Casos reales</a> para entender cómo se aterriza cada situación.</div>
       </section>
     </main>
   </div>

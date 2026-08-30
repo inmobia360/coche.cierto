@@ -42,7 +42,6 @@
       const isSubdir = window.location.pathname.includes('/como-funciona/') ||
                        window.location.pathname.includes('/que-analizamos/') ||
                        window.location.pathname.includes('/demo/') ||
-                       window.location.pathname.includes('/metodologia/') ||
                        window.location.pathname.includes('/recursos/') ||
                        window.location.pathname.includes('/valorador/') ||
                        window.location.pathname.includes('/analizar-coche/');

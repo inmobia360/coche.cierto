@@ -78,8 +78,18 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
 .legal-links a { color:inherit; text-decoration:none; }
 .legal-copy { max-width:860px; padding:28px 0 56px; line-height:1.7; }
 .legal-copy h2 { margin:30px 0 10px; }
-.legal-footer { max-width:1080px; margin:24px auto 0; padding:24px 0 36px; border-top:1px solid var(--border,#2d5268); color:var(--text-muted,#8fb2c5); font-size:.82rem; line-height:1.8; }
+.legal-footer { max-width:1080px; margin:24px auto 0; padding:28px 0 22px; border-top:1px solid var(--border,#2d5268); color:var(--text-muted,#8fb2c5); font-size:.82rem; line-height:1.5; }
+.footer-inner { display:grid; gap:22px; }
+.footer-brand { display:flex; flex-direction:column; gap:4px; }
+.footer-brand strong { color:var(--text,#f6f8f9); font-size:1rem; }
+.footer-social { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.footer-social-label { margin-right:4px; }
+.social-link { display:grid; place-items:center; width:32px; height:32px; border:1px solid var(--border,#2d5268); border-radius:50%; color:var(--text,#f6f8f9); text-decoration:none; font-weight:800; font-size:.78rem; transition:transform .2s ease, border-color .2s ease, color .2s ease; }
+.social-link:hover, .social-link:focus-visible { transform:translateY(-2px); border-color:#ff5a14; color:#ff6b2b; }
+.footer-legal { display:flex; justify-content:center; align-items:center; gap:8px 16px; flex-wrap:wrap; padding-top:20px; border-top:1px solid color-mix(in srgb, var(--border,#2d5268) 70%, transparent); }
 .legal-footer a { color:inherit; }
+.footer-bottom { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-top:18px; font-size:.78rem; }
+@media (max-width:700px) { .legal-footer { margin:20px 16px 0; } .footer-legal { justify-content:flex-start; } .footer-bottom { display:grid; gap:6px; } }
 .beta-notice { max-width:1080px; margin:10px auto 0; padding:9px 12px; display:flex; gap:9px; align-items:center; border:1px solid rgba(255,90,20,.55); border-radius:9px; color:var(--text,#f6f8f9); background:rgba(255,90,20,.08); font-size:.78rem; }
 .beta-notice strong { color:#ff6b2b; white-space:nowrap; }
 .beta-notice span { color:var(--text-muted,#8fb2c5); }

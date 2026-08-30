@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "description": "Catálogo editorial de casos prácticos y actualidad útil de CocheCierto.",
+  "states": ["BORRADOR", "EN_REVISION", "APROBADO", "PUBLICADO", "RETIRADO"],
+  "profiles": ["primera-compra", "cambio-coche", "familiar", "uso-profesional", "presupuesto-ajustado", "coche-ya-visto"],
+  "items": []
+}
