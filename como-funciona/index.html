@@ -14,6 +14,13 @@
   <script src="../theme.js?v=20260830-04"></script>
   <script src="../site-header.js?v=20260830-04" defer></script>
   <style>
+    .plan-feedback { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
+    .plan-feedback strong { display: block; color: var(--ink-primary); font-size: 12px; letter-spacing: .08em; margin-bottom: 9px; }
+    .plan-feedback-question, .plan-feedback-thanks, .plan-feedback-results { color: var(--ink-secondary); font-size: 14px; line-height: 1.45; }
+    .plan-feedback-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .plan-feedback-options button { border: 1px solid var(--border-subtle); border-radius: 999px; background: transparent; color: var(--ink-primary); padding: 9px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+    .plan-feedback-options button:hover, .plan-feedback-options button:focus-visible { border-color: var(--brand-orange); color: var(--brand-orange); }
+    .plan-feedback.is-voted .plan-feedback-options { display: none; }
     .page-hero {
       padding: 64px 0 44px;
       max-width: 960px;
@@ -214,7 +221,7 @@
         <div class="plans-intro">
           <p class="eyebrow">Qué recibes en cada fase</p>
           <h2 id="plans-title">Empieza gratis y decide con más contexto</h2>
-          <p>La primera orientación sirve para saber si CocheCierto encaja contigo. Las fases ampliadas están preparadas para el futuro, pero todavía no se pueden contratar: esta es una versión beta y no hay pasarela de pago activa.</p>
+          <p>La primera orientación sirve para saber si CocheCierto encaja contigo. Estamos validando nuevas funciones para ayudarte a tomar decisiones con más contexto. Tu opinión nos ayudará a decidir cuáles desarrollar primero.</p>
         </div>
         <div class="plans-grid">
           <article class="plan-card featured">
@@ -230,7 +237,7 @@
             <a class="button plan-button" href="../valorador/" aria-label="Crear una valoración gratuita">Crear mi valoración gratuita →</a>
           </article>
           <article class="plan-card">
-            <span class="plan-status">Preparado · no activo</span>
+            <span class="plan-status">En validación · próximamente</span>
             <h3>Análisis de una unidad</h3>
             <p>Para revisar un anuncio concreto con más detalle antes de desplazarte o negociar.</p>
             <ul>
@@ -239,11 +246,10 @@
               <li>Preguntas para el vendedor.</li>
               <li>Checklist de verificación de esa unidad.</li>
             </ul>
-            <button class="button plan-button" type="button" disabled>Próximamente</button>
-            <p class="plan-note">No se solicita pago ni se crea una compra.</p>
+            <div class="plan-feedback" data-plan-feedback="unit-analysis"><strong>AYÚDANOS A DECIDIR</strong><p class="plan-feedback-question">¿Te ayudaría a decidir mejor sobre un coche concreto?</p><div class="plan-feedback-options"><button type="button" data-feedback="useful">Me sería útil</button><button type="button" data-feedback="doubt">Tengo dudas</button><button type="button" data-feedback="not-now">Ahora mismo no</button></div><p class="plan-feedback-thanks" hidden>Gracias por ayudarnos a decidir qué desarrollar primero.</p><p class="plan-feedback-results" hidden>Los resultados de la versión beta se mostrarán cuando haya al menos 10 respuestas reales.</p></div>
           </article>
           <article class="plan-card">
-            <span class="plan-status">Preparado · no activo</span>
+            <span class="plan-status">En validación · próximamente</span>
             <h3>Búsqueda asistida</h3>
             <p>Para convertir tus criterios en una búsqueda comparada y con siguientes pasos claros.</p>
             <ul>
@@ -252,8 +258,7 @@
               <li>Contexto de mercado y coste total.</li>
               <li>Borradores de contacto y decisión.</li>
             </ul>
-            <button class="button plan-button" type="button" disabled>Próximamente</button>
-            <p class="plan-note">Las condiciones y precios se publicarán antes de activarlo.</p>
+            <div class="plan-feedback" data-plan-feedback="assisted-search"><strong>AYÚDANOS A DECIDIR</strong><p class="plan-feedback-question">¿Te resultaría útil recibir ayuda para encontrar coches que encajen contigo?</p><div class="plan-feedback-options"><button type="button" data-feedback="useful">Me sería útil</button><button type="button" data-feedback="doubt">Tengo dudas</button><button type="button" data-feedback="not-now">Ahora mismo no</button></div><p class="plan-feedback-thanks" hidden>Gracias por ayudarnos a decidir qué desarrollar primero.</p><p class="plan-feedback-results" hidden>Los resultados de la versión beta se mostrarán cuando haya al menos 10 respuestas reales.</p></div>
           </article>
         </div>
       </section>
@@ -271,5 +276,12 @@
       </section>
     </main>
   </div>
+  <script>
+    document.querySelectorAll('[data-plan-feedback]').forEach(function (block) {
+      var key = 'cc-plan-feedback:' + block.dataset.planFeedback;
+      if (localStorage.getItem(key)) { block.classList.add('is-voted'); block.querySelector('.plan-feedback-thanks').hidden = false; block.querySelector('.plan-feedback-results').hidden = false; }
+      block.querySelectorAll('[data-feedback]').forEach(function (button) { button.addEventListener('click', function () { localStorage.setItem(key, button.dataset.feedback); block.classList.add('is-voted'); block.querySelector('.plan-feedback-thanks').hidden = false; block.querySelector('.plan-feedback-results').hidden = false; }); });
+    });
+  </script>
 </body>
 </html>
