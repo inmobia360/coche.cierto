@@ -70,6 +70,8 @@ const writeReportPdf = async (res, report) => {
   doc.font('Helvetica').fontSize(10).text(resourcesUrl);
   doc.image(qr, doc.x, doc.y + 8, { width: 82 });
   doc.fontSize(9).fillColor('#58717d').text('Escanea el QR para acceder a Recursos', doc.x + 95, doc.y + 35);
+  doc.moveDown(5).fillColor('#082333').font('Helvetica-Bold').text('Presencia social');
+  doc.font('Helvetica').fontSize(9).fillColor('#58717d').text('Facebook · Instagram · YouTube · TikTok · LinkedIn · X');
   doc.moveDown(7).fillColor('#58717d').fontSize(9).text('cochecierto.com · hola@cochecierto.com', { align: 'center' });
   doc.text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', { align: 'center' });
   doc.end();
