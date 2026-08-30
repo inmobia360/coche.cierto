@@ -96,13 +96,22 @@ const createReportToken = () => crypto.randomBytes(32).toString('hex');
 const cleanReports = () => { const now = Date.now(); for (const [token, report] of pendingReports) if (report.expiresAt <= now) pendingReports.delete(token); };
 const addReport = (token, report) => { cleanReports(); pendingReports.set(token, { ...report, expiresAt: Date.now() + REPORT_TTL_MS }); };
 const getReport = (token) => { cleanReports(); const report = pendingReports.get(token); return report && report.expiresAt > Date.now() ? report : null; };
+const drawBrandLogo = (doc) => {
+  const x = doc.x;
+  const y = doc.y;
+  doc.save().lineWidth(4).strokeColor('#082333').circle(x + 14, y + 14, 12).stroke()
+    .lineWidth(3.5).strokeColor('#fc4c02').moveTo(x + 8, y + 14).lineTo(x + 13, y + 19).lineTo(x + 22, y + 9).stroke().restore();
+  doc.fillColor('#082333').font('Helvetica-Bold').fontSize(18).text('Coche', x + 34, y + 5, { continued: true })
+    .fillColor('#fc4c02').text('Cierto');
+  doc.y = y + 34;
+};
 const writeReportPdf = async (res, report) => {
-  const qr = await QRCode.toDataURL(resourcesUrl, { margin: 1, width: 110 });
+  const qr = await QRCode.toDataURL('https://cochecierto.com/recursos/', { margin: 1, width: 96 });
   const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: 'Informe de orientación CocheCierto', Author: 'CocheCierto' } });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="informe-cochecierto.pdf"');
   doc.pipe(res);
-  doc.fillColor('#082333').fontSize(22).font('Helvetica-Bold').text('Coche', { continued: true }).fillColor('#ff4d00').text('Cierto');
+  drawBrandLogo(doc);
   doc.moveDown(1).fillColor('#ff4d00').fontSize(10).font('Helvetica-Bold').text('INFORME DE ORIENTACIÓN · VERSIÓN BETA');
   doc.moveDown(.5).fillColor('#082333').fontSize(24).text('Una decisión explicada, no una cifra aislada');
   doc.fillColor('#58717d').fontSize(11).font('Helvetica').text('Este informe es orientativo y se genera a partir de las respuestas aportadas. No es una tasación, peritaje ni aprobación de financiación.');
@@ -119,14 +128,14 @@ const writeReportPdf = async (res, report) => {
   doc.fontSize(9).fillColor('#ffffff').rect(startX, doc.y, col.reduce((a,b)=>a+b,0), 22).fill('#082333');
   let x = startX; headers.forEach((h,i)=>{ doc.fillColor('#ffffff').text(h, x+5, doc.y+7, { width: col[i]-10 }); x += col[i]; }); doc.y += 26;
   resources.forEach((row, ri) => { const y=doc.y; const h=42; doc.fillColor(ri%2?'#f3f7f6':'#ffffff').rect(startX,y,col.reduce((a,b)=>a+b,0),h).fill(); x=startX; row.forEach((cell,i)=>{doc.fillColor('#082333').font('Helvetica').text(cell,x+5,y+7,{width:col[i]-10,height:h-8});x+=col[i];});doc.y=y+h; });
-  doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').text('Continúa con más herramientas');
-  doc.font('Helvetica').fontSize(10).text(resourcesUrl);
-  doc.image(qr, doc.x, doc.y + 8, { width: 82 });
-  doc.fontSize(9).fillColor('#58717d').text('Escanea el QR para acceder a Recursos', doc.x + 95, doc.y + 35);
-  doc.moveDown(5).fillColor('#082333').font('Helvetica-Bold').text('Presencia social');
-  doc.font('Helvetica').fontSize(9).fillColor('#58717d').text('Facebook · Instagram · YouTube · TikTok · LinkedIn · X');
-  doc.moveDown(7).fillColor('#58717d').fontSize(9).text('cochecierto.com · hola@cochecierto.com', { align: 'center' });
-  doc.text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', { align: 'center' });
+  doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').fontSize(10).text('Continúa con más herramientas: https://cochecierto.com/recursos/', doc.x + 92, doc.y, { width: 385, lineGap: 2 });
+  const infoY = doc.y;
+  doc.image(qr, doc.x, infoY - 2, { width: 52 });
+  doc.font('Helvetica').fontSize(10).fillColor('#58717d')
+    .text('Escanea el QR para acceder a Recursos.', doc.x + 92, doc.y, { width: 385, lineGap: 2 })
+    .text('Presencia social: Facebook · Instagram · YouTube · TikTok · LinkedIn · X', { width: 385, lineGap: 2 })
+    .text('cochecierto.com · hola@cochecierto.com', { width: 385, lineGap: 2 })
+    .text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', { width: 385, lineGap: 2 });
   doc.end();
 };
 

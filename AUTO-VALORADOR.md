@@ -71,6 +71,10 @@ Las páginas `Cómo funciona`, `Qué analizamos`, `Casos reales` y `Demo` deben 
 
 La página de inicio debe conducir a una primera valoración útil antes de solicitar registro. Seguir `specs/013-conversion-primera-valoracion/`: situación → preguntas → orientación inmediata → email para guardar → validación → informe. El CTA principal será `Crear mi valoración gratuita`, el email será progresivo, el consentimiento comercial separado y el flujo deberá conservar respuestas, responsive y navegación claro/oscuro.
 
+### Regla global — Documentos PDF entregables
+
+Antes de entregar cualquier PDF generado por CocheCierto, `QA-VALIDACION` debe comprobar visualmente que cumple esta plantilla común: logotipo oficial de CocheCierto en la cabecera y alineado a la izquierda; bloque informativo mostrado una sola vez al final; QR funcional a `https://cochecierto.com/recursos/`; QR compacto a la izquierda y conceptos informativos a la derecha, uno por línea, con interlineado aproximado de 1,25 y tamaño legible equivalente a 10 pt; contacto, recursos y redes sociales visibles; sin desbordamientos ni saltos de página inesperados. La frase `Informe beta sujeto a validación. El enlace privado es válido durante 7 días.` solo se incluirá en informes de valoración, nunca en otros descargables de Recursos. La entrega requiere conservar una evidencia de revisión visual.
+
 ## Módulo de coste energético del vehículo
 
 En el MVP, `FINANZAS-TCO` será responsable del análisis energético, con estas entradas opcionales del valorador:
