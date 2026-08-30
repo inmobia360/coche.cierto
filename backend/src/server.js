@@ -11,6 +11,14 @@ const port = Number(process.env.PORT || 3000);
 const origin = process.env.APP_ORIGIN || 'http://localhost:5500';
 const pool = process.env.MYSQL_HOST ? mysql.createPool({ host: process.env.MYSQL_HOST, port: Number(process.env.MYSQL_PORT || 3306), database: process.env.MYSQL_DATABASE, user: process.env.MYSQL_USER, password: process.env.MYSQL_PASSWORD, waitForConnections: true, connectionLimit: 5 }) : null;
 const mailer = process.env.MAIL_HOST ? nodemailer.createTransport({ host: process.env.MAIL_HOST, port: Number(process.env.MAIL_PORT || 587), secure: Number(process.env.MAIL_PORT) === 465, auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASSWORD } }) : null;
+if (mailer) {
+  const sendMail = mailer.sendMail.bind(mailer);
+  mailer.sendMail = (options) => {
+    const verificationUrl = String(options.text || '').replace(/^Valida tu email:\s*/i, '').trim();
+    const html = `<!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;color:#082333;font-family:Arial,sans-serif"><div style="max-width:620px;margin:32px auto;padding:0 16px"><div style="background:#082333;border-radius:18px 18px 0 0;padding:24px 28px;color:#fff;font-size:22px;font-weight:700">Coche<span style="color:#ff4d00">Cierto</span></div><div style="background:#fff;padding:32px 28px;border:1px solid #d7e2df;border-top:0;border-radius:0 0 18px 18px"><p style="margin-top:0;color:#ff4d00;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Tu informe empieza aquí</p><h1 style="font-size:28px;line-height:1.15;margin:0 0 16px">Confirma tu email</h1><p style="font-size:16px;line-height:1.6">Hemos recibido tu solicitud. Confirma tu dirección para poder enviarte el resultado de tu valoración.</p><p style="text-align:center;margin:28px 0"><a href="${verificationUrl}" style="display:inline-block;background:#ff4d00;color:#fff;text-decoration:none;padding:14px 24px;border-radius:999px;font-weight:700">Validar mi email</a></p><p style="font-size:13px;line-height:1.5;color:#58717d">Si el botón no funciona, copia y pega este enlace en tu navegador:</p><p style="font-size:12px;line-height:1.5;word-break:break-all"><a href="${verificationUrl}" style="color:#0b6f9c">${verificationUrl}</a></p><hr style="border:0;border-top:1px solid #e5ecea;margin:28px 0"><p style="font-size:12px;line-height:1.5;color:#58717d;margin-bottom:0">Este mensaje responde a una solicitud realizada en CocheCierto. La orientación es informativa y no sustituye una inspección profesional, asesoramiento financiero o jurídico.</p></div></div></body></html>`;
+    return sendMail({ ...options, html });
+  };
+}
 const attempts = new Map();
 
 app.use(helmet());
