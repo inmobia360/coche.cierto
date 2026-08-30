@@ -37,7 +37,15 @@ const airtable = process.env.AIRTABLE_TOKEN && process.env.AIRTABLE_BASE_ID ? {
   leadsTable: process.env.AIRTABLE_LEADS_TABLE || 'Leads'
 } : null;
 const airtableUrl = (table) => `https://api.airtable.com/v0/${airtable.base}/${encodeURIComponent(table)}`;
-const airtableRequest = async (url, options = {}) => { const response = await fetch(url, { ...options, headers: { Authorization: `Bearer ${airtable.token}`, 'Content-Type': 'application/json', ...(options.headers || {}) } }); if (!response.ok) throw new Error(`Airtable ${response.status}`); return response.json(); };
+const airtableRequest = async (url, options = {}) => {
+  const response = await fetch(url, { ...options, headers: { Authorization: `Bearer ${airtable.token}`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
+  if (!response.ok) {
+    let detail = '';
+    try { detail = (await response.json())?.error?.type || ''; } catch {}
+    throw new Error(`Airtable ${response.status}${detail ? ` ${detail}` : ''}`);
+  }
+  return response.json();
+};
 const saveAirtableLead = async (report, token) => {
   if (!airtable) return null;
   // Estos nombres coinciden con los campos reales creados en la base beta.
@@ -126,6 +134,17 @@ app.get('/health', async (_req, res) => {
   let database = 'not-configured';
   if (pool) { try { await pool.query('SELECT 1'); database = 'ok'; } catch { database = 'unavailable'; } }
   res.json({ ok: true, service: 'cochecierto-backend', database });
+});
+
+app.get('/api/airtable-status', async (_req, res) => {
+  if (!airtable) return res.status(503).json({ configured: false, ok: false, reason: 'Airtable no configurado' });
+  try {
+    await airtableRequest(`${airtableUrl(airtable.leadsTable)}?maxRecords=1`);
+    return res.json({ configured: true, ok: true, table: airtable.leadsTable });
+  } catch (error) {
+    console.error('Airtable status:', error.message);
+    return res.status(502).json({ configured: true, ok: false, reason: error.message });
+  }
 });
 
 app.post('/api/leads', async (req, res) => {
