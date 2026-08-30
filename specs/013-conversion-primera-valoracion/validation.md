@@ -7,5 +7,6 @@
 - [ ] Los consentimientos están separados y son comprensibles.
 - [ ] La navegación atrás conserva las respuestas.
 - [ ] El flujo no crea desbordamiento en móvil.
+- [x] Si la entrada ya aporta respuestas (intención, plazo, uso u otras), el formulario continúa en la primera pregunta pendiente sin repetirlas.
 - [ ] Los errores de API ofrecen una alternativa clara.
 - [ ] Los eventos del embudo no contienen datos personales innecesarios.

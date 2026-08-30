@@ -11,6 +11,7 @@ import QRCode from 'qrcode';
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const origin = process.env.APP_ORIGIN || 'http://localhost:5500';
+const allowedOrigins = new Set([origin, 'https://cochecierto.com', 'https://www.cochecierto.com']);
 const pool = process.env.MYSQL_HOST ? mysql.createPool({ host: process.env.MYSQL_HOST, port: Number(process.env.MYSQL_PORT || 3306), database: process.env.MYSQL_DATABASE, user: process.env.MYSQL_USER, password: process.env.MYSQL_PASSWORD, waitForConnections: true, connectionLimit: 5 }) : null;
 const mailer = process.env.MAIL_HOST ? nodemailer.createTransport({ host: process.env.MAIL_HOST, port: Number(process.env.MAIL_PORT || 587), secure: Number(process.env.MAIL_PORT) === 465, auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASSWORD } }) : null;
 if (mailer) {
@@ -41,6 +42,39 @@ const airtable = process.env.AIRTABLE_TOKEN && process.env.AIRTABLE_BASE_ID ? {
   leadsTable: process.env.AIRTABLE_LEADS_TABLE || 'Leads'
 } : null;
 const airtableUrl = (table) => `https://api.airtable.com/v0/${airtable.base}/${encodeURIComponent(table)}`;
+const llm = process.env.LLM_BASE_URL && process.env.LLM_MODEL ? {
+  url: process.env.LLM_BASE_URL.replace(/\/$/, ''),
+  model: process.env.LLM_MODEL,
+  key: process.env.LLM_API_KEY || ''
+} : null;
+const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people', 'parking', 'zbe', 'budget', 'priority', 'risk'];
+const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
+  .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
+  .map((key) => [key, answers[key]]));
+const fallbackNarrative = (report) => ({
+  summary: report.situation === 'first-car' ? 'Como sería tu primer coche, conviene priorizar sencillez, documentación clara y margen para los gastos que aparecen después de comprar.' : 'Esta orientación te ayuda a comparar opciones con más contexto y a detectar qué debes confirmar antes de comprometer dinero.',
+  priorities: ['Compara el coste total y no solo el precio anunciado.', 'Pide documentación verificable antes de desplazarte.', 'Conserva margen para seguro, puesta a punto e imprevistos.'],
+  nextStep: report.situation === 'professional' ? 'Calcula cuánto te costaría un día sin vehículo y confirma mantenimiento, garantía y factura.' : 'Compara varias unidades equivalentes y confirma la documentación antes de entregar dinero.',
+  profileReading: report.situation === 'first-car' ? 'Necesitas una primera compra comprensible, con margen y comprobaciones sencillas.' : 'Tu decisión debe partir del uso real y del coste total, no solo del anuncio.',
+  risks: ['Datos del anuncio sin confirmar', 'Costes iniciales fuera del precio', 'Estado físico pendiente de revisar'],
+  decisionPlan: ['Define el coste total que puedes sostener.', 'Compara opciones equivalentes.', 'Verifica documentación y estado antes de pagar.']
+});
+const requestLlmNarrative = async (report) => {
+  if (!llm) return { narrative: fallbackNarrative(report), status: 'disabled' };
+  const context = { situation: report.situation, category: report.category, usageType: report.usageType, purchaseWindow: report.purchaseWindow, priority: report.priority, answers: report.answers };
+  const prompt = `Redacta una guía práctica y cercana para un comprador de coches en España. Devuelve SOLO JSON válido con las claves summary (string), profileReading (string), priorities (array de 3 strings), risks (array de 3 strings), decisionPlan (array de 3 strings) y nextStep (string). Usa únicamente el contexto proporcionado. No inventes cifras, marcas, modelos, fuentes, garantías ni diagnósticos mecánicos. Distingue siempre orientación de hechos y recuerda que hace falta documentación e inspección. Contexto: ${JSON.stringify(context)}`;
+  try {
+    const response = await fetch(`${llm.url}/v1/chat/completions`, { method: 'POST', signal: AbortSignal.timeout(8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify({ model: llm.model, temperature: 0.2, max_tokens: 420, messages: [{ role: 'system', content: 'Eres un redactor prudente de informes de compra. No inventes datos.' }, { role: 'user', content: prompt }] }) });
+    if (!response.ok) throw new Error(`LLM ${response.status}`);
+    const content = (await response.json())?.choices?.[0]?.message?.content;
+    const parsed = JSON.parse(String(content || '').replace(/^```json\s*|```$/g, '').trim());
+    if (typeof parsed.summary !== 'string' || !Array.isArray(parsed.priorities) || parsed.priorities.length < 3 || typeof parsed.nextStep !== 'string') throw new Error('LLM invalid shape');
+    return { narrative: { summary: parsed.summary.slice(0, 900), profileReading: String(parsed.profileReading || '').slice(0, 500), priorities: parsed.priorities.slice(0, 3).map((item) => String(item).slice(0, 240)), risks: (Array.isArray(parsed.risks) ? parsed.risks : []).slice(0, 3).map((item) => String(item).slice(0, 220)), decisionPlan: (Array.isArray(parsed.decisionPlan) ? parsed.decisionPlan : []).slice(0, 3).map((item) => String(item).slice(0, 220)), nextStep: parsed.nextStep.slice(0, 500) }, status: 'ok' };
+  } catch (error) {
+    console.warn('LLM narrative unavailable:', error.message);
+    return { narrative: fallbackNarrative(report), status: 'fallback' };
+  }
+};
 const airtableRequest = async (url, options = {}) => {
   const response = await fetch(url, { ...options, headers: { Authorization: `Bearer ${airtable.token}`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
   if (!response.ok) {
@@ -67,6 +101,9 @@ const saveAirtableLead = async (report, token) => {
       situation: report.situation || 'unknown',
       recommendedCategory: report.category,
       priority: report.priority,
+      answers: report.answers,
+      narrative: report.narrative,
+      llmStatus: report.llmStatus,
       questionnaireVersion: 'v1',
       recommendationVersion: 'mvp-v1',
       consentCommercial: report.consentCommercial === true,
@@ -87,11 +124,11 @@ const loadAirtableReport = async (token) => {
   let details = {};
   try { details = JSON.parse(fields.Notes || '{}'); } catch { return null; }
   if (!details.expiresAt || new Date(details.expiresAt).getTime() <= Date.now()) return null;
-  return { email: fields.Email, category: details.recommendedCategory, usageType: details.usageType, purchaseWindow: details.purchaseWindow, priority: details.priority || 'No indicada', consentCommercial: details.consentCommercial === true, expiresAt: new Date(details.expiresAt).getTime(), verified: fields.Status === 'validada' };
+  return { email: fields.Email, category: details.recommendedCategory, usageType: details.usageType, purchaseWindow: details.purchaseWindow, priority: details.priority || 'No indicada', situation: details.situation || 'unknown', answers: cleanAnswers(details.answers), narrative: details.narrative || null, consentCommercial: details.consentCommercial === true, expiresAt: new Date(details.expiresAt).getTime(), verified: fields.Status === 'validada' };
 };
 
 app.use(helmet());
-app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || requestOrigin === origin || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST'] }));
+app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || allowedOrigins.has(requestOrigin) || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST'] }));
 app.use(express.json({ limit: '32kb' }));
 
 const required = (body, fields) => fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
@@ -109,6 +146,12 @@ const drawBrandLogo = (doc) => {
   doc.fillColor('#082333').font('Helvetica-Bold').fontSize(18).text('Coche', x + 34, y + 5, { continued: true })
     .fillColor('#fc4c02').text('Cierto');
   doc.y = y + 34;
+};
+const drawMetricCard = (doc, x, y, width, label, value, note, accent) => {
+  doc.save().fillColor('#ffffff').strokeColor('#d7e2df').lineWidth(1).roundedRect(x, y, width, 72, 8).fillAndStroke().restore();
+  doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(label, x + 10, y + 10, { width: width - 20 });
+  doc.fillColor(accent || '#082333').font('Helvetica-Bold').fontSize(18).text(value, x + 10, y + 27, { width: width - 20 });
+  doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(note, x + 10, y + 52, { width: width - 20 });
 };
 const situationPack = (report) => {
   const packs = {
@@ -140,9 +183,21 @@ const writeReportPdf = async (res, report) => {
   drawBrandLogo(doc);
   doc.moveDown(.3).fillColor('#082333').font('Helvetica-Bold').fontSize(12).text(`Situación de compra: ${situation[0]}`);
   doc.font('Helvetica').fontSize(10).fillColor('#58717d').text(`La valoración prioriza ${situation[1]}.`);
+  const metricsY = doc.y + 12;
+  const metricWidth = (doc.page.width - doc.page.margins.left - doc.page.margins.right - 18) / 4;
+  drawMetricCard(doc, doc.page.margins.left, metricsY, metricWidth, 'Encaje', 'Orientativo', 'Según tus respuestas', '#2fae7b');
+  drawMetricCard(doc, doc.page.margins.left + metricWidth + 6, metricsY, metricWidth, 'Incertidumbre', 'A vigilar', 'Confirma datos clave', '#fc4c02');
+  drawMetricCard(doc, doc.page.margins.left + (metricWidth + 6) * 2, metricsY, metricWidth, 'Coste', 'Estimado', 'Antes de una unidad', '#082333');
+  drawMetricCard(doc, doc.page.margins.left + (metricWidth + 6) * 3, metricsY, metricWidth, 'Categoría', report.category || 'Pendiente', 'No sustituye inspección', '#082333');
+  doc.y = metricsY + 88;
+  doc.x = doc.page.margins.left;
   doc.moveDown(1).fillColor('#ff4d00').fontSize(10).font('Helvetica-Bold').text('INFORME DE ORIENTACIÓN · VERSIÓN BETA');
   doc.moveDown(.5).fillColor('#082333').fontSize(24).text('Una decisión explicada, no una cifra aislada');
   doc.fillColor('#58717d').fontSize(11).font('Helvetica').text('Este informe es orientativo y se genera a partir de las respuestas aportadas. No es una tasación, peritaje ni aprobación de financiación.');
+  if (report.narrative?.summary) {
+    doc.moveDown(.7).fillColor('#082333').font('Helvetica-Bold').fontSize(13).text('Lectura personalizada');
+    doc.font('Helvetica').fontSize(11).fillColor('#082333').text(report.narrative.summary);
+  }
   doc.moveDown(1).fillColor('#082333').fontSize(14).font('Helvetica-Bold').text('Resumen de tu orientación');
   doc.fontSize(11).font('Helvetica').text(`Categoría a estudiar: ${report.category}`);
   doc.text(`Uso declarado: ${report.usageType === 'professional' ? 'profesional o comercial' : 'particular'}`);
@@ -154,27 +209,19 @@ const writeReportPdf = async (res, report) => {
   }
   doc.moveDown(.5).font('Helvetica-Bold').text('Lectura inicial');
   doc.font('Helvetica').text(`Encaje orientativo: ${report.category ? 'compatible como punto de partida' : 'pendiente de concretar'}. Riesgo principal: confirmar documentación, estado real y coste total antes de entregar dinero.`);
+  if (report.narrative?.priorities?.length) {
+    doc.moveDown(.4).font('Helvetica-Bold').text('Prioridades para tu caso');
+    report.narrative.priorities.forEach((priority) => doc.font('Helvetica').text(`- ${priority}`));
+  }
   doc.moveDown(.5).font('Helvetica-Bold').text('Contexto oficial del INE');
   doc.font('Helvetica').text(`IPC nacional, variación anual: ${ineContext}. Fuente: INE, tabla ${INE_TABLE_ID}. Este dato contextualiza precios agregados y no sustituye tus datos ni predice tu gasto personal.`);
   doc.moveDown(.7).font('Helvetica-Bold').text('Qué conviene hacer ahora');
   doc.font('Helvetica').text('Compara varias unidades equivalentes, pide documentación verificable y reserva margen para seguro, puesta a punto e imprevistos. Antes de pagar, considera una inspección independiente.');
-  doc.moveDown(1).font('Helvetica-Bold').text('Recursos de CocheCierto');
-  const startX = doc.x, col = [150, 175, 145];
-  const headers = ['Nombre del recurso', 'Solución que aporta', 'Por qué usarlo'];
-  doc.fontSize(9).fillColor('#ffffff').rect(startX, doc.y, col.reduce((a,b)=>a+b,0), 22).fill('#082333');
-  let x = startX; headers.forEach((h,i)=>{ doc.fillColor('#ffffff').text(h, x+5, doc.y+7, { width: col[i]-10 }); x += col[i]; }); doc.y += 26;
-  resources.forEach((row, ri) => { const y=doc.y; const h=42; doc.fillColor(ri%2?'#f3f7f6':'#ffffff').rect(startX,y,col.reduce((a,b)=>a+b,0),h).fill(); x=startX; row.forEach((cell,i)=>{doc.fillColor('#082333').font('Helvetica').text(cell,x+5,y+7,{width:col[i]-10,height:h-8});x+=col[i];});doc.y=y+h; });
-  doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').fontSize(10).text('Continúa con más herramientas: https://cochecierto.com/recursos/', doc.x + 92, doc.y, { width: 385, lineGap: 2 });
-  const infoY = doc.y;
-  doc.image(qr, doc.x, infoY - 2, { width: 52 });
-  doc.font('Helvetica').fontSize(10).fillColor('#58717d')
-    .text('Escanea el QR para acceder a Recursos.', doc.x + 92, doc.y, { width: 385, lineGap: 2 })
-    .text('Presencia social: Facebook · Instagram · YouTube · TikTok · LinkedIn · X', { width: 385, lineGap: 2 })
-    .text('cochecierto.com · hola@cochecierto.com', { width: 385, lineGap: 2 })
-    .text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', { width: 385, lineGap: 2 });
   doc.addPage();
+  drawBrandLogo(doc);
   doc.fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('DECISIÓN Y PRESUPUESTO');
   doc.moveDown(.4).fillColor('#082333').fontSize(22).text('Qué significa esta orientación');
+  doc.font('Helvetica').fontSize(11);
   doc.font('Helvetica').fontSize(11).fillColor('#58717d').text('Este informe ordena tus respuestas para ayudarte a comparar opciones. No elige una unidad concreta ni confirma su estado mecánico.');
   doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').fontSize(14).text('Tu límite debe proteger tu margen');
   doc.font('Helvetica').fontSize(11).text('Separa el precio del vehículo de los gastos de compra, el seguro, la puesta a punto y una reserva para imprevistos. El precio prudente es el que te permite seguir teniendo margen después de comprar.');
@@ -184,19 +231,41 @@ const writeReportPdf = async (res, report) => {
   doc.moveDown(1).font('Helvetica-Bold').text('Tres caminos para comparar');
   [['Conservador', 'Menor desembolso y más margen económico.'], ['Equilibrado', 'Balance entre coste, seguridad, uso y previsibilidad.'], ['Aspiracional', 'Más espacio o equipamiento, con mayor exigencia económica.']].forEach(([label, value]) => { doc.moveDown(.3).font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
   doc.addPage();
+  drawBrandLogo(doc);
   doc.fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('COMPROBACIONES ANTES DE PAGAR');
   doc.moveDown(.4).fillColor('#082333').fontSize(22).text('Llega preparado a la visita');
+  doc.font('Helvetica').fontSize(11);
   const checklist = report.situation === 'professional' ? ['Calcula el coste por kilómetro y de un día parado.', 'Confirma carga, etiqueta y acceso a tus zonas de trabajo.', 'Pide historial de uso intensivo y mantenimiento.', 'Pregunta por garantía, factura y vehículo de sustitución.', 'No entregues señal hasta revisar documentación y condiciones.'] : report.situation === 'first-car' ? ['Pide informe DGT, titularidad, cargas e ITV.', 'Solicita historial, facturas y fechas de mantenimiento.', 'Arranca el coche en frío y revisa testigos, humo y ruidos.', 'Comprueba frenos, dirección, neumáticos, embrague y cambio.', 'Confirma seguro, transferencia y aceptación de inspección independiente.'] : ['Pide informe DGT, titularidad, cargas e ITV.', 'Solicita historial, facturas y mantenimiento documentado.', 'Prueba el vehículo en frío y durante la conducción.', 'Comprueba neumáticos, frenos, dirección, cambio y equipamiento.', 'No entregues señal hasta aclarar los datos pendientes.'];
   checklist.forEach((item, index) => { doc.moveDown(.5).font('Helvetica-Bold').text(`${index + 1}.`, { continued: true }).font('Helvetica').text(` ${item}`); });
   doc.moveDown(1).font('Helvetica-Bold').text('Preguntas para el vendedor');
   const questions = report.situation === 'professional' ? ['¿La venta incluye factura y garantía por escrito?', '¿Puede facilitar el historial de mantenimiento y uso?', '¿Qué elementos se han sustituido recientemente?', '¿Acepta una inspección independiente?', '¿Qué gastos quedan fuera del precio anunciado?'] : ['¿Puedes enviar el informe de la DGT y confirmar la titularidad?', '¿Tienes historial de mantenimiento y facturas?', '¿Ha tenido accidentes o reparaciones estructurales?', '¿El motor puede arrancarse completamente en frío?', '¿Aceptas una inspección independiente antes de cerrar?'];
-  questions.forEach((item) => { doc.moveDown(.4).font('Helvetica').text(`□ ${item}`); });
+  questions.forEach((item) => { doc.moveDown(.4).font('Helvetica').text(`- ${item}`); });
   doc.moveDown(1).font('Helvetica-Bold').text('Semáforo de decisión');
   doc.font('Helvetica').text('VERDE · La información es coherente y puedes avanzar con comprobaciones.');
   doc.text('AMARILLO · Faltan documentos o hay costes que debes confirmar antes de negociar.');
   doc.text('ROJO · No entregues señal mientras existan cargas, incoherencias o rechazo a una revisión.');
   doc.moveDown(1).font('Helvetica-Bold').text('Tu siguiente paso');
-  doc.font('Helvetica').text(report.situation === 'first-car' ? 'Compara tres coches equivalentes dentro del precio prudente y pide la documentación antes de desplazarte.' : 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.');
+  doc.font('Helvetica').text(report.narrative?.nextStep || (report.situation === 'first-car' ? 'Compara tres coches equivalentes dentro del precio prudente y pide la documentación antes de desplazarte.' : 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.'));
+  doc.addPage();
+  drawBrandLogo(doc);
+  doc.moveDown(.5).fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('RECURSOS PARA SEGUIR DECIDIENDO');
+  doc.moveDown(.4).fillColor('#082333').fontSize(22).text('Herramientas prácticas de CocheCierto');
+  doc.font('Helvetica').fontSize(11).fillColor('#58717d').text('Guías y fuentes para contrastar la información antes de visitar, negociar o comprar.');
+  doc.moveDown(1).font('Helvetica-Bold').fontSize(12).fillColor('#082333').text('Recursos de CocheCierto');
+  const startX = doc.x, col = [150, 175, 145];
+  const headers = ['Nombre del recurso', 'Solución que aporta', 'Por qué usarlo'];
+  doc.font('Helvetica').fontSize(9).fillColor('#ffffff').rect(startX, doc.y, col.reduce((a,b)=>a+b,0), 22).fill('#082333');
+  const headerY = doc.y; let x = startX; headers.forEach((h,i)=>{ doc.fillColor('#ffffff').text(h, x+5, headerY+7, { width: col[i]-10 }); x += col[i]; }); doc.y = headerY + 26;
+  resources.forEach((row, ri) => { const y=doc.y; const h=42; doc.fillColor(ri%2?'#f3f7f6':'#ffffff').rect(startX,y,col.reduce((a,b)=>a+b,0),h).fill(); x=startX; row.forEach((cell,i)=>{doc.fillColor('#082333').font('Helvetica').text(cell,x+5,y+7,{width:col[i]-10,height:h-8});x+=col[i];});doc.y=y+h; });
+  doc.moveDown(1.2);
+  const infoY = doc.y;
+  const infoX = doc.page.margins.left;
+  doc.image(qr, infoX, infoY, { width: 52 });
+  doc.fillColor('#082333').font('Helvetica-Bold').fontSize(10).text('Continúa con más herramientas', infoX + 70, infoY, { width: 380 });
+  doc.font('Helvetica').fontSize(9).fillColor('#58717d').text('https://cochecierto.com/recursos/', infoX + 70, infoY + 15, { width: 380 });
+  doc.text('Escanea el QR para abrir recursos y fuentes oficiales.', infoX + 70, infoY + 30, { width: 380 });
+  doc.text('cochecierto.com · hola@cochecierto.com', infoX + 70, infoY + 45, { width: 380 });
+  doc.text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', infoX + 70, infoY + 60, { width: 380 });
   doc.end();
 };
 
@@ -242,9 +311,20 @@ app.get('/api/airtable-status', async (_req, res) => {
   }
 });
 
+app.post('/api/analyze', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {};
+  const report = { category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'No indicada', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
+  const generated = await requestLlmNarrative(report);
+  res.json({ narrative: generated.narrative, llmStatus: generated.status });
+});
+
 app.post('/api/leads', async (req, res) => {
   if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
   const body = req.body || {};
+  const formStartedAt = Number(body.formStartedAt);
+  if (typeof body.website === 'string' && body.website.trim()) return res.status(400).json({ error: 'No se ha podido validar la solicitud.' });
+  if (Number.isFinite(formStartedAt) && Date.now() - formStartedAt < 1500) return res.status(400).json({ error: 'Completa la solicitud con algo más de tiempo.' });
   const missing = required(body, ['email', 'intent', 'purchaseWindow', 'recommendedCategory', 'questionnaireVersion', 'recommendationVersion']);
   if (missing.length || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) return res.status(400).json({ error: 'Datos del lead incompletos o email no válido.', fields: missing });
   const email = body.email.trim().toLowerCase();
@@ -257,6 +337,10 @@ app.post('/api/leads', async (req, res) => {
   const expires = new Date(Date.now() + REPORT_TTL_MS);
   const report = { email, intent: lead.intent, category: lead.recommendedCategory, usageType: lead.usageType, purchaseWindow: lead.purchaseWindow, priority: body.priority || 'No indicada', consentCommercial: lead.consentCommercial };
   report.situation = typeof body.situation === 'string' ? body.situation : 'unknown';
+  report.answers = cleanAnswers(body.answers);
+  const generated = await requestLlmNarrative(report);
+  report.narrative = generated.narrative;
+  report.llmStatus = generated.status;
   addReport(verifyToken, report);
   try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
   if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
