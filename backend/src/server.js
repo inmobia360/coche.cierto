@@ -64,6 +64,7 @@ const saveAirtableLead = async (report, token) => {
       intent: report.intent,
       purchaseWindow: report.purchaseWindow,
       usageType: report.usageType,
+      situation: report.situation || 'unknown',
       recommendedCategory: report.category,
       priority: report.priority,
       questionnaireVersion: 'v1',
@@ -134,6 +135,10 @@ const writeReportPdf = async (res, report) => {
   doc.text(`Uso declarado: ${report.usageType === 'professional' ? 'profesional o comercial' : 'particular'}`);
   doc.text(`Horizonte de compra: ${report.purchaseWindow}`);
   doc.text(`Motivo principal: ${report.priority}`);
+  if (report.situation === 'first-car') {
+    doc.moveDown(.5).font('Helvetica-Bold').text('Para tu primera compra');
+    doc.font('Helvetica').text('Conserva margen para seguro, transferencia, puesta a punto y una primera reparación. Antes de entregar una señal, pide la documentación, comprueba el coche en frío y pregunta si acepta una inspección independiente.');
+  }
   doc.moveDown(.5).font('Helvetica-Bold').text('Lectura inicial');
   doc.font('Helvetica').text(`Encaje orientativo: ${report.category ? 'compatible como punto de partida' : 'pendiente de concretar'}. Riesgo principal: confirmar documentación, estado real y coste total antes de entregar dinero.`);
   doc.moveDown(.5).font('Helvetica-Bold').text('Contexto oficial del INE');
@@ -213,6 +218,7 @@ app.post('/api/leads', async (req, res) => {
   const verifyToken = createReportToken();
   const expires = new Date(Date.now() + REPORT_TTL_MS);
   const report = { email, intent: lead.intent, category: lead.recommendedCategory, usageType: lead.usageType, purchaseWindow: lead.purchaseWindow, priority: body.priority || 'No indicada', consentCommercial: lead.consentCommercial };
+  report.situation = typeof body.situation === 'string' ? body.situation : 'unknown';
   addReport(verifyToken, report);
   try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
   if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);

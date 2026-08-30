@@ -16,6 +16,13 @@
     ['¿Qué tolerancia tienes a gastos inesperados?', [['low','Baja'],['medium','Media'],['high','Alta'],['unknown','No lo sé']], 'risk']
   ];
   const state = { answers:{}, index:0, vehicleType:'occasion', useType:'private' };
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = (url, options) => {
+    if (String(url).endsWith('/leads') && options?.body) {
+      try { const payload = JSON.parse(options.body); payload.situation = state.answers.situation || 'unknown'; options = { ...options, body: JSON.stringify(payload) }; } catch {}
+    }
+    return nativeFetch(url, options);
+  };
   const params = new URLSearchParams(location.search);
   const entryIntent = params.get('intent');
   if(['buy','change','inform'].includes(entryIntent)) state.answers.intent = entryIntent;
