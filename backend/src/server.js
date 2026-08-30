@@ -159,6 +159,31 @@ const writeReportPdf = async (res, report) => {
     .text('Presencia social: Facebook · Instagram · YouTube · TikTok · LinkedIn · X', { width: 385, lineGap: 2 })
     .text('cochecierto.com · hola@cochecierto.com', { width: 385, lineGap: 2 })
     .text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', { width: 385, lineGap: 2 });
+  doc.addPage();
+  doc.fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('DECISIÓN Y PRESUPUESTO');
+  doc.moveDown(.4).fillColor('#082333').fontSize(22).text('Qué significa esta orientación');
+  doc.font('Helvetica').fontSize(11).fillColor('#58717d').text('Este informe ordena tus respuestas para ayudarte a comparar opciones. No elige una unidad concreta ni confirma su estado mecánico.');
+  doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').fontSize(14).text('Tu límite debe proteger tu margen');
+  doc.font('Helvetica').fontSize(11).text('Separa el precio del vehículo de los gastos de compra, el seguro, la puesta a punto y una reserva para imprevistos. El precio prudente es el que te permite seguir teniendo margen después de comprar.');
+  const budgetRows = [['Presupuesto total', 'Lo que puedes destinar sin comprometer otros gastos'], ['Precio máximo absoluto', 'Límite que no conviene superar'], ['Precio prudente', 'Importe que conserva margen para el primer año'], ['Gastos iniciales', 'Transferencia, seguro, puesta a punto y consumibles'], ['Reserva mínima', 'Colchón para una avería o gasto no previsto']];
+  doc.moveDown(.7).font('Helvetica-Bold').text('Cómo leer tu presupuesto');
+  budgetRows.forEach(([label, value]) => { doc.font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
+  doc.moveDown(1).font('Helvetica-Bold').text('Tres caminos para comparar');
+  [['Conservador', 'Menor desembolso y más margen económico.'], ['Equilibrado', 'Balance entre coste, seguridad, uso y previsibilidad.'], ['Aspiracional', 'Más espacio o equipamiento, con mayor exigencia económica.']].forEach(([label, value]) => { doc.moveDown(.3).font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
+  doc.addPage();
+  doc.fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('COMPROBACIONES ANTES DE PAGAR');
+  doc.moveDown(.4).fillColor('#082333').fontSize(22).text('Llega preparado a la visita');
+  const checklist = report.situation === 'professional' ? ['Calcula el coste por kilómetro y de un día parado.', 'Confirma carga, etiqueta y acceso a tus zonas de trabajo.', 'Pide historial de uso intensivo y mantenimiento.', 'Pregunta por garantía, factura y vehículo de sustitución.', 'No entregues señal hasta revisar documentación y condiciones.'] : report.situation === 'first-car' ? ['Pide informe DGT, titularidad, cargas e ITV.', 'Solicita historial, facturas y fechas de mantenimiento.', 'Arranca el coche en frío y revisa testigos, humo y ruidos.', 'Comprueba frenos, dirección, neumáticos, embrague y cambio.', 'Confirma seguro, transferencia y aceptación de inspección independiente.'] : ['Pide informe DGT, titularidad, cargas e ITV.', 'Solicita historial, facturas y mantenimiento documentado.', 'Prueba el vehículo en frío y durante la conducción.', 'Comprueba neumáticos, frenos, dirección, cambio y equipamiento.', 'No entregues señal hasta aclarar los datos pendientes.'];
+  checklist.forEach((item, index) => { doc.moveDown(.5).font('Helvetica-Bold').text(`${index + 1}.`, { continued: true }).font('Helvetica').text(` ${item}`); });
+  doc.moveDown(1).font('Helvetica-Bold').text('Preguntas para el vendedor');
+  const questions = report.situation === 'professional' ? ['¿La venta incluye factura y garantía por escrito?', '¿Puede facilitar el historial de mantenimiento y uso?', '¿Qué elementos se han sustituido recientemente?', '¿Acepta una inspección independiente?', '¿Qué gastos quedan fuera del precio anunciado?'] : ['¿Puedes enviar el informe de la DGT y confirmar la titularidad?', '¿Tienes historial de mantenimiento y facturas?', '¿Ha tenido accidentes o reparaciones estructurales?', '¿El motor puede arrancarse completamente en frío?', '¿Aceptas una inspección independiente antes de cerrar?'];
+  questions.forEach((item) => { doc.moveDown(.4).font('Helvetica').text(`□ ${item}`); });
+  doc.moveDown(1).font('Helvetica-Bold').text('Semáforo de decisión');
+  doc.font('Helvetica').text('VERDE · La información es coherente y puedes avanzar con comprobaciones.');
+  doc.text('AMARILLO · Faltan documentos o hay costes que debes confirmar antes de negociar.');
+  doc.text('ROJO · No entregues señal mientras existan cargas, incoherencias o rechazo a una revisión.');
+  doc.moveDown(1).font('Helvetica-Bold').text('Tu siguiente paso');
+  doc.font('Helvetica').text(report.situation === 'first-car' ? 'Compara tres coches equivalentes dentro del precio prudente y pide la documentación antes de desplazarte.' : 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.');
   doc.end();
 };
 
