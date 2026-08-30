@@ -60,8 +60,7 @@ const saveAirtableLead = async (report, token) => {
       tokenHash: hash(token),
       expiresAt: new Date(report.expiresAt).toISOString(),
       createdAt: new Date().toISOString()
-    }),
-    Status: 'solicitada'
+    })
   };
   const created = await airtableRequest(airtableUrl(airtable.leadsTable), { method: 'POST', body: JSON.stringify({ records: [{ fields }] }) });
   return created.records?.[0]?.id || null;
