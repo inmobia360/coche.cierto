@@ -31,6 +31,10 @@ const resources = [
   ['Casos reales', 'Aprende de patrones y situaciones habituales', 'Aporta contexto para hacer mejores preguntas.'],
   ['Guías de compra', 'Explican costes, documentación y próximos pasos', 'Te permiten avanzar sin necesitar conocimientos técnicos.']
 ];
+const INE_TABLE_ID = '50902';
+const INE_SOURCE_URL = `https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/${INE_TABLE_ID}?nult=5`;
+const INE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+let ineCache = { expiresAt: 0, payload: null };
 const airtable = process.env.AIRTABLE_TOKEN && process.env.AIRTABLE_BASE_ID ? {
   token: process.env.AIRTABLE_TOKEN,
   base: process.env.AIRTABLE_BASE_ID,
@@ -107,6 +111,16 @@ const drawBrandLogo = (doc) => {
 };
 const writeReportPdf = async (res, report) => {
   const qr = await QRCode.toDataURL('https://cochecierto.com/recursos/', { margin: 1, width: 96 });
+  let ineContext = 'No disponible en esta consulta';
+  try {
+    const response = await fetch(INE_SOURCE_URL, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
+    if (response.ok) {
+      const series = await response.json();
+      const annual = Array.isArray(series) && series.find((item) => /variación anual/i.test(item.Nombre || ''));
+      const latest = annual?.Data?.[0];
+      if (latest && Number.isFinite(Number(latest.Valor))) ineContext = `${latest.Valor}% de variación anual (${latest.Anyo}-${String(latest.FK_Periodo).padStart(2, '0')})`;
+    }
+  } catch {}
   const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: 'Informe de orientación CocheCierto', Author: 'CocheCierto' } });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="informe-cochecierto.pdf"');
@@ -120,6 +134,10 @@ const writeReportPdf = async (res, report) => {
   doc.text(`Uso declarado: ${report.usageType === 'professional' ? 'profesional o comercial' : 'particular'}`);
   doc.text(`Horizonte de compra: ${report.purchaseWindow}`);
   doc.text(`Motivo principal: ${report.priority}`);
+  doc.moveDown(.5).font('Helvetica-Bold').text('Lectura inicial');
+  doc.font('Helvetica').text(`Encaje orientativo: ${report.category ? 'compatible como punto de partida' : 'pendiente de concretar'}. Riesgo principal: confirmar documentación, estado real y coste total antes de entregar dinero.`);
+  doc.moveDown(.5).font('Helvetica-Bold').text('Contexto oficial del INE');
+  doc.font('Helvetica').text(`IPC nacional, variación anual: ${ineContext}. Fuente: INE, tabla ${INE_TABLE_ID}. Este dato contextualiza precios agregados y no sustituye tus datos ni predice tu gasto personal.`);
   doc.moveDown(.7).font('Helvetica-Bold').text('Qué conviene hacer ahora');
   doc.font('Helvetica').text('Compara varias unidades equivalentes, pide documentación verificable y reserva margen para seguro, puesta a punto e imprevistos. Antes de pagar, considera una inspección independiente.');
   doc.moveDown(1).font('Helvetica-Bold').text('Recursos de CocheCierto');
@@ -143,6 +161,31 @@ app.get('/health', async (_req, res) => {
   let database = 'not-configured';
   if (pool) { try { await pool.query('SELECT 1'); database = 'ok'; } catch { database = 'unavailable'; } }
   res.json({ ok: true, service: 'cochecierto-backend', database });
+});
+
+app.get('/api/ine-context', async (_req, res) => {
+  const now = Date.now();
+  if (ineCache.payload && ineCache.expiresAt > now) return res.json(ineCache.payload);
+  try {
+    const response = await fetch(INE_SOURCE_URL, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`INE ${response.status}`);
+    const source = await response.json();
+    const series = Array.isArray(source) ? source : [];
+    const payload = {
+      ok: true,
+      indicator: 'Índice nacional de precios de consumo',
+      meaning: 'Referencia agregada para contextualizar cambios de precios; no sustituye los datos económicos declarados por el usuario.',
+      source: { institution: 'Instituto Nacional de Estadística', tableId: INE_TABLE_ID, url: INE_SOURCE_URL, consultedAt: new Date().toISOString() },
+      scope: { geography: 'España', unit: 'índice o valor publicado por la serie', periodicity: 'según la serie oficial' },
+      data: series.slice(0, 5).map((item) => ({ name: item.Nombre || item.NombreSerie || item.name || null, values: Array.isArray(item.Data) ? item.Data.slice(-5) : [] })),
+      limitations: ['Dato oficial agregado.', 'No infiere ingresos, solvencia, empleo ni riesgo crediticio.', 'Si el INE no está disponible, el valorador continúa sin este contexto.']
+    };
+    ineCache = { expiresAt: now + INE_CACHE_TTL_MS, payload };
+    return res.json(payload);
+  } catch (error) {
+    console.error('INE context unavailable:', error.message);
+    return res.status(503).json({ ok: false, indicator: 'Índice nacional de precios de consumo', source: { institution: 'Instituto Nacional de Estadística', tableId: INE_TABLE_ID, url: INE_SOURCE_URL }, message: 'El contexto oficial del INE no está disponible temporalmente. El diagnóstico puede continuar sin este dato.', limitations: ['No se ha sustituido el dato por una estimación.'] });
+  }
 });
 
 app.get('/api/airtable-status', async (_req, res) => {
