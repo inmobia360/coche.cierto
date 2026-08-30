@@ -22,6 +22,7 @@
     <div class="eyebrow">Solicitud recibida</div>
     <h1 id="title">Confirmando tu email…</h1>
     <p id="message" class="loading">Estamos validando tu dirección para preparar el informe.</p>
+    <a id="download" class="button" href="#" hidden>Descargar mi informe</a>
     <a class="button" href="/valorador/">Volver al valorador</a>
   </main>
   <script>
@@ -29,12 +30,12 @@
       const params = new URLSearchParams(location.search);
       const title = document.querySelector('#title');
       const message = document.querySelector('#message');
-      const email = params.get('email');
       const token = params.get('token');
-      if (!email || !token) { title.textContent='Enlace incompleto'; message.textContent='Solicita un nuevo informe para recibir otro enlace de validación.'; message.className='error'; return; }
-      fetch(`https://api.cochecierto.com/api/verify-email?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`)
+      const download = document.querySelector('#download');
+      if (!token) { title.textContent='Enlace incompleto'; message.textContent='Solicita un nuevo informe para recibir otro enlace de validación.'; message.className='error'; return; }
+      fetch(`https://api.cochecierto.com/api/verify-email?token=${encodeURIComponent(token)}`)
         .then(response => response.json().then(data => ({ok:response.ok,data})))
-        .then(result => { if (!result.ok) throw new Error(result.data.error); title.textContent='Email confirmado'; message.textContent='Tu dirección está validada. Ya puedes continuar con tu informe de CocheCierto.'; message.className=''; })
+        .then(result => { if (!result.ok) throw new Error(result.data.error); title.textContent='Email confirmado'; message.textContent='Tu dirección está validada. Puedes descargar tu informe durante los próximos 7 días.'; message.className=''; download.href=`https://api.cochecierto.com${result.data.downloadUrl}`; download.hidden=false; })
         .catch(error => { title.textContent='No hemos podido confirmar el email'; message.textContent=error.message || 'El enlace no es válido o ha caducado. Solicita otro informe.'; message.className='error'; });
     })();
   </script>

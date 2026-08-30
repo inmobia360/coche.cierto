@@ -5,6 +5,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import mysql from 'mysql2/promise';
 import nodemailer from 'nodemailer';
+import PDFDocument from 'pdfkit';
+import QRCode from 'qrcode';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -20,6 +22,15 @@ if (mailer) {
   };
 }
 const attempts = new Map();
+const pendingReports = new Map();
+const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const resourcesUrl = `${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/recursos/`;
+const resources = [
+  ['Valorador de compra', 'Ordena uso, presupuesto y prioridades', 'Te ayuda a empezar con una orientación clara.'],
+  ['Checklist de inspección en frío', 'Prepara la visita y las comprobaciones básicas', 'Reduce olvidos antes de comprometer dinero.'],
+  ['Casos reales', 'Aprende de patrones y situaciones habituales', 'Aporta contexto para hacer mejores preguntas.'],
+  ['Guías de compra', 'Explican costes, documentación y próximos pasos', 'Te permiten avanzar sin necesitar conocimientos técnicos.']
+];
 
 app.use(helmet());
 app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || requestOrigin === origin || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST'] }));
@@ -28,6 +39,41 @@ app.use(express.json({ limit: '32kb' }));
 const required = (body, fields) => fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const rateLimit = (key) => { const now = Date.now(); const recent = (attempts.get(key) || []).filter((time) => now - time < 60_000); if (recent.length >= 10) return false; recent.push(now); attempts.set(key, recent); return true; };
+const createReportToken = () => crypto.randomBytes(32).toString('hex');
+const cleanReports = () => { const now = Date.now(); for (const [token, report] of pendingReports) if (report.expiresAt <= now) pendingReports.delete(token); };
+const addReport = (token, report) => { cleanReports(); pendingReports.set(token, { ...report, expiresAt: Date.now() + REPORT_TTL_MS }); };
+const getReport = (token) => { cleanReports(); const report = pendingReports.get(token); return report && report.expiresAt > Date.now() ? report : null; };
+const writeReportPdf = async (res, report) => {
+  const qr = await QRCode.toDataURL(resourcesUrl, { margin: 1, width: 110 });
+  const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: 'Informe de orientación CocheCierto', Author: 'CocheCierto' } });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="informe-cochecierto.pdf"');
+  doc.pipe(res);
+  doc.fillColor('#082333').fontSize(22).font('Helvetica-Bold').text('Coche', { continued: true }).fillColor('#ff4d00').text('Cierto');
+  doc.moveDown(1).fillColor('#ff4d00').fontSize(10).font('Helvetica-Bold').text('INFORME DE ORIENTACIÓN · VERSIÓN BETA');
+  doc.moveDown(.5).fillColor('#082333').fontSize(24).text('Una decisión explicada, no una cifra aislada');
+  doc.fillColor('#58717d').fontSize(11).font('Helvetica').text('Este informe es orientativo y se genera a partir de las respuestas aportadas. No es una tasación, peritaje ni aprobación de financiación.');
+  doc.moveDown(1).fillColor('#082333').fontSize(14).font('Helvetica-Bold').text('Resumen de tu orientación');
+  doc.fontSize(11).font('Helvetica').text(`Categoría a estudiar: ${report.category}`);
+  doc.text(`Uso declarado: ${report.usageType === 'professional' ? 'profesional o comercial' : 'particular'}`);
+  doc.text(`Horizonte de compra: ${report.purchaseWindow}`);
+  doc.text(`Motivo principal: ${report.priority}`);
+  doc.moveDown(.7).font('Helvetica-Bold').text('Qué conviene hacer ahora');
+  doc.font('Helvetica').text('Compara varias unidades equivalentes, pide documentación verificable y reserva margen para seguro, puesta a punto e imprevistos. Antes de pagar, considera una inspección independiente.');
+  doc.moveDown(1).font('Helvetica-Bold').text('Recursos de CocheCierto');
+  const startX = doc.x, col = [150, 175, 145];
+  const headers = ['Nombre del recurso', 'Solución que aporta', 'Por qué usarlo'];
+  doc.fontSize(9).fillColor('#ffffff').rect(startX, doc.y, col.reduce((a,b)=>a+b,0), 22).fill('#082333');
+  let x = startX; headers.forEach((h,i)=>{ doc.fillColor('#ffffff').text(h, x+5, doc.y+7, { width: col[i]-10 }); x += col[i]; }); doc.y += 26;
+  resources.forEach((row, ri) => { const y=doc.y; const h=42; doc.fillColor(ri%2?'#f3f7f6':'#ffffff').rect(startX,y,col.reduce((a,b)=>a+b,0),h).fill(); x=startX; row.forEach((cell,i)=>{doc.fillColor('#082333').font('Helvetica').text(cell,x+5,y+7,{width:col[i]-10,height:h-8});x+=col[i];});doc.y=y+h; });
+  doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').text('Continúa con más herramientas');
+  doc.font('Helvetica').fontSize(10).text(resourcesUrl);
+  doc.image(qr, doc.x, doc.y + 8, { width: 82 });
+  doc.fontSize(9).fillColor('#58717d').text('Escanea el QR para acceder a Recursos', doc.x + 95, doc.y + 35);
+  doc.moveDown(7).fillColor('#58717d').fontSize(9).text('cochecierto.com · hola@cochecierto.com', { align: 'center' });
+  doc.text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', { align: 'center' });
+  doc.end();
+};
 
 app.get('/health', async (_req, res) => {
   let database = 'not-configured';
@@ -46,19 +92,28 @@ app.post('/api/leads', async (req, res) => {
   if (pool) {
     await pool.execute('INSERT INTO leads (email, phone, name, intent, purchase_window, recommended_category, usage_type, questionnaire_version, recommendation_version, consent_result, consent_commercial, consent_at, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)', [lead.email, lead.phone, lead.name, lead.intent, lead.purchaseWindow, lead.recommendedCategory, lead.usageType, lead.questionnaireVersion, lead.recommendationVersion, lead.consentResult, lead.consentCommercial, lead.consentAt]);
   }
-  const verifyToken = crypto.randomBytes(32).toString('hex');
-  const expires = new Date(Date.now() + 30 * 60_000);
+  const verifyToken = createReportToken();
+  const expires = new Date(Date.now() + REPORT_TTL_MS);
+  addReport(verifyToken, { email, category: lead.recommendedCategory, usageType: lead.usageType, purchaseWindow: lead.purchaseWindow, priority: body.priority || 'No indicada' });
   if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
-  if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL}/verify-email.html?email=${encodeURIComponent(email)}&token=${verifyToken}` });
+  if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL}/verify-email.html?token=${verifyToken}` });
   res.status(202).json({ accepted: true, message: 'Solicitud recibida. Revisa tu email para validar la dirección.' });
 });
 
 app.get('/api/verify-email', async (req, res) => {
-  const email = String(req.query.email || '').trim().toLowerCase();
   const received = String(req.query.token || '');
-  if (!email || !received || received.length !== 64) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
-  if (pool) { const [rows] = await pool.execute('SELECT id FROM leads WHERE email = ? AND verified_at IS NULL AND verification_expires_at > CURRENT_TIMESTAMP AND verification_token_hash = ? ORDER BY id DESC LIMIT 1', [email, hash(received)]); if (!rows.length) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' }); await pool.execute('UPDATE leads SET verified_at = CURRENT_TIMESTAMP, verification_token_hash = NULL, verification_expires_at = NULL WHERE id = ?', [rows[0].id]); }
-  res.json({ verified: true, message: 'Email validado. Ya puedes recibir el informe.' });
+  if (!received || received.length !== 64) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
+  const report = getReport(received);
+  if (!report) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
+  report.verified = true;
+  res.json({ verified: true, message: 'Email validado. Ya puedes descargar el informe.', downloadUrl: `/api/report.pdf?token=${received}`, expiresAt: new Date(report.expiresAt).toISOString() });
+});
+
+app.get('/api/report.pdf', async (req, res) => {
+  const token = String(req.query.token || '');
+  const report = getReport(token);
+  if (!report || !report.verified) return res.status(403).json({ error: 'Primero valida tu email o solicita un nuevo informe.' });
+  await writeReportPdf(res, report);
 });
 
 app.listen(port, () => console.log(`CocheCierto API escuchando en http://localhost:${port}`));
