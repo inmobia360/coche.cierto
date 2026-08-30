@@ -130,6 +130,18 @@ html.theme-light .hero-studio-lighting {
   transition: transform 0.3s ease !important;
 }
 
+/* El contenido bajo el primer viewport no bloquea el pintado inicial. */
+.landing-proof,
+.report-benefits,
+.pain-visuals,
+.pain-points,
+.faq-section,
+.audience-band,
+.demo-band {
+  content-visibility: auto;
+  contain-intrinsic-size: 420px;
+}
+
 .hero-car-image.hero-suv-blue { display: none !important; }
 
 body.theme-light .hero-car-image.hero-suv-orange,
@@ -196,6 +208,14 @@ html.theme-light .hud-card {
 .hud-card:hover {
   border-color: #fc4c02;
   transform: translateY(-6px) scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-card,
+  .hero-studio-lighting {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Posiciones HUD */

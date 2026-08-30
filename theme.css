@@ -32,7 +32,7 @@ body.theme-light,
   --bg-subtle: #e8f0ec !important;
   --ink-primary: #072230 !important;
   --ink-secondary: #3d5a68 !important;
-  --ink-muted: #6e8996 !important;
+  --ink-muted: #55717c !important;
   --brand-orange: #fc4c02 !important;
   --brand-orange-hover: #e04300 !important;
   --border-subtle: #d0e0d8 !important;
@@ -46,6 +46,17 @@ body.theme-light,
 }
 
 html, body { max-width: 100%; overflow-x: hidden; }
+
+img { max-width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 body {
   margin: 0;
@@ -182,7 +193,7 @@ body {
   justify-content: center !important;
   cursor: pointer !important;
   font-size: 18px !important;
-  transition: all 0.2s ease !important;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease !important;
   padding: 0 !important;
 }
 
