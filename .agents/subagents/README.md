@@ -44,3 +44,10 @@ No puede desplegar, publicar, enviar comunicaciones, comprar servicios, usar sec
 - [foro-coches](foro-coches.md)
 
 Los demás roles de `AUTO-VALORADOR.md` permanecen como especializaciones gobernadas por este contrato hasta que una iniciativa necesite un perfil más detallado.
+# Perfiles de subagentes
+
+Los perfiles de esta carpeta son instrucciones de trabajo. Cada iniciativa debe mantener una spec, criterios de validación y un handoff explícito.
+
+## Inteligencia editorial
+
+`INTELIGENCIA-EDITORIAL.md` trabaja junto a `LEGAL-CONFIANZA`, `COPY-MENSAJE`, `PRODUCTO-SDD` y `QA-VALIDACION`. Su documentación operativa está en `docs/editorial-intelligence/` y su spec es la `011`.

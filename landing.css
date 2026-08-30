@@ -390,6 +390,13 @@ body.theme-light .hud-val {
   z-index: 4 !important;
 }
 
+.bar-helper {
+  margin: 10px 0 0;
+  color: var(--text-muted, #8fb1c9);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
 body.theme-light .hero-integrated-bar,
 html.theme-light .hero-integrated-bar {
   background: #ffffff !important;

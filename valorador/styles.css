@@ -6,6 +6,15 @@
   padding: 32px 0 64px;
 }
 
+.app-context {
+  max-width: 720px;
+  margin: 0 auto 14px;
+  color: var(--text-muted, #8fb1c9);
+  font-size: .88rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .app .card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);

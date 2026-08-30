@@ -51,8 +51,25 @@ Antes de implementar, exige una spec aprobada, un plan y tareas acotadas. Implem
 - `PRECIO-OCASION`: prepara referencias de anuncios de ocasión en España desde fuentes autorizadas; no hace scraping no autorizado ni presenta precios como tasación.
 - `ENERGIA-MOVILIDAD`: futura especialización para rutas, recarga pública y modelos energéticos complejos; no se activa en el MVP hasta validar demanda y conectores autorizados.
 - `foro-coches`: investiga patrones nuevos en conversaciones públicas de ForoCoches, audita la comprensión y fricción del lenguaje actual, anonimiza hallazgos y los traduce en mejoras verificables; además prepara un brief editorial semanal para blog y newsletter, segmentado por perfil y estacionalidad; no accede a zonas privadas ni publica rankings concluyentes de marcas.
+- `INTELIGENCIA-EDITORIAL`: consulta una fuente pública autorizada por ciclo, resume tendencias y lenguaje frecuente, clasifica hallazgos por perfil y nivel de evidencia, coordina verificación y revisión legal/editorial, y entrega propuestas de cambio; no copia contenido, no almacena datos personales ni publica automáticamente.
+
+Para fuentes audiovisuales candidatas en español, usar `docs/editorial-intelligence/spanish-automotive-sources.md`: NeedCarHelp se propone como siguiente piloto; Garaje Hermético, Juan José Ebenezer, Autofácil y Carwow España quedan en cola hasta verificar acceso, términos y revisión legal/editorial.
 
 ## Reglas de orquestación
+
+### Iniciativa 011 — Inteligencia editorial de fuentes públicas
+
+Cuando se solicite estudiar conversaciones, vídeos o publicaciones públicas para enriquecer CocheCierto, seguir `specs/011-inteligencia-editorial-fuentes-publicas/` y usar las plantillas de `docs/editorial-intelligence/`. `INTELIGENCIA-EDITORIAL` solo puede trabajar con una fuente autorizada por ciclo. El resultado debe pasar por `LEGAL-CONFIANZA`, `COPY-MENSAJE` o `UX-CONTENIDO`, `PRODUCTO-SDD` y `QA-VALIDACION` antes de alimentar la web. No se permite publicación automática, copia de contenido, almacenamiento de datos identificables ni consulta de una fuente cuyo registro esté en estado `PENDIENTE`.
+
+Toda publicación derivada de sitios externos será una interpretación propia de CocheCierto basada en tendencias y preocupaciones comunes entre varias señales. No será un resumen, transcripción ni contenido certificado por ninguna fuente. Aportará contexto general y preguntas prácticas, sin afirmaciones universales, diagnósticos, acusaciones, garantías ni recomendaciones concluyentes. Los temas legales, técnicos, de seguridad, precios o fiabilidad deberán contrastarse con fuentes oficiales o técnicas independientes.
+
+### Iniciativa 012 — Flujo de recursos y guías
+
+Las páginas `Cómo funciona`, `Qué analizamos`, `Casos reales` y `Demo` deben orientar al usuario hacia `/recursos/`, donde se centralizan guías, formularios, checklists, vistas previas y descargas. Cada enlace conservará perfil, etapa y necesidad mediante parámetros o estado explícito, sin duplicar documentos ni exigir datos personales para consultar recursos básicos. Seguir `specs/012-flujo-recursos-y-guias/` antes de implementar.
+
+### Iniciativa 013 — Conversión a primera valoración
+
+La página de inicio debe conducir a una primera valoración útil antes de solicitar registro. Seguir `specs/013-conversion-primera-valoracion/`: situación → preguntas → orientación inmediata → email para guardar → validación → informe. El CTA principal será `Crear mi valoración gratuita`, el email será progresivo, el consentimiento comercial separado y el flujo deberá conservar respuestas, responsive y navegación claro/oscuro.
 
 ## Módulo de coste energético del vehículo
 
@@ -102,6 +119,7 @@ Si se incorporan rutas, redes de recarga, precios en tiempo real o modelos de eq
 | SEO y distribución | SEO-AEO-GEO + SOCIAL-CONTENIDO | Intención, fuente, formato y claim revisado |
 | Precio de ocasión | PRECIO-OCASION + DATOS-MERCADO | Comparables autorizados, fecha, muestra y límites |
 | Investigación de usuarios | foro-coches + PRODUCTO-SDD + LEGAL-CONFIANZA | Ventana temporal, patrones anonimizados, sesgos y propuesta validable |
+| Inteligencia editorial de fuentes públicas | INTELIGENCIA-EDITORIAL + LEGAL-CONFIANZA | Fuente autorizada, resumen propio, fecha, evidencia, riesgos y propuesta |
 | Contenidos derivados de investigación | foro-coches + COPY-MENSAJE + SEO-AEO-GEO + EMAIL-CICLO-VENTA | Brief, fuentes, segmento, temporada, revisión y consentimiento |
 | Voz del usuario y comprensión | foro-coches + COPY-MENSAJE + UX-CONTENIDO | Jerga contextual, fricción detectada, redacción clara y prueba de comprensión |
 | Código | INGENIERIA | Cambio trazable y compatibilidad |

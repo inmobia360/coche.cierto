@@ -13,7 +13,7 @@
       
       const query = new URLSearchParams({ intent, window: windowValue, use, skipIntro: '1' }).toString();
       const nextUrl = './valorador/?' + query;
-      window.open(nextUrl, '_blank', 'noopener,noreferrer');
+      window.location.href = nextUrl;
     });
   }
 
