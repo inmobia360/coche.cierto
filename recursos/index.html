@@ -80,6 +80,13 @@
     .resource-link:hover {
       text-decoration: underline;
     }
+    .feature-feedback { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
+    .feature-feedback strong { display: block; color: var(--ink-primary); font-size: 14px; margin-bottom: 10px; }
+    .feedback-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .feedback-options button { border: 1px solid var(--border-subtle); border-radius: 999px; background: transparent; color: var(--ink-primary); padding: 9px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+    .feedback-options button:hover, .feedback-options button:focus-visible { border-color: var(--brand-orange); color: var(--brand-orange); }
+    .feature-feedback.is-voted .feedback-options { display: none; }
+    .feedback-thanks, .feedback-results-note { margin: 10px 0 0; color: var(--ink-secondary); font-size: 13px; line-height: 1.45; }
     .resource-submit {
       min-height: 48px;
       padding: 12px 20px;
@@ -132,6 +139,20 @@
         </article>
 
         <article class="resource-card">
+          <span class="resource-tag">Desarrollo futuro</span>
+          <h2>Análisis de una unidad</h2>
+          <p>Para revisar un anuncio concreto con más detalle antes de desplazarte o negociar.</p>
+          <div class="feature-feedback" data-feature-feedback="unit-analysis"><strong>EN VALIDACIÓN · PRÓXIMAMENTE</strong><p>¿Te sería útil esta función para decidir mejor sobre un coche concreto?</p><div class="feedback-options"><button type="button" data-feedback="useful">Me sería útil</button><button type="button" data-feedback="doubt">Tengo dudas</button><button type="button" data-feedback="not-now">Ahora mismo no</button></div><p class="feedback-thanks" hidden>Gracias por ayudarnos a decidir qué desarrollar primero.</p><p class="feedback-results-note" hidden>Los resultados agregados se mostrarán cuando haya al menos 10 respuestas reales.</p></div>
+        </article>
+
+        <article class="resource-card">
+          <span class="resource-tag">Desarrollo futuro</span>
+          <h2>Búsqueda asistida</h2>
+          <p>Para convertir tus criterios en una búsqueda comparada y encontrar opciones que encajen contigo.</p>
+          <div class="feature-feedback" data-feature-feedback="assisted-search"><strong>EN VALIDACIÓN · PRÓXIMAMENTE</strong><p>¿Te resultaría útil recibir ayuda para encontrar coches que encajen contigo?</p><div class="feedback-options"><button type="button" data-feedback="useful">Me sería útil</button><button type="button" data-feedback="doubt">Tengo dudas</button><button type="button" data-feedback="not-now">Ahora mismo no</button></div><p class="feedback-thanks" hidden>Gracias por ayudarnos a decidir qué desarrollar primero.</p><p class="feedback-results-note" hidden>Los resultados agregados se mostrarán cuando haya al menos 10 respuestas reales.</p></div>
+        </article>
+
+        <article class="resource-card">
           <span class="resource-tag">Guía Práctica</span>
           <h2>Checklist de Inspección en Frío</h2>
           <p>Las 12 comprobaciones imprescindibles en motor, cambio, chasis y documentación antes de dar una señal.</p>
@@ -165,6 +186,13 @@
     };
     const finder = document.getElementById('resourceFinderForm'); const recommendation = document.getElementById('resourceRecommendation');
     finder.addEventListener('submit', event => { event.preventDefault(); const data = recommendations[finder.need.value]; recommendation.innerHTML = `<h3>Te recomendamos empezar por aquí</h3><p><a href="${data[1]}">${data[0]}</a><br>${data[2]}</p><p><a href="${data[4]}">${data[3]}</a><br>${data[5]}</p>`; });
+    document.querySelectorAll('[data-feature-feedback]').forEach(block => {
+      const key = `cc-feature-feedback:${block.dataset.featureFeedback}`;
+      if (localStorage.getItem(key)) { block.classList.add('is-voted'); block.querySelector('.feedback-thanks').hidden = false; block.querySelector('.feedback-results-note').hidden = false; }
+      block.querySelectorAll('[data-feedback]').forEach(button => button.addEventListener('click', () => {
+        localStorage.setItem(key, button.dataset.feedback); block.classList.add('is-voted'); block.querySelector('.feedback-thanks').hidden = false; block.querySelector('.feedback-results-note').hidden = false;
+      }));
+    });
   </script>
 </body>
 </html>
