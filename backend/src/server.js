@@ -31,6 +31,27 @@ const resources = [
   ['Casos reales', 'Aprende de patrones y situaciones habituales', 'Aporta contexto para hacer mejores preguntas.'],
   ['Guías de compra', 'Explican costes, documentación y próximos pasos', 'Te permiten avanzar sin necesitar conocimientos técnicos.']
 ];
+const airtable = process.env.AIRTABLE_TOKEN && process.env.AIRTABLE_BASE_ID ? {
+  token: process.env.AIRTABLE_TOKEN,
+  base: process.env.AIRTABLE_BASE_ID,
+  leadsTable: process.env.AIRTABLE_LEADS_TABLE || 'Leads'
+} : null;
+const airtableUrl = (table) => `https://api.airtable.com/v0/${airtable.base}/${encodeURIComponent(table)}`;
+const airtableRequest = async (url, options = {}) => { const response = await fetch(url, { ...options, headers: { Authorization: `Bearer ${airtable.token}`, 'Content-Type': 'application/json', ...(options.headers || {}) } }); if (!response.ok) throw new Error(`Airtable ${response.status}`); return response.json(); };
+const saveAirtableLead = async (report, token) => {
+  if (!airtable) return null;
+  const fields = { request_id: token.slice(0, 12), email: report.email, intent: report.intent, purchase_window: report.purchaseWindow, usage_type: report.usageType, recommended_category: report.category, priority: report.priority, questionnaire_version: 'v1', recommendation_version: 'mvp-v1', consent_result: true, consent_commercial: report.consentCommercial === true, token_hash: hash(token), expires_at: new Date(report.expiresAt).toISOString(), status: 'solicitada', created_at: new Date().toISOString() };
+  const created = await airtableRequest(airtableUrl(airtable.leadsTable), { method: 'POST', body: JSON.stringify({ records: [{ fields }] }) });
+  return created.records?.[0]?.id || null;
+};
+const loadAirtableReport = async (token) => {
+  if (!airtable) return null;
+  const formula = encodeURIComponent(`AND({token_hash}='${hash(token)}',{expires_at}>'${new Date().toISOString()}')`);
+  const result = await airtableRequest(`${airtableUrl(airtable.leadsTable)}?maxRecords=1&filterByFormula=${formula}`);
+  const fields = result.records?.[0]?.fields;
+  if (!fields) return null;
+  return { email: fields.email, category: fields.recommended_category, usageType: fields.usage_type, purchaseWindow: fields.purchase_window, priority: fields.priority || 'No indicada', consentCommercial: fields.consent_commercial === true, expiresAt: new Date(fields.expires_at).getTime(), verified: fields.status === 'validada' };
+};
 
 app.use(helmet());
 app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || requestOrigin === origin || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST'] }));
@@ -96,7 +117,9 @@ app.post('/api/leads', async (req, res) => {
   }
   const verifyToken = createReportToken();
   const expires = new Date(Date.now() + REPORT_TTL_MS);
-  addReport(verifyToken, { email, category: lead.recommendedCategory, usageType: lead.usageType, purchaseWindow: lead.purchaseWindow, priority: body.priority || 'No indicada' });
+  const report = { email, intent: lead.intent, category: lead.recommendedCategory, usageType: lead.usageType, purchaseWindow: lead.purchaseWindow, priority: body.priority || 'No indicada', consentCommercial: lead.consentCommercial };
+  addReport(verifyToken, report);
+  try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
   if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
   if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL}/verify-email.html?token=${verifyToken}` });
   res.status(202).json({ accepted: true, message: 'Solicitud recibida. Revisa tu email para validar la dirección.' });
@@ -105,7 +128,8 @@ app.post('/api/leads', async (req, res) => {
 app.get('/api/verify-email', async (req, res) => {
   const received = String(req.query.token || '');
   if (!received || received.length !== 64) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
-  const report = getReport(received);
+  let report = getReport(received);
+  if (!report) { try { report = await loadAirtableReport(received); if (report) addReport(received, report); } catch (error) { console.error('No se pudo consultar Airtable:', error.message); } }
   if (!report) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
   report.verified = true;
   res.json({ verified: true, message: 'Email validado. Ya puedes descargar el informe.', downloadUrl: `/api/report.pdf?token=${received}`, expiresAt: new Date(report.expiresAt).toISOString() });

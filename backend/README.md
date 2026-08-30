@@ -6,7 +6,11 @@ API inicial del MVP de diagnóstico, validación de email y captación de leads.
 
 - `GET /health` — estado de API y base de datos.
 - `POST /api/leads` — registra la solicitud mínima y envía enlace de validación si SMTP está configurado.
-- `GET /api/verify-email?email=...&token=...` — valida el email y habilita el informe.
+- `GET /api/verify-email?token=...` — valida el email y habilita el informe.
+
+## Airtable opcional
+
+Si se configuran `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID` y `AIRTABLE_LEADS_TABLE`, el backend guarda leads y los datos mínimos del informe para poder recuperarlos durante la beta. El token de Airtable solo vive en las variables privadas del servidor; no se incluye en GitHub ni en el navegador.
 
 ## Seguridad y límites
 
