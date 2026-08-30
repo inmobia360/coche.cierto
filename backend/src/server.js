@@ -40,17 +40,42 @@ const airtableUrl = (table) => `https://api.airtable.com/v0/${airtable.base}/${e
 const airtableRequest = async (url, options = {}) => { const response = await fetch(url, { ...options, headers: { Authorization: `Bearer ${airtable.token}`, 'Content-Type': 'application/json', ...(options.headers || {}) } }); if (!response.ok) throw new Error(`Airtable ${response.status}`); return response.json(); };
 const saveAirtableLead = async (report, token) => {
   if (!airtable) return null;
-  const fields = { request_id: token.slice(0, 12), email: report.email, intent: report.intent, purchase_window: report.purchaseWindow, usage_type: report.usageType, recommended_category: report.category, priority: report.priority, questionnaire_version: 'v1', recommendation_version: 'mvp-v1', consent_result: true, consent_commercial: report.consentCommercial === true, token_hash: hash(token), expires_at: new Date(report.expiresAt).toISOString(), status: 'solicitada', created_at: new Date().toISOString() };
+  // Estos nombres coinciden con los campos reales creados en la base beta.
+  // El detalle técnico se conserva en Notes para no exigir más columnas ni
+  // guardar el token en claro.
+  const fields = {
+    Name: token.slice(0, 12),
+    Email: report.email,
+    Origen: 'web',
+    'Consentimiento privacidad': true,
+    Notes: JSON.stringify({
+      intent: report.intent,
+      purchaseWindow: report.purchaseWindow,
+      usageType: report.usageType,
+      recommendedCategory: report.category,
+      priority: report.priority,
+      questionnaireVersion: 'v1',
+      recommendationVersion: 'mvp-v1',
+      consentCommercial: report.consentCommercial === true,
+      tokenHash: hash(token),
+      expiresAt: new Date(report.expiresAt).toISOString(),
+      createdAt: new Date().toISOString()
+    }),
+    Status: 'solicitada'
+  };
   const created = await airtableRequest(airtableUrl(airtable.leadsTable), { method: 'POST', body: JSON.stringify({ records: [{ fields }] }) });
   return created.records?.[0]?.id || null;
 };
 const loadAirtableReport = async (token) => {
   if (!airtable) return null;
-  const formula = encodeURIComponent(`AND({token_hash}='${hash(token)}',{expires_at}>'${new Date().toISOString()}')`);
+  const formula = encodeURIComponent(`FIND('${hash(token)}',{Notes})`);
   const result = await airtableRequest(`${airtableUrl(airtable.leadsTable)}?maxRecords=1&filterByFormula=${formula}`);
   const fields = result.records?.[0]?.fields;
   if (!fields) return null;
-  return { email: fields.email, category: fields.recommended_category, usageType: fields.usage_type, purchaseWindow: fields.purchase_window, priority: fields.priority || 'No indicada', consentCommercial: fields.consent_commercial === true, expiresAt: new Date(fields.expires_at).getTime(), verified: fields.status === 'validada' };
+  let details = {};
+  try { details = JSON.parse(fields.Notes || '{}'); } catch { return null; }
+  if (!details.expiresAt || new Date(details.expiresAt).getTime() <= Date.now()) return null;
+  return { email: fields.Email, category: details.recommendedCategory, usageType: details.usageType, purchaseWindow: details.purchaseWindow, priority: details.priority || 'No indicada', consentCommercial: details.consentCommercial === true, expiresAt: new Date(details.expiresAt).getTime(), verified: fields.Status === 'validada' };
 };
 
 app.use(helmet());
