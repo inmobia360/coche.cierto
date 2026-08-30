@@ -311,7 +311,7 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
 }
 
 @media (max-width: 880px) {
-  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body { padding-bottom: calc(132px + env(safe-area-inset-bottom)); }
   .site-shell, .landing-shell, .page, .demo-app, .app { padding-left: 16px !important; padding-right: 16px !important; }
   .site-header, .landing-nav { gap: 10px; }
   .brand-lockup, .site-brand { font-size: clamp(18px, 5vw, 22px) !important; }
@@ -321,7 +321,8 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
   .mobile-menu-btn { display: none !important; }
   .site-header .nav-links, .site-header .landing-menu, .site-header .site-nav {
     display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: minmax(54px, auto);
     position: fixed !important;
     z-index: 250;
     left: 0 !important;
@@ -330,7 +331,7 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
     bottom: 0 !important;
     width: 100%;
     gap: 0 !important;
-    padding: 7px 6px calc(7px + env(safe-area-inset-bottom)) !important;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) !important;
     border: 1px solid var(--border-subtle);
     border-bottom: 0;
     border-radius: 16px 16px 0 0;
@@ -339,16 +340,20 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
     backdrop-filter: blur(18px);
   }
   .site-header .nav-links a, .site-header .landing-menu a, .site-header .site-nav a {
-    min-height: 56px;
+    min-height: 54px;
     justify-content: center;
     text-align: center;
-    padding: 8px 3px;
+    padding: 7px 5px;
     border-radius: 10px;
-    font-size: 11px !important;
-    line-height: 1.15;
-    overflow-wrap: anywhere;
+    font-size: 11.5px !important;
+    line-height: 1.2;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
   }
-  .site-header .nav-links a[aria-current="page"]::after { left: 18%; right: 18%; bottom: 4px; height: 3px; }
+  .site-header .nav-links a[aria-current="page"]::after,
+  .site-header .landing-menu a[aria-current="page"]::after,
+  .site-header .site-nav a[aria-current="page"]::after { left: 22%; right: 22%; bottom: 4px; height: 3px; }
   .site-header .nav-links .nav-icon, .site-header .landing-menu .nav-icon, .site-header .site-nav .nav-icon { display:block; width:22px; height:22px; margin:0 auto 3px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   .site-header .nav-links a span, .site-header .landing-menu a span, .site-header .site-nav a span { display:block; }
   .site-header .nav-links a:hover, .site-header .nav-links a:focus-visible { background: var(--bg-subtle); }
