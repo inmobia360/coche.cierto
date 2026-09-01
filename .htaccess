@@ -1,10 +1,16 @@
 DirectoryIndex index.html
 Options -Indexes
 
+# SEO: unificar el dominio www bajo el principal con 301 permanente.
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.cochecierto\.com$ [NC]
+RewriteRule ^(.*)$ https://cochecierto.com/$1 [R=301,L]
+
 # Metodología se integró en Cómo funciona; conservar enlaces antiguos sin
 # mantener una segunda sección indexable.
 Redirect 301 /metodologia/ /como-funciona/
 Redirect 301 /informe-demo.html /demo/
+Redirect 301 /demo/informe.html /demo/
 
 # Compresión GZIP y cabeceras de caché
 <IfModule mod_deflate.c>
