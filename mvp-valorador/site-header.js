@@ -16,6 +16,7 @@
     else if (path.indexOf('/metodologia/') !== -1) currentKey = 'metodologia';
     else if (path.indexOf('/valorador/') !== -1) currentKey = 'valorador';
     else if (path.indexOf('/recursos/') !== -1) currentKey = 'recursos';
+    else if (path.indexOf('/guias/') !== -1) currentKey = 'guias';
 
     var headerHTML = '<a class="brand-lockup" href="' + base + '" aria-label="CocheCierto, inicio">' +
       '<img src="' + base + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36">' +
