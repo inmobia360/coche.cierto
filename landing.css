@@ -65,6 +65,9 @@
   flex-wrap: wrap;
 }
 
+.hero-primary-action{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:22px}.hero-start-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 20px;border-radius:14px;background:var(--brand-orange);color:#fff;font-weight:850;text-decoration:none;box-shadow:0 8px 22px rgba(252,76,2,.26);transition:transform .18s ease,background .18s ease}.hero-start-btn:hover,.hero-start-btn:focus-visible{background:var(--brand-orange-hover,#ff5e1c);transform:translateY(-2px)}.hero-start-btn span{font-size:18px}.hero-primary-action p{margin:0;color:var(--ink-secondary);font-size:12px;line-height:1.4;max-width:210px}
+.hero-result-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px;padding:13px 14px;background:color-mix(in srgb,var(--bg-surface) 92%,transparent);border:1px solid var(--border-subtle);border-radius:14px;box-shadow:var(--card-shadow);max-width:580px}.hero-result-preview div{display:grid;gap:4px;min-width:0}.hero-result-preview span{color:var(--ink-secondary);font-size:10px;font-weight:750;line-height:1.2}.hero-result-preview strong{color:var(--ink-primary);font-size:15px;line-height:1.15}.hero-result-preview .highlight-orange{color:var(--brand-orange)}
+
 .trust-chip {
   display: inline-flex;
   align-items: center;
@@ -578,16 +581,7 @@ html.theme-light .hero-integrated-bar {
   letter-spacing: -0.02em;
 }
 
-.landing-footer {
-  display: flex;
-  justify-content: space-between;
-  color: var(--ink-muted);
-  font-size: 13px;
-  padding: 24px 0 0;
-  border-top: 1px solid var(--border-subtle);
-}
-
-/* ==========================================================================
+/* ========================================================================== 
    5. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
@@ -618,6 +612,7 @@ html.theme-light .hero-integrated-bar {
   .landing-hero-panoramic { padding-top: 4px; gap: 24px; }
   .hero-title { font-size: clamp(34px, 10vw, 48px); line-height: 1.02; }
   .hero-lead { font-size: 16px; }
+  .hero-primary-action{display:grid;gap:10px;margin-top:18px}.hero-start-btn{justify-content:center;width:100%;box-sizing:border-box}.hero-primary-action p{max-width:none;text-align:center}.hero-result-preview{grid-template-columns:1fr;gap:9px;margin-top:14px}.hero-result-preview div{grid-template-columns:1fr auto;align-items:center}.hero-result-preview strong{font-size:14px;text-align:right}
   .hero-visual-wrapper { min-height: 300px; }
   .hero-car-image, .coche-cabecera { max-width: 100% !important; }
   .hud-card { padding: 7px 9px; gap: 7px; }

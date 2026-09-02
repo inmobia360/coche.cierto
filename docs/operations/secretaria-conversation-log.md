@@ -47,6 +47,19 @@ contener credenciales, datos personales innecesarios ni secretos.
 
 ## Entradas recientes
 
+### [2026-09-02] Valorador de baja fricción
+- Origen: conversación con el director y revisión UX/conversión
+- Tipo: cambio
+- Estado: validación
+- Decisión o hecho: se elimina `valuator-seo-extended` porque distrae del formulario y duplica contenido; el valorador queda centrado en completar la orientación.
+- Alcance: nueve preguntas base, radios accesibles, presupuesto por rangos, resultado directo y preguntas profesionales condicionales.
+- Responsable: INGENIERIA + UX-CONTENIDO + COPY-MENSAJE + CONVERSION-CRM
+- Prioridad: alta
+- Dependencias: QA local, revisión del contrato de leads y validación desplegada.
+- Criterio de aceptación: flujo privado y profesional completables sin resumen intermedio, con teclado y móvil, sin regresiones en resultado ni consentimiento.
+- Evidencia: `specs/021-valuador-baja-friccion/spec.md` y `docs/operations/secretaria-baja-friccion.md`.
+- Próxima acción: QA local; después proponer commit, push y despliegue en Hostinger.
+
 ### [2026-09-02] Integración de PDF en Guías y Recursos
 - Origen: conversación con el director
 - Tipo: cambio

@@ -1,7 +1,7 @@
 // Incrementar esta versión en cada actualización de archivos compartidos.
 // Evita que la primera visita reciba una cabecera/footer antiguos desde el SW.
-const CACHE_NAME = 'cochecierto-shell-v10';
-const SHELL = ['./', './como-funciona/', './que-analizamos/', './demo/', './casos-reales/', './recursos/', './recursos/checklist-inspeccion.html', './theme.css', './theme.js', './site-header.js', './favicon.svg', './manifest.webmanifest'];
+const CACHE_NAME = 'cochecierto-shell-v12';
+const SHELL = ['./', './como-funciona/', './que-analizamos/', './demo/', './casos-reales/', './recursos/', './recursos/checklist-inspeccion.html', './theme.css', './theme.js', './site-header.js', './brand-symbol.svg', './brand-symbol-light.svg', './favicon.svg', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => Promise.all(SHELL.map(url => fetch(url).then(response => {
@@ -27,6 +27,20 @@ self.addEventListener('fetch', event => {
         }
       } catch (_) {}
       return caches.match(event.request) || caches.match('./') || Response.error();
+    }
+    // Cabecera, estilos y scripts compartidos deben recoger un release nuevo
+    // en la primera carga; la caché solo actúa como respaldo offline.
+    const isSharedAsset = event.request.destination === 'script' || event.request.destination === 'style' ||
+      /\/(site-header|theme|styles)\.(?:js|css)$/.test(event.request.pathname);
+    if (isSharedAsset) {
+      try {
+        const freshAsset = await fetch(event.request, { cache: 'no-store' });
+        if (freshAsset.ok) {
+          event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, freshAsset.clone())));
+          return freshAsset;
+        }
+      } catch (_) {}
+      return caches.match(event.request) || Response.error();
     }
     const cached = await caches.match(event.request);
     if (cached) {

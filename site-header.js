@@ -17,7 +17,12 @@
     var path = window.location.pathname.replace(/\/index\.html$/, '/');
     var isSubdir = /\/[^\/]+\/+$/.test(path) && !path.endsWith('/mvp-valorador/');
     var pathParts = path.split('/').filter(Boolean);
-    var base = pathParts.length ? '../' : './';
+    // En documentos .html el último segmento es el archivo, no un directorio.
+    // Así los enlaces del footer mantienen la misma raíz en todas las URLs.
+    var pathDepth = path.endsWith('/') ? pathParts.length : Math.max(0, pathParts.length - 1);
+    // Una guía anidada necesita subir tantos niveles como segmentos tenga la ruta.
+    // Ejemplo: /guias/tema/ → ../../; una sección simple conserva ../.
+    var base = pathDepth ? '../'.repeat(pathDepth) : './';
     var navIcon = function (name) {
       var paths = {home:'<path d="M4 10.5 12 4l8 6.5v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 20v-6h6v6"/>',scan:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4M8 11h6M11 8v6"/>',report:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 12h6M9 16h6"/>',method:'<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>',tools:'<path d="m14.7 6.3 3-3 2 2-3 3M4 20l7.8-7.8 2 2L6 22H4z"/><path d="m13 5 6 6"/>'};
       return '<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + paths[name] + '</svg>';
@@ -32,6 +37,16 @@
     else if (path.indexOf('/recursos/') !== -1) currentKey = 'recursos';
     else if (path.indexOf('/guias/') !== -1) currentKey = 'guias';
 
+    var mobileMenuHTML = '<div class="mobile-menu-backdrop" data-mobile-menu-close hidden></div>' +
+      '<aside class="mobile-menu-panel" id="mobile-menu-panel" aria-label="Menú principal" aria-hidden="true" hidden>' +
+      '<div class="mobile-menu-head"><strong>Explora CocheCierto</strong><button type="button" class="mobile-menu-close" data-mobile-menu-close aria-label="Cerrar menú">×</button></div>' +
+      '<div class="mobile-menu-group"><span>Empieza aquí</span><a class="mobile-menu-link" href="' + base + 'valorador/">' + navIcon('report') + '<span><strong>Crear mi valoración</strong><small>Ordena tu necesidad y tu presupuesto</small></span></a><a class="mobile-menu-link" href="' + base + 'que-coche-me-puedo-permitir/">' + navIcon('tools') + '<span><strong>Calcular qué coche puedo asumir</strong><small>Separa precio, gastos y reserva</small></span></a></div>' +
+      '<div class="mobile-menu-group"><span>Aprende antes de decidir</span><a class="mobile-menu-link" href="' + base + 'como-funciona/">' + navIcon('home') + '<span><strong>Cómo funciona</strong><small>Conoce el método de CocheCierto</small></span></a><a class="mobile-menu-link" href="' + base + 'que-analizamos/">' + navIcon('scan') + '<span><strong>Qué analizamos</strong><small>Datos, costes y comprobaciones</small></span></a><a class="mobile-menu-link" href="' + base + 'guias/">' + navIcon('method') + '<span><strong>Guías</strong><small>Respuestas para comprar con criterio</small></span></a><a class="mobile-menu-link" href="' + base + 'recursos/">' + navIcon('tools') + '<span><strong>Recursos</strong><small>Checklists y herramientas útiles</small></span></a></div>' +
+      '<div class="mobile-menu-group"><span>Comprueba el método</span><a class="mobile-menu-link" href="' + base + 'demo/">' + navIcon('report') + '<span><strong>Informe demo</strong><small>Mira el tipo de resultado</small></span></a><a class="mobile-menu-link" href="' + base + 'casos-reales/">' + navIcon('report') + '<span><strong>Casos prácticos</strong><small>Ejemplos de decisiones</small></span></a></div>' +
+      '<div class="mobile-menu-group"><span>Confianza</span><a class="mobile-menu-link" href="' + base + 'quienes-somos/">Quiénes somos</a><a class="mobile-menu-link" href="' + base + 'legal/">Información legal</a><a class="mobile-menu-link" href="mailto:hola@cochecierto.com">Contacto</a></div>' +
+      '</aside>' +
+      '<nav class="mobile-bottom-nav" aria-label="Accesos rápidos"><a href="' + base + '">' + navIcon('home') + '<span>Inicio</span></a><a href="' + base + 'guias/">' + navIcon('method') + '<span>Guías</span></a><a class="mobile-bottom-primary" href="' + base + 'valorador/">' + navIcon('report') + '<span>Valorar</span></a><button type="button" class="mobile-bottom-menu" data-mobile-menu-open aria-controls="mobile-menu-panel" aria-expanded="false">☰<span>Menú</span></button></nav>';
+
     var headerHTML = '<a class="brand-lockup" href="/" aria-label="CocheCierto, inicio">' +
       '<img src="' + base + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36" onerror="this.onerror=null;this.src=\'' + base + 'favicon.svg\';">' +
       '<span>Coche<strong>Cierto</strong></span>' +
@@ -45,10 +60,10 @@
       '<a href="' + base + 'guias/"' + (currentKey === 'guias' ? ' aria-current="page"' : '') + '>' + navIcon('method') + '<span>Guías</span></a>' +
       '</nav>' +
       '<div class="header-actions">' +
-      '<a class="nav-cta" href="' + base + 'valorador/">' + (currentKey === 'valorador' ? 'Diagnóstico activo' : 'Comenzar valoración') + '</a>' +
+      '<a class="nav-cta" href="' + base + 'valorador/">' + (currentKey === 'valorador' ? 'Diagnóstico activo' : 'Crear mi valoración') + '</a>' +
       '<button class="theme-toggle-btn" type="button" aria-label="Cambiar tema" title="Cambiar tema">☼</button>' +
       '<button class="mobile-menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>' +
-      '</div>';
+      '</div>' + mobileMenuHTML;
 
     var header = document.querySelector('.site-header, .landing-nav, .demo-nav, .brand');
     var container = document.querySelector('.landing-shell, .site-shell, .page, .demo-app, .app, body');
@@ -66,35 +81,59 @@
     if (header) {
       var mobileBtn = header.querySelector('.mobile-menu-btn');
       var navLinks = header.querySelector('.nav-links');
+      var mobilePanel = header.querySelector('.mobile-menu-panel');
+      var mobileBackdrop = header.querySelector('.mobile-menu-backdrop');
+      var quickMenuBtn = header.querySelector('[data-mobile-menu-open]');
+      var closeMobileMenu = function () {
+        if (!mobilePanel) return;
+        mobilePanel.hidden = true;
+        mobilePanel.setAttribute('aria-hidden', 'true');
+        if (mobileBackdrop) mobileBackdrop.hidden = true;
+        if (mobileBtn) { mobileBtn.setAttribute('aria-expanded', 'false'); mobileBtn.setAttribute('aria-label', 'Abrir menú'); mobileBtn.textContent = '☰'; }
+        if (quickMenuBtn) quickMenuBtn.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
+      };
+      var openMobileMenu = function () {
+        if (!mobilePanel) return;
+        mobilePanel.hidden = false;
+        mobilePanel.setAttribute('aria-hidden', 'false');
+        if (mobileBackdrop) mobileBackdrop.hidden = false;
+        if (mobileBtn) { mobileBtn.setAttribute('aria-expanded', 'true'); mobileBtn.setAttribute('aria-label', 'Cerrar menú'); mobileBtn.textContent = '✕'; }
+        if (quickMenuBtn) quickMenuBtn.setAttribute('aria-expanded', 'true');
+        document.body.classList.add('menu-open');
+        var firstLink = mobilePanel.querySelector('a, button');
+        if (firstLink) firstLink.focus();
+      };
       if (mobileBtn && navLinks) {
         mobileBtn.setAttribute('aria-controls', 'primary-navigation');
         navLinks.id = 'primary-navigation';
         mobileBtn.addEventListener('click', function (e) {
           e.stopPropagation();
-          var isOpen = navLinks.classList.toggle('is-open');
-          mobileBtn.setAttribute('aria-expanded', String(isOpen));
-          mobileBtn.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
-          mobileBtn.textContent = isOpen ? '✕' : '☰';
+          if (mobilePanel && !mobilePanel.hidden) closeMobileMenu(); else if (mobilePanel) openMobileMenu();
         });
 
         navLinks.querySelectorAll('a').forEach(function (link) {
           link.addEventListener('click', function () {
-            navLinks.classList.remove('is-open');
-            mobileBtn.setAttribute('aria-expanded', 'false');
-            mobileBtn.setAttribute('aria-label', 'Abrir menú');
-            mobileBtn.textContent = '☰';
+            closeMobileMenu();
           });
         });
 
         document.addEventListener('click', function (e) {
-          if (!header.contains(e.target) && navLinks.classList.contains('is-open')) {
-            navLinks.classList.remove('is-open');
-            mobileBtn.setAttribute('aria-expanded', 'false');
-            mobileBtn.textContent = '☰';
-          }
+          if (!header.contains(e.target) && mobilePanel && !mobilePanel.hidden) closeMobileMenu();
         });
       }
+      if (quickMenuBtn) quickMenuBtn.addEventListener('click', openMobileMenu);
+      if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileMenu);
+      if (mobilePanel) {
+        mobilePanel.querySelectorAll('a, [data-mobile-menu-close]').forEach(function (link) { link.addEventListener('click', closeMobileMenu); });
+        document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !mobilePanel.hidden) closeMobileMenu(); });
+      }
 
+      // Todas las URLs públicas usan este único footer. Retiramos restos
+      // estáticos de las plantillas antiguas para evitar duplicados.
+      document.querySelectorAll('.landing-footer, .demo-footer').forEach(function (legacyFooter) {
+        legacyFooter.remove();
+      });
       var footer = document.querySelector('.legal-footer');
       if (!footer) {
         footer = document.createElement('footer');
@@ -102,10 +141,42 @@
         (document.querySelector('.site-shell') || document.body).appendChild(footer);
       }
       if (!footer.innerHTML.trim()) {
-        footer.innerHTML = '<div class="footer-inner"><div class="footer-brand"><strong>CocheCierto</strong><span>Información clara para decidir mejor antes de comprar.</span></div><div class="footer-social" aria-label="Redes sociales"><span class="footer-social-label">Síguenos</span><a class="social-link" href="#" aria-label="Facebook · perfil pendiente" title="Facebook · perfil pendiente"><span aria-hidden="true">f</span></a><a class="social-link" href="#" aria-label="Instagram · perfil pendiente" title="Instagram · perfil pendiente"><span aria-hidden="true">ig</span></a><a class="social-link" href="#" aria-label="YouTube · perfil pendiente" title="YouTube · perfil pendiente"><span aria-hidden="true">▶</span></a><a class="social-link" href="#" aria-label="TikTok · perfil pendiente" title="TikTok · perfil pendiente"><span aria-hidden="true">♪</span></a><a class="social-link" href="#" aria-label="LinkedIn · perfil pendiente" title="LinkedIn · perfil pendiente"><span aria-hidden="true">in</span></a><a class="social-link" href="#" aria-label="X · perfil pendiente" title="X · perfil pendiente"><span aria-hidden="true">𝕏</span></a></div><nav class="footer-legal" aria-label="Información legal"><a href="' + base + 'legal/">Información legal</a><a href="' + base + 'legal/aviso-legal.html">Aviso legal</a><a href="' + base + 'legal/privacidad.html">Privacidad</a><a href="' + base + 'legal/cookies.html">Cookies</a><a href="' + base + 'legal/condiciones.html">Condiciones</a><a href="' + base + 'legal/accesibilidad.html">Accesibilidad</a><a href="' + base + 'quienes-somos/">QuiÃ©nes somos</a><a href="' + base + 'politica-editorial/">PolÃ­tica editorial</a><a href="mailto:hola@cochecierto.com">Contacto</a></nav><div class="footer-bottom"><span>© ' + new Date().getFullYear() + ' CocheCierto · Todos los derechos reservados</span><span>Decide con datos. Compra con más criterio.</span></div></div>';
+        footer.innerHTML = '<div class="footer-inner"><div class="footer-brand"><strong>CocheCierto</strong><span>Información clara para decidir mejor antes de comprar.</span></div><div class="footer-social" aria-label="Redes sociales"><span class="footer-social-label">Síguenos</span><a class="social-link" href="#" aria-label="Facebook · perfil pendiente" title="Facebook · perfil pendiente"><span aria-hidden="true">f</span></a><a class="social-link" href="#" aria-label="Instagram · perfil pendiente" title="Instagram · perfil pendiente"><span aria-hidden="true">ig</span></a><a class="social-link" href="#" aria-label="YouTube · perfil pendiente" title="YouTube · perfil pendiente"><span aria-hidden="true">▶</span></a><a class="social-link" href="#" aria-label="TikTok · perfil pendiente" title="TikTok · perfil pendiente"><span aria-hidden="true">♪</span></a><a class="social-link" href="#" aria-label="LinkedIn · perfil pendiente" title="LinkedIn · perfil pendiente"><span aria-hidden="true">in</span></a><a class="social-link" href="#" aria-label="X · perfil pendiente" title="X · perfil pendiente"><span aria-hidden="true">𝕏</span></a></div><nav class="footer-legal" aria-label="Información legal"><a href="' + base + 'legal/">Información legal</a><a href="' + base + 'legal/aviso-legal.html">Aviso legal</a><a href="' + base + 'legal/privacidad.html">Privacidad</a><a href="' + base + 'legal/cookies.html">Cookies</a><a href="' + base + 'legal/condiciones.html">Condiciones</a><a href="' + base + 'legal/accesibilidad.html">Accesibilidad</a><a href="' + base + 'quienes-somos/">Quiénes somos</a><a href="' + base + 'politica-editorial/">Política editorial</a><a href="mailto:hola@cochecierto.com">Contacto</a></nav><div class="footer-bottom"><span>© ' + new Date().getFullYear() + ' CocheCierto · Todos los derechos reservados</span><span>Decide con datos. Compra con más criterio.</span></div></div>';
         footer.querySelectorAll('.social-link').forEach(function (link) {
           link.addEventListener('click', function (event) { event.preventDefault(); });
         });
+      }
+
+      // Regla global de conversión: mostrar el problema, la ayuda disponible
+      // y un siguiente paso de baja fricción en cada página pública informativa.
+      var isLegalPage = document.body.classList.contains('legal-page') || !!document.querySelector('.legal-page');
+      var isHomePage = path === '/' || path === '/index.html' || path === '';
+      var isValuatorPage = path.indexOf('/valorador/') !== -1;
+      var isInternalCopy = path.indexOf('/coche.cierto/') !== -1 || path.indexOf('/mvp-valorador/') !== -1 || path.indexOf('/coche.subasta/') !== -1;
+      if (!isLegalPage && !isHomePage && !isValuatorPage && !isInternalCopy && !document.querySelector('.conversion-orientation')) {
+        var conversionCopy = {
+          pain: '¿No sabes por dónde empezar?',
+          solution: 'Ordena tu uso, presupuesto y comprobaciones antes de comparar coches.',
+          action: 'Crear mi valoración gratuita →'
+        };
+        if (path.indexOf('/guias/') !== -1) {
+          conversionCopy.pain = '¿Esta guía responde a tu caso?';
+          conversionCopy.solution = 'Convierte lo que has leído en una orientación práctica para tu compra.';
+        } else if (path.indexOf('/recursos/') !== -1) {
+          conversionCopy.pain = '¿No sabes qué recurso necesitas?';
+          conversionCopy.solution = 'Responde unas preguntas y empieza por el paso que más encaja contigo.';
+        } else if (path.indexOf('/analizar-coche/') !== -1) {
+          conversionCopy.pain = '¿Tienes un anuncio y te faltan datos?';
+          conversionCopy.solution = 'Define primero tu presupuesto y tus criterios antes de desplazarte a verlo.';
+        } else if (path.indexOf('/demo') !== -1 || path.indexOf('/casos-reales/') !== -1) {
+          conversionCopy.pain = '¿Quieres aplicar este ejemplo a tu situación?';
+          conversionCopy.solution = 'Crea una orientación inicial con tus datos, sin registrarte para ver el resultado.';
+        }
+        var orientation = document.createElement('section');
+        orientation.className = 'conversion-orientation';
+        orientation.setAttribute('aria-label', 'Siguiente paso recomendado');
+        orientation.innerHTML = '<div class="conversion-orientation-copy"><span class="conversion-orientation-kicker">Siguiente paso</span><strong>' + conversionCopy.pain + '</strong><span>' + conversionCopy.solution + '</span><small>Sin email para empezar · Resultado orientativo · No es asesoramiento financiero ni garantía.</small></div><a class="conversion-orientation-cta" href="' + base + 'valorador/">' + conversionCopy.action + '</a>';
+        header.insertAdjacentElement('afterend', orientation);
       }
 
       if (!document.querySelector('.beta-notice')) {
