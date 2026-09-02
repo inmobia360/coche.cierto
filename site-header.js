@@ -147,6 +147,38 @@
         });
       }
 
+      // Regla global de conversión: mostrar el problema, la ayuda disponible
+      // y un siguiente paso de baja fricción en cada página pública informativa.
+      var isLegalPage = document.body.classList.contains('legal-page') || !!document.querySelector('.legal-page');
+      var isHomePage = path === '/' || path === '/index.html' || path === '';
+      var isValuatorPage = path.indexOf('/valorador/') !== -1;
+      var isInternalCopy = path.indexOf('/coche.cierto/') !== -1 || path.indexOf('/mvp-valorador/') !== -1 || path.indexOf('/coche.subasta/') !== -1;
+      if (!isLegalPage && !isHomePage && !isValuatorPage && !isInternalCopy && !document.querySelector('.conversion-orientation')) {
+        var conversionCopy = {
+          pain: '¿No sabes por dónde empezar?',
+          solution: 'Ordena tu uso, presupuesto y comprobaciones antes de comparar coches.',
+          action: 'Crear mi valoración gratuita →'
+        };
+        if (path.indexOf('/guias/') !== -1) {
+          conversionCopy.pain = '¿Esta guía responde a tu caso?';
+          conversionCopy.solution = 'Convierte lo que has leído en una orientación práctica para tu compra.';
+        } else if (path.indexOf('/recursos/') !== -1) {
+          conversionCopy.pain = '¿No sabes qué recurso necesitas?';
+          conversionCopy.solution = 'Responde unas preguntas y empieza por el paso que más encaja contigo.';
+        } else if (path.indexOf('/analizar-coche/') !== -1) {
+          conversionCopy.pain = '¿Tienes un anuncio y te faltan datos?';
+          conversionCopy.solution = 'Define primero tu presupuesto y tus criterios antes de desplazarte a verlo.';
+        } else if (path.indexOf('/demo') !== -1 || path.indexOf('/casos-reales/') !== -1) {
+          conversionCopy.pain = '¿Quieres aplicar este ejemplo a tu situación?';
+          conversionCopy.solution = 'Crea una orientación inicial con tus datos, sin registrarte para ver el resultado.';
+        }
+        var orientation = document.createElement('section');
+        orientation.className = 'conversion-orientation';
+        orientation.setAttribute('aria-label', 'Siguiente paso recomendado');
+        orientation.innerHTML = '<div class="conversion-orientation-copy"><span class="conversion-orientation-kicker">Siguiente paso</span><strong>' + conversionCopy.pain + '</strong><span>' + conversionCopy.solution + '</span><small>Sin email para empezar · Resultado orientativo · No es asesoramiento financiero ni garantía.</small></div><a class="conversion-orientation-cta" href="' + base + 'valorador/">' + conversionCopy.action + '</a>';
+        header.insertAdjacentElement('afterend', orientation);
+      }
+
       if (!document.querySelector('.beta-notice')) {
         var beta = document.createElement('aside');
         beta.className = 'beta-notice';

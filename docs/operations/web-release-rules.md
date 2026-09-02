@@ -43,6 +43,22 @@ Antes de salir a web, Secretaría debe comprobar en primera carga directa de cad
 - se emiten `pdf_view`, `pdf_download` y `pdf_to_valuation_click` sin incluir datos personales;
 - no se presenta la guía como tasación, diagnóstico, asesoramiento financiero, aprobación de crédito o garantía.
 
+## Tráfico, dolor y conversión
+
+En toda página pública informativa, excepto las páginas legales, Secretaría debe comprobar que la primera carga:
+
+- deja claro qué duda o riesgo del comprador aborda la página;
+- explica en lenguaje sencillo qué ayuda concreta ofrece CocheCierto;
+- presenta una única siguiente acción principal coherente con esa intención;
+- permite comenzar sin email, cuenta ni documentación cuando el flujo lo permita;
+- distingue orientación, estimaciones y datos pendientes de verificar;
+- no repite bloques que compitan entre sí ni promete resultados, solvencia, estado mecánico o garantías.
+
+El CTA principal de estas páginas debe conducir al valorador o al recurso específico más cercano a la necesidad detectada.
+Secretaría debe revisar también una página profunda de guía y una vista móvil antes de publicar. Si el mensaje no coincide
+con lo que realmente entrega el flujo, el cambio queda bloqueado para revisión de COPY-MENSAJE, CONVERSION-CRM y
+LEGAL-CONFIANZA.
+
 ## Evidencia mínima
 
 La revisión debe guardar las URLs probadas, viewport, resultado de primera carga, resultado de recarga, errores de
