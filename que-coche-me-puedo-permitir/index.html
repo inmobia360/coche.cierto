@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Qué coche me puedo permitir | CocheCierto</title>
+  <meta name="description" content="Calcula un presupuesto prudente para tu próximo coche teniendo en cuenta gastos iniciales, uso, coste mensual y margen para imprevistos.">
+  <link rel="canonical" href="https://cochecierto.com/que-coche-me-puedo-permitir/">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:url" content="https://cochecierto.com/que-coche-me-puedo-permitir/">
+  <meta property="og:title" content="Qué coche me puedo permitir | CocheCierto">
+  <meta property="og:description" content="Una primera orientación sobre presupuesto y coste total, con supuestos visibles.">
+  <meta property="og:image" content="https://cochecierto.com/social/cochecierto-social.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Qué coche me puedo permitir | CocheCierto">
+  <meta name="twitter:description" content="Calcula un presupuesto prudente antes de comparar coches de ocasión.">
+  <meta name="twitter:image" content="https://cochecierto.com/social/cochecierto-social.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Calculadora de presupuesto prudente","url":"https://cochecierto.com/que-coche-me-puedo-permitir/","applicationCategory":"FinanceApplication","operatingSystem":"Web","description":"Herramienta orientativa para separar precio, gastos iniciales, coste mensual y reserva antes de comprar un coche."}</script>
+  <link rel="stylesheet" href="../theme.css?v=20260902-02">
+  <link rel="stylesheet" href="./budget.css?v=20260901-01">
+  <script src="../site-header.js?v=20260902-03" defer></script>
+  <script src="./budget.js?v=20260901-01" defer></script>
+</head>
+<body class="inner-page budget-page">
+  <div class="site-shell">
+    <main class="budget-layout">
+      <section class="budget-hero" aria-labelledby="budget-title">
+        <p class="eyebrow">Calculadora beta · presupuesto prudente</p>
+        <h1 id="budget-title">¿Qué coche puedes asumir sin quedarte sin margen?</h1>
+        <p class="budget-intro">Calcula una primera referencia con tus gastos reales. El precio del anuncio es solo una parte de la operación.</p>
+        <div class="budget-thesis"><span class="thesis-mark" aria-hidden="true">↘</span><span>Primero reserva. Después compara coches.</span></div>
+      </section>
+
+      <section class="budget-grid" aria-label="Calculadora de presupuesto">
+        <form id="budget-form" class="budget-card" novalidate>
+          <div class="card-kicker">Tu punto de partida</div>
+          <h2>Cuatro cifras y tu forma de uso</h2>
+          <p class="muted">Usa aproximaciones. No pedimos email, cuenta bancaria ni documentación.</p>
+
+          <div class="field-grid">
+            <label>Ingresos netos al mes (€)
+              <input name="income" type="number" min="0" max="100000" step="50" inputmode="decimal" required>
+            </label>
+            <label>Gastos fijos al mes (€)
+              <input name="fixed" type="number" min="0" max="100000" step="50" inputmode="decimal" required>
+            </label>
+            <label>Ahorro disponible (€)
+              <input name="savings" type="number" min="0" max="1000000" step="100" inputmode="decimal" required>
+            </label>
+            <label>Reserva que quieres conservar (€)
+              <input name="reserve" type="number" min="0" max="1000000" step="100" inputmode="decimal" required>
+            </label>
+            <label>Kilómetros al mes
+              <input name="km" type="number" min="0" max="50000" step="100" inputmode="numeric" required>
+            </label>
+            <label>Referencia energética (opcional)
+              <select name="energyReference">
+                <option value="">No incluir todavía</option>
+                <option value="9.68">Gasolina 95 · 9,68 €/100 km</option>
+                <option value="8.56">Gasóleo A · 8,56 €/100 km</option>
+                <option value="4.71">GNC · 4,71 €/100 km</option>
+                <option value="8.27">GLP · 8,27 €/100 km</option>
+                <option value="2.75">Electricidad doméstica · 2,75 €/100 km</option>
+                <option value="8.37">Recarga rápida · 8,37 €/100 km</option>
+              </select>
+              <small class="field-help">Referencia MITECO actualizada el 17/06/2026; no es tu tarifa exacta.</small>
+            </label>
+            <label>Coste propio (€/100 km, opcional)
+              <input name="energy" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="Si lo sabes">
+            </label>
+            <label>Uso principal
+              <select name="use" required>
+                <option value="">Selecciona una opción</option>
+                <option value="city">Ciudad</option>
+                <option value="mixed">Mixto</option>
+                <option value="road">Carretera</option>
+                <option value="professional">Profesional</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>Forma de compra</legend>
+            <label class="choice"><input type="radio" name="purchase" value="cash" checked> Contado</label>
+            <label class="choice"><input type="radio" name="purchase" value="finance"> Financiada o por decidir</label>
+          </fieldset>
+
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+          <button class="button budget-submit" type="submit">Calcular mi referencia</button>
+        </form>
+
+        <aside id="budget-result" class="budget-card budget-result" aria-live="polite">
+          <div class="empty-result"><span class="result-orbit" aria-hidden="true"></span><p>Tu resultado aparecerá aquí.</p><p class="muted">Verás qué parte del ahorro debería quedar protegida y qué coste mensual conviene comparar.</p></div>
+        </aside>
+      </section>
+
+      <section class="budget-notes" aria-label="Cómo leer el resultado">
+        <article><span class="note-label">Sabemos</span><h2>Lo que declaras</h2><p>Ingresos, gastos, ahorro, kilómetros y uso. Son datos aproximados que puedes corregir.</p></article>
+        <article><span class="note-label">Estimamos</span><h2>Lo que añadimos</h2><p>Gastos iniciales, reserva y coste mensual mediante supuestos beta configurables.</p></article>
+        <article><span class="note-label">Falta validar</span><h2>Antes de decidir</h2><p>Seguro real, unidad concreta, financiación, documentación, mantenimiento e inspección.</p></article>
+      </section>
+
+      <section class="budget-disclaimer">
+        <strong>Orientación, no aprobación.</strong> Esta calculadora ofrece estimaciones a partir de tus respuestas y de supuestos de referencia. No presta asesoramiento financiero, legal, fiscal ni mecánico; no evalúa tu solvencia; no aprueba ni garantiza créditos o financiaciones; no es una tasación, un peritaje, una inspección ni una garantía sobre el vehículo o la operación. Contrasta siempre el resultado con tus costes reales y, cuando proceda, con un profesional independiente.
+      </section>
+      <section class="budget-sources" aria-label="Fuentes de referencia">
+        <p><strong>Referencias para ampliar contexto:</strong> energía por 100 km según <a href="https://www.miteco.gob.es/en/energia/hidrocarburos-nuevos-combustibles/euros-por-100-km.html" target="_blank" rel="noopener noreferrer">MITECO</a> (actualizado 17/06/2026); trámites y situación administrativa en la <a href="https://www.dgt.es/nuestros-servicios/tu-vehiculo/vas-a-comprar-o-vender-un-vehiculo-de-segunda-mano/comprar-un-vehiculo-de-segunda-mano/" target="_blank" rel="noopener noreferrer">DGT</a>; coste de financiación en el <a href="https://clientebancario.bde.es/pcb/es/blog/en_que_te_fijas_comprar-coche.html" target="_blank" rel="noopener noreferrer">Banco de España</a>; estadísticas económicas en el <a href="https://www.ine.es/" target="_blank" rel="noopener noreferrer">INE</a>. CocheCierto enlaza estas fuentes para consulta: no valida ni garantiza sus datos para tu caso particular.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

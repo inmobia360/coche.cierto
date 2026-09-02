@@ -1,0 +1,19 @@
+(function(){'use strict';
+  var items=[
+    ['Documentación e identidad','Vendedor, permiso de circulación, bastidor e informe administrativo coinciden.'],
+    ['Cargas y situación administrativa','Has revisado cargas, embargos, bajas y multas en fuentes autorizadas.'],
+    ['ITV e historial','ITV, kilometraje, facturas y fechas forman una historia coherente.'],
+    ['Arranque en frío','Has podido observar el primer arranque, testigos, humo, ruidos y fugas.'],
+    ['Prueba de conducción','Has comprobado frenos, dirección, cambio, embrague, suspensión y ruidos.'],
+    ['Carrocería y neumáticos','Has revisado desgaste, cristales, reparaciones visibles y posibles incoherencias.'],
+    ['Garantía y contrato','Las condiciones del vendedor y la garantía están por escrito y son comprensibles.'],
+    ['Inspección independiente','La operación permite una revisión profesional si la incertidumbre lo justifica.']
+  ];
+  var form=document.querySelector('#review-form'), list=document.querySelector('#review-items'), result=document.querySelector('#review-result');
+  function track(name,detail){window.dispatchEvent(new CustomEvent('cochecierto:event',{detail:Object.assign({name:name,source_page:'que-revisar-coche-segunda-mano',version:'p0-v1'},detail||{})}));}
+  list.innerHTML=items.map(function(item,i){return '<fieldset class="review-item"><legend><h3>'+item[0]+'</h3></legend><p>'+item[1]+'</p><div class="review-choices"><label><input type="radio" name="check-'+i+'" value="confirmed"> Confirmado</label><label><input type="radio" name="check-'+i+'" value="pending" checked> Pendiente</label><label><input type="radio" name="check-'+i+'" value="mismatch"> No coincide</label><label><input type="radio" name="check-'+i+'" value="alert"> Señal de alerta</label></div></fieldset>';}).join('');
+  var started=false; list.addEventListener('change',function(){if(!started){started=true;track('tool_start',{tool:'review-checklist',cluster:'risk'});}});
+  form.addEventListener('submit',function(event){event.preventDefault();var counts={confirmed:0,pending:0,mismatch:0,alert:0},groups={confirmed:[],pending:[],mismatch:[],alert:[]};items.forEach(function(item,i){var value=form.querySelector('input[name="check-'+i+'"]:checked').value;counts[value]++;groups[value].push(item[0]);});var actionable=counts.pending+counts.mismatch+counts.alert;result.innerHTML='<div class="review-summary"><div class="card-kicker">Resumen de tu revisión</div><h2>'+ (actionable?'Todavía quedan comprobaciones antes de pagar.':'Has marcado todo como confirmado, pero la inspección sigue siendo necesaria.')+'</h2><div class="review-counts"><div><strong>'+counts.confirmed+'</strong><span>Confirmadas</span></div><div><strong>'+counts.pending+'</strong><span>Pendientes</span></div><div><strong>'+ (counts.mismatch+counts.alert)+'</strong><span>Alertas o incoherencias</span></div></div><h3>Qué hacer ahora</h3><ul class="review-list"><li class="'+(actionable?'alert':'')+'">'+(actionable?'No entregues una señal mientras haya pendientes, incoherencias o alertas sin explicar.':'Conserva la documentación y deja constancia de cómo se verificó cada punto.')+'</li><li>Contrasta la información con documentos y una prueba real.</li><li>Solicita inspección profesional si no puedes comprobar un elemento relevante.</li></ul><p class="muted"><strong>Sabemos:</strong> el estado que has marcado. <strong>Falta validar:</strong> el estado real de la unidad y la documentación original.</p></div>';track('tool_complete',{tool:'review-checklist',cluster:'risk',result_type:actionable?'pending_or_alerts':'all_marked_confirmed'});});
+  var cta=document.querySelector('.review-next .button');if(cta)cta.addEventListener('click',function(){track('valuation_start',{entry_page:'review-checklist',cluster:'risk'});track('next_action',{action:'start_valuation',cluster:'risk'});});
+  track('landing_view',{page:'que-revisar-coche-segunda-mano',cluster:'risk'});
+}());
