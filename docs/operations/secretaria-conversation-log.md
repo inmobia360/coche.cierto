@@ -47,6 +47,19 @@ contener credenciales, datos personales innecesarios ni secretos.
 
 ## Entradas recientes
 
+### [2026-09-02] Secretaria de seguimiento por subagente
+- Origen: petición del director
+- Tipo: cambio
+- Estado: cerrado
+- Decisión o hecho: Secretaria debe controlar pendientes y cumplimiento de cada subagente mediante una matriz con encargo, estado, evidencia, criterio faltante y próxima acción.
+- Alcance: seguimiento documental y de evidencias del proyecto y de `AUTO-VALORADOR.md`; no ejecución autónoma de código, despliegues, envíos ni decisiones del director.
+- Responsable: SECRETARIA
+- Prioridad: alta
+- Dependencias: acceso al repositorio, specs, registros operativos y evidencias de QA/producción.
+- Criterio de aceptación: el perfil contiene reglas para no cerrar tareas sin evidencia y un formato de matriz por subagente; este registro conserva la decisión.
+- Evidencia: `.agents/subagents/secretaria.md` y esta entrada.
+- Próxima acción: incluir la matriz en cada revisión de `AUTO-VALORADOR.md` y actualizar `secretaria-status.md` cuando cambie una evidencia.
+
 ### [2026-09-02] Valorador de baja fricción
 - Origen: conversación con el director y revisión UX/conversión
 - Tipo: cambio

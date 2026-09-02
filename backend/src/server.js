@@ -7,6 +7,7 @@ import mysql from 'mysql2/promise';
 import nodemailer from 'nodemailer';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
+import fs from 'node:fs';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -26,6 +27,8 @@ const attempts = new Map();
 const pendingReports = new Map();
 const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const resourcesUrl = `${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/recursos/`;
+const PDF_FONT_REGULAR = fs.existsSync('C:\\Windows\\Fonts\\arial.ttf') ? 'C:\\Windows\\Fonts\\arial.ttf' : 'Helvetica';
+const PDF_FONT_BOLD = fs.existsSync('C:\\Windows\\Fonts\\arialbd.ttf') ? 'C:\\Windows\\Fonts\\arialbd.ttf' : 'Helvetica-Bold';
 const resources = [
   ['Valorador de compra', 'Ordena uso, presupuesto y prioridades', 'Te ayuda a empezar con una orientación clara.'],
   ['Checklist de inspección en frío', 'Prepara la visita y las comprobaciones básicas', 'Reduce olvidos antes de comprometer dinero.'],
@@ -45,12 +48,22 @@ const airtableUrl = (table) => `https://api.airtable.com/v0/${airtable.base}/${e
 const llm = process.env.LLM_BASE_URL && process.env.LLM_MODEL ? {
   url: process.env.LLM_BASE_URL.replace(/\/$/, ''),
   model: process.env.LLM_MODEL,
-  key: process.env.LLM_API_KEY || ''
+  key: process.env.LLM_API_KEY || '',
+  mode: process.env.LLM_API_MODE || 'openai'
 } : null;
 const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people', 'parking', 'zbe', 'budget', 'priority', 'risk'];
 const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
   .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
   .map((key) => [key, answers[key]]));
+const completeReportContext = (report) => {
+  const answers = report.answers || {};
+  const inferredSituation = report.situation && report.situation !== 'unknown' ? report.situation
+    : answers.use === 'work' ? 'professional-use'
+      : answers.use === 'family' || answers.people === 'five-plus' || answers.people === '3-4' ? 'family-space'
+        : answers.use === 'city' ? 'urban-use'
+          : answers.budget === 'under-3' || answers.budget === '3-5' ? 'budget-tight' : 'unknown';
+  return { ...report, intent: report.intent || answers.intent || 'buy', purchaseWindow: report.purchaseWindow && report.purchaseWindow !== 'unknown' ? report.purchaseWindow : answers.window || 'unknown', priority: report.priority && report.priority !== 'No indicada' ? report.priority : answers.priority || 'No indicada', situation: inferredSituation, answers };
+};
 const LLM_RESPONSE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -72,23 +85,71 @@ const cleanNarrative = (narrative) => {
   return result;
 };
 const fallbackNarrative = (report) => ({
-  summary: report.situation === 'first-car' ? 'Como sería tu primer coche, conviene priorizar sencillez, documentación clara y margen para los gastos que aparecen después de comprar.' : 'Esta orientación te ayuda a comparar opciones con más contexto y a detectar qué debes confirmar antes de comprometer dinero.',
-  priorities: ['Compara el coste total y no solo el precio anunciado.', 'Pide documentación verificable antes de desplazarte.', 'Conserva margen para seguro, puesta a punto e imprevistos.'],
-  nextStep: report.situation === 'professional' ? 'Calcula cuánto te costaría un día sin vehículo y confirma mantenimiento, garantía y factura.' : 'Compara varias unidades equivalentes y confirma la documentación antes de entregar dinero.',
-  profileReading: report.situation === 'first-car' ? 'Necesitas una primera compra comprensible, con margen y comprobaciones sencillas.' : 'Tu decisión debe partir del uso real y del coste total, no solo del anuncio.',
-  risks: ['Datos del anuncio sin confirmar', 'Costes iniciales fuera del precio', 'Estado físico pendiente de revisar'],
-  decisionPlan: ['Define el coste total que puedes sostener.', 'Compara opciones equivalentes.', 'Verifica documentación y estado antes de pagar.']
+  summary: report.situation === 'first-car' ? 'Como sería tu primer coche, conviene priorizar sencillez, documentación clara y margen para los gastos que aparecen después de comprar.' : report.intent === 'buy' && report.priority === 'repairs' ? 'Quieres comprar un coche, pero tu principal preocupación son las averías y los costes ocultos; la estrategia debe reducir esa incertidumbre antes de pagar.' : 'Esta orientación te ayuda a comparar opciones con más contexto y a detectar qué debes confirmar antes de comprometer dinero.',
+  priorities: report.intent === 'buy' && report.priority === 'repairs' ? ['Prioriza historial y mantenimiento demostrables.', 'Reserva margen para una revisión y posibles gastos iniciales.', 'Compara la fiabilidad documental antes de enamorarte del precio.'] : ['Compara el coste total y no solo el precio anunciado.', 'Pide documentación verificable antes de desplazarte.', 'Conserva margen para seguro, puesta a punto e imprevistos.'],
+  nextStep: report.situation === 'professional' ? 'Calcula cuánto te costaría un día sin vehículo y confirma mantenimiento, garantía y factura.' : report.intent === 'buy' && report.priority === 'repairs' ? 'Pide historial y facturas, pregunta por averías y reserva una inspección independiente antes de negociar.' : 'Compara varias unidades equivalentes y confirma la documentación antes de entregar dinero.',
+  profileReading: report.situation === 'first-car' ? 'Necesitas una primera compra comprensible, con margen y comprobaciones sencillas.' : report.intent === 'buy' && report.priority === 'repairs' ? 'Buscas una compra asumible y quieres evitar que una avería inesperada desborde tu presupuesto.' : 'Tu decisión debe partir del uso real y del coste total, no solo del anuncio.',
+  risks: report.intent === 'buy' && report.priority === 'repairs' ? ['Historial de mantenimiento incompleto o no verificable', 'Costes iniciales y reparaciones fuera del precio', 'Estado mecánico pendiente de una revisión profesional'] : ['Datos del anuncio sin confirmar', 'Costes iniciales fuera del precio', 'Estado físico pendiente de revisar'],
+  decisionPlan: report.intent === 'buy' && report.priority === 'repairs' ? ['Filtra unidades con historial y mantenimiento demostrables.', 'Pregunta y documenta cualquier avería o reparación relevante.', 'No entregues dinero sin comprobar documentación y estado.'] : ['Define el coste total que puedes sostener.', 'Compara opciones equivalentes.', 'Verifica documentación y estado antes de pagar.']
 });
+const enforceNarrativeGuardrails = (report, narrative) => {
+  const safeBase = fallbackNarrative(report);
+  const candidate = { ...safeBase, ...(narrative || {}) };
+  if (report.intent !== 'buy') return candidate;
+  if (report.priority === 'repairs') return safeBase;
+  if (report.priority === 'safety') return {
+    ...candidate,
+    summary: report.situation === 'family-space' ? 'Buscas una compra familiar segura, con espacio suficiente y margen para comprobar la unidad.' : 'Buscas comprar con seguridad y reducir el riesgo de una mala decisión.',
+    profileReading: report.situation === 'family-space' ? 'Viajarán varias personas, por lo que la seguridad, el espacio y la facilidad de uso deben pesar más que el equipamiento.' : 'La seguridad es tu prioridad principal; necesitas comprobar tanto el vehículo como la documentación antes de decidir.',
+    priorities: ['Prioriza sistemas de seguridad y una configuración adecuada al uso declarado.', 'Comprueba historial, mantenimiento y ausencia de daños relevantes.', 'Reserva margen para una inspección independiente antes de pagar.'],
+    risks: ['Equipamiento de seguridad o versión exacta sin confirmar', 'Historial de daños o mantenimiento incompleto', 'Prueba insuficiente para valorar el estado real'],
+    decisionPlan: ['Define los elementos de seguridad imprescindibles.', 'Compara unidades equivalentes con historial verificable.', 'No cierres la compra sin probar e inspeccionar la unidad.'],
+    nextStep: 'Confirma la versión y el equipamiento de seguridad, pide el historial y programa una prueba con inspección independiente.'
+  };
+  if (report.priority === 'space' || report.situation === 'family-space') return {
+    ...candidate,
+    summary: 'Necesitas que el coche encaje en tu vida diaria y ofrezca espacio suficiente sin comprometer el margen de compra.',
+    profileReading: 'El número de ocupantes y el uso familiar hacen que las plazas reales, el maletero y la facilidad de acceso sean criterios de decisión.',
+    priorities: ['Comprueba plazas, acceso y maletero con tu uso real.', 'Prioriza seguridad y confort antes que extras secundarios.', 'Compara el coste total manteniendo margen para imprevistos.'],
+    risks: ['Espacio o modularidad inferiores a lo esperado', 'Equipamiento y seguridad de la versión sin confirmar', 'Costes iniciales que reduzcan demasiado el margen'],
+    decisionPlan: ['Prueba el coche con las personas y objetos habituales.', 'Verifica ficha, historial y mantenimiento.', 'Descarta cualquier unidad que obligue a agotar tu margen.'],
+    nextStep: 'Prueba el acceso, las plazas y el maletero con tu uso real; después confirma historial, seguridad y coste total.'
+  };
+  if (report.priority === 'price') return {
+    ...candidate,
+    summary: 'Tu prioridad es proteger el presupuesto total y evitar que un precio atractivo oculte gastos posteriores.',
+    profileReading: 'Necesitas comparar el coste completo de cada opción, conservando margen para seguro, puesta a punto e imprevistos.',
+    priorities: ['Compara el coste total, no solo el precio anunciado.', 'Pide documentación e historial antes de desplazarte.', 'Conserva una reserva y no negocies desde el límite absoluto.'],
+    nextStep: 'Calcula el coste total de dos o tres unidades equivalentes y descarta las que te dejen sin margen.'
+  };
+  return candidate;
+};
 const requestLlmNarrative = async (report) => {
   if (!llm) return { narrative: fallbackNarrative(report), status: 'disabled' };
-  const context = { stage: 'orientation', situation: report.situation, category: report.category, usageType: report.usageType, purchaseWindow: report.purchaseWindow, priority: report.priority, facts: { category: report.category, usageType: report.usageType }, assumptions: ['La orientación depende de las respuestas declaradas.', 'La unidad concreta, sus documentos y su estado aún no están verificados.'], uncertainties: ['costes finales', 'seguro', 'financiación', 'estado físico'], answers: report.answers };
-  const prompt = `Redacta una guía práctica y cercana para un comprador de coches en España. Devuelve SOLO JSON válido con las claves summary (string), profileReading (string), priorities (array de 3 strings), risks (array de 3 strings), decisionPlan (array de 3 strings) y nextStep (string). Usa únicamente el contexto proporcionado. No inventes cifras, marcas, modelos, fuentes, garantías ni diagnósticos mecánicos. Distingue siempre orientación de hechos y recuerda que hace falta documentación e inspección. Contexto: ${JSON.stringify(context)}`;
+  const context = { stage: 'orientation', objective: report.intent || 'buy', situation: report.situation, category: report.category, usageType: report.usageType, purchaseWindow: report.purchaseWindow, painPoint: report.priority, facts: { category: report.category, usageType: report.usageType, objective: report.intent || 'buy' }, assumptions: ['La orientación depende de las respuestas declaradas.', 'La unidad concreta, sus documentos y su estado aún no están verificados.'], uncertainties: ['costes finales', 'seguro', 'financiación', 'estado físico'], answers: report.answers };
+  const prompt = `Responde SOLO JSON válido y compacto, sin markdown, con exactamente estas claves: summary, profileReading, priorities, risks, decisionPlan, nextStep. summary/profileReading/nextStep: una frase cada uno. priorities/risks/decisionPlan: exactamente 3 frases breves cada uno. Interpreta primero el objetivo y el punto de dolor. Si objective es buy, redacta siempre como una decisión de compra; painPoint=repairs significa miedo a averías o costes ocultos, nunca intención de reparar el vehículo actual. Usa solo el contexto. No inventes cifras, marcas, modelos ni diagnósticos. Contexto: ${JSON.stringify(context)}`;
   try {
-    const response = await fetch(`${llm.url}/v1/chat/completions`, { method: 'POST', signal: AbortSignal.timeout(8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify({ model: llm.model, temperature: 0.2, max_tokens: 420, response_format: { type: 'json_schema', json_schema: { name: 'report_narrative_v1', strict: true, schema: LLM_RESPONSE_SCHEMA } }, messages: [{ role: 'system', content: 'Eres un redactor prudente de informes de compra. No inventes datos.' }, { role: 'user', content: prompt }] }) });
+    const messages = [{ role: 'system', content: 'Eres un redactor prudente de informes de compra. No inventes datos.' }, { role: 'user', content: prompt }];
+    const isOllama = llm.mode.toLowerCase() === 'ollama';
+    const endpoint = isOllama ? `${llm.url}/api/chat` : `${llm.url}/v1/chat/completions`;
+    const ollamaModel = isOllama ? (process.env.LLM_FAST_MODEL || 'llama3.2:3b') : llm.model;
+    const payload = isOllama
+      ? { model: ollamaModel, stream: false, think: false, format: 'json', options: { temperature: 0.1, num_predict: 400 }, messages }
+      : { model: llm.model, temperature: 0.2, max_tokens: 420, response_format: { type: 'json_schema', json_schema: { name: 'report_narrative_v1', strict: true, schema: LLM_RESPONSE_SCHEMA } }, messages };
+    const response = await fetch(endpoint, { method: 'POST', signal: AbortSignal.timeout(isOllama ? 30000 : 8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify(payload) });
     if (!response.ok) throw new Error(`LLM ${response.status}`);
-    const content = (await response.json())?.choices?.[0]?.message?.content;
+    const body = await response.json();
+    const content = isOllama ? body?.message?.content : body?.choices?.[0]?.message?.content;
     const parsed = JSON.parse(String(content || '').replace(/^```json\s*|```$/g, '').trim());
-    return { narrative: cleanNarrative(parsed), status: 'ok' };
+    const safeBase = fallbackNarrative(report);
+    const candidate = { ...safeBase, ...parsed };
+    for (const field of ['priorities', 'risks', 'decisionPlan']) {
+      if (!Array.isArray(candidate[field]) || candidate[field].length < 3) candidate[field] = safeBase[field];
+    }
+    for (const field of ['summary', 'profileReading', 'nextStep']) {
+      if (typeof candidate[field] !== 'string' || !candidate[field].trim()) candidate[field] = safeBase[field];
+    }
+    return { narrative: cleanNarrative(enforceNarrativeGuardrails(report, candidate)), status: 'ok' };
   } catch (error) {
     console.warn('LLM narrative unavailable:', error.message);
     return { narrative: fallbackNarrative(report), status: 'fallback' };
@@ -182,8 +243,23 @@ const situationPack = (report) => {
   };
   return packs[report.situation] || ['Situación por concretar', 'uso, presupuesto y comprobaciones pendientes', 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.'];
 };
-const answerLabels = { budget: { '8-15': '8.000-15.000 EUR', '15-25': '15.000-25.000 EUR', unknown: 'Prefiero no decirlo' }, km: { medium: '10.000-20.000 km/año', unknown: 'No lo sé' }, use: { city: 'Ciudad', mixed: 'Ciudad y carretera', road: 'Carretera', work: 'Trabajo', family: 'Familia' } };
-const readableAnswer = (key, value) => answerLabels[key]?.[value] || value || 'No indicado';
+const answerLabels = {
+  budget: { 'under-3': 'Hasta 3.000 €', '3-5': '3.000–5.000 €', '5-8': '5.000–8.000 €', '8-15': '8.000–15.000 €', '15-25': '15.000–25.000 €', '25-40': '25.000–40.000 €', 'over-40': 'Más de 40.000 €', unknown: 'Prefiero no decirlo' },
+  km: { low: 'Menos de 10.000 km/año', medium: '10.000–20.000 km/año', high: '20.000–30.000 km/año', 'very-high': 'Más de 30.000 km/año', unknown: 'No lo sé' },
+  use: { city: 'Ciudad', mixed: 'Ciudad y carretera', road: 'Carretera', work: 'Trabajo', family: 'Familia' },
+  priority: { price: 'Precio', fuel: 'Consumo', repairs: 'Averías', safety: 'Seguridad', space: 'Espacio', resale: 'Reventa' },
+  window: { now: 'En los próximos 3 meses', '0-3': 'En los próximos 3 meses', soon: 'Entre 3 y 6 meses', '3-6': 'Entre 3 y 6 meses', later: 'Más adelante', unknown: 'Por concretar' }
+};
+const readableAnswer = (key, value) => answerLabels[key]?.[value] || ({ unknown: 'Por concretar', repairs: 'Averías' }[value] || value || 'No indicado');
+const budgetGuidance = (value) => ({
+  'under-3': ['Hasta 3.000 €', '1.800–2.200 €', '300–600 €', '500–900 €'],
+  '3-5': ['3.000–5.000 €', '2.900–4.200 €', '400–800 €', '700–1.200 €'],
+  '5-8': ['5.000–8.000 €', '4.600–6.800 €', '500–1.000 €', '1.000–1.500 €'],
+  '8-15': ['8.000–15.000 €', '7.200–13.000 €', '600–1.200 €', '1.200–2.000 €'],
+  '15-25': ['15.000–25.000 €', '13.500–22.000 €', '800–1.500 €', '1.500–2.500 €'],
+  '25-40': ['25.000–40.000 €', '22.500–35.000 €', '1.000–1.800 €', '2.000–3.500 €'],
+  'over-40': ['Más de 40.000 €', 'Pendiente de concretar', 'Pendiente de concretar', 'Pendiente de concretar']
+}[value] || ['Por concretar', 'Pendiente de presupuesto', 'Pendientes de confirmar', 'Pendiente de confirmar']);
 const roadmapFor = (report) => [
   ['1. Antes de buscar', 'Confirma que el presupuesto total y la reserva dejan margen después de gastos iniciales. Usa el precio prudente como filtro, no como objetivo de gasto.'],
   ['2. Antes de visitar', 'Pide por escrito anuncio, titularidad, informe DGT, ITV, cargas, historial y garantía. Si falta un documento clave, aplaza el desplazamiento.'],
@@ -192,6 +268,8 @@ const roadmapFor = (report) => [
   ['5. Antes de pagar', 'No entregues señal si existen cargas, documentación incompleta, incoherencias o rechazo a una inspección independiente.']
 ];
 const writeReportPdf = async (res, report) => {
+  report = completeReportContext(report);
+  report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
   const situation = situationPack(report);
   const qr = await QRCode.toDataURL('https://cochecierto.com/recursos/', { margin: 1, width: 96 });
   let ineContext = 'No disponible en esta consulta';
@@ -205,6 +283,9 @@ const writeReportPdf = async (res, report) => {
     }
   } catch {}
   const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: 'Informe de orientación CocheCierto', Author: 'CocheCierto' } });
+  doc.registerFont('CCRegular', PDF_FONT_REGULAR).registerFont('CCBold', PDF_FONT_BOLD);
+  const originalFont = doc.font.bind(doc);
+  doc.font = (font, ...args) => originalFont(font === 'Helvetica' ? 'CCRegular' : font === 'Helvetica-Bold' ? 'CCBold' : font, ...args);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="informe-cochecierto.pdf"');
   doc.pipe(res);
@@ -225,12 +306,13 @@ const writeReportPdf = async (res, report) => {
   if (report.narrative?.summary) {
     doc.moveDown(.7).fillColor('#082333').font('Helvetica-Bold').fontSize(13).text('Lectura personalizada');
     doc.font('Helvetica').fontSize(11).fillColor('#082333').text(report.narrative.summary);
+    if (report.narrative.profileReading) doc.moveDown(.35).font('Helvetica').fontSize(10).fillColor('#58717d').text(report.narrative.profileReading);
   }
   doc.moveDown(1).fillColor('#082333').fontSize(14).font('Helvetica-Bold').text('Resumen de tu orientación');
   doc.fontSize(11).font('Helvetica').text(`Categoría a estudiar: ${report.category}`);
   doc.text(`Uso declarado: ${report.usageType === 'professional' ? 'profesional o comercial' : 'particular'}`);
-  doc.text(`Horizonte de compra: ${report.purchaseWindow}`);
-  doc.text(`Motivo principal: ${report.priority}`);
+  doc.text(`Horizonte de compra: ${readableAnswer('window', report.purchaseWindow)}`);
+  doc.text(`Motivo principal: ${readableAnswer('priority', report.priority)}`);
   if (report.situation === 'first-car') {
     doc.moveDown(.5).font('Helvetica-Bold').text('Para tu primera compra');
     doc.font('Helvetica').text('Conserva margen para seguro, transferencia, puesta a punto y una primera reparación. Antes de entregar una señal, pide la documentación, comprueba el coche en frío y pregunta si acepta una inspección independiente.');
@@ -261,8 +343,9 @@ const writeReportPdf = async (res, report) => {
   doc.font('Helvetica').fontSize(11).fillColor('#58717d').text('Este informe ordena tus respuestas para ayudarte a comparar opciones. No elige una unidad concreta ni confirma su estado mecánico.');
   doc.moveDown(1).fillColor('#082333').font('Helvetica-Bold').fontSize(14).text('Tu límite debe proteger tu margen');
   doc.font('Helvetica').fontSize(11).text('Separa el precio del vehículo de los gastos de compra, el seguro, la puesta a punto y una reserva para imprevistos. El precio prudente es el que te permite seguir teniendo margen después de comprar.');
-  const budgetRows = [['Presupuesto total', 'Lo que puedes destinar sin comprometer otros gastos'], ['Precio máximo absoluto', 'Límite que no conviene superar'], ['Precio prudente', 'Importe que conserva margen para el primer año'], ['Gastos iniciales', 'Transferencia, seguro, puesta a punto y consumibles'], ['Reserva mínima', 'Colchón para una avería o gasto no previsto']];
-  doc.moveDown(.7).font('Helvetica-Bold').text('Cómo leer tu presupuesto');
+  const budget = budgetGuidance(report.answers?.budget);
+  const budgetRows = [['Presupuesto total', budget[0]], ['Precio prudente del vehículo', budget[1]], ['Gastos iniciales estimados', budget[2]], ['Reserva mínima recomendada', budget[3]], ['Precio máximo absoluto', 'No superar el presupuesto total ni quedarse sin reserva']];
+  doc.moveDown(.7).font('Helvetica-Bold').text('Tu presupuesto en cifras orientativas');
   budgetRows.forEach(([label, value]) => { doc.font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
   doc.moveDown(1).font('Helvetica-Bold').text('Tres caminos para comparar');
   [['Conservador', 'Menor desembolso y más margen económico.'], ['Equilibrado', 'Balance entre coste, seguridad, uso y previsibilidad.'], ['Aspiracional', 'Más espacio o equipamiento, con mayor exigencia económica.']].forEach(([label, value]) => { doc.moveDown(.3).font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
@@ -360,7 +443,7 @@ app.get('/api/airtable-status', async (_req, res) => {
 app.post('/api/analyze', async (req, res) => {
   if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
   const body = req.body || {};
-  const report = { category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'No indicada', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
+  const report = { intent: typeof body.intent === 'string' ? body.intent.slice(0, 40) : 'buy', category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'No indicada', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
   const generated = await requestLlmNarrative(report);
   res.json({ narrative: generated.narrative, llmStatus: generated.status });
 });

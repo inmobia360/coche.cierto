@@ -21,6 +21,16 @@ medición y decisión técnica.
 | Media | Cerrar responsive, accesibilidad y enlaces sociales | UX-CONTENIDO + QA-VALIDACION | Evidencia manual |
 | Media | Verificar descargas PDF de las guías P0 en producción | SECRETARIA + QA-VALIDACION | HTTP 200, descarga correcta, CTA y eventos comprobados |
 
+## Seguimiento del valorador y v4 — 2 de septiembre de 2026
+
+| Subagente | Encargo | Estado | Evidencia | Pendiente para cerrar |
+|---|---|---|---|---|
+| INGENIERIA | Integrar contexto, Ollama y guardarraíles deterministas en la generación | validación | `backend/src/server.js`; build Hostinger `01a063e2-cadb-707b-be44-d8e4535370fc` en `completed` | Regenerar y auditar un PDF de producción |
+| INFORME-ACCIONABLE | Convertir respuestas en orientación, riesgos, hoja de ruta y siguiente paso | validación | `backend/src/server.js`; API pública devuelve perfil familiar y siguiente paso coherente | Revisar muestra con las 9 respuestas visibles |
+| UX-CONTENIDO | Mantener jerarquía y lectura clara del PDF | validación | `valorador/styles.css`; auditoría visual de `informe-cochecierto (8).pdf` | Valorar espacio vacío, paginación y etiqueta beta |
+| QA-VALIDACION | Comprobar flujo público, API, email, validación y PDF | validación | API v4 probada; PDF 8 auditado visualmente | Confirmar enlace de validación y PDF recién generado |
+| SECRETARIA | Registrar pendientes y controlar evidencias por subagente | cerrado | `.agents/subagents/secretaria.md` y `secretaria-conversation-log.md` | Mantener matriz en cada revisión |
+
 ## Seguimiento
 
 Secretaria volverá a revisar este documento cuando exista una nueva evidencia o decisión. Un pendiente solo se marca como

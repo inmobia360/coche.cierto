@@ -297,6 +297,61 @@
   color: var(--ink-secondary);
 }
 
+/* Informe como hoja de ruta: lectura rápida, acciones concretas y evidencia visible. */
+.app .full-report,
+.app .llm-preview {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 28px;
+  padding-top: 28px;
+}
+
+.app .full-report > h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 30px 0 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.app .full-report > h3:first-of-type { margin-top: 0; border-top: 0; padding-top: 0; }
+
+.app .full-report .notice,
+.app .llm-preview {
+  box-shadow: inset 4px 0 0 var(--brand-orange), 0 8px 24px rgba(8, 35, 51, .06);
+}
+
+.app .full-report .scenarios { margin-top: 12px; }
+
+.app .full-report ol.reasons {
+  list-style: none;
+  counter-reset: route;
+  padding-left: 0;
+}
+
+.app .full-report ol.reasons li {
+  counter-increment: route;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  align-items: start;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 10px);
+}
+
+.app .full-report ol.reasons li::before {
+  content: counter(route, decimal-leading-zero);
+  color: var(--brand-orange);
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.app .llm-preview h3 { margin: 8px 0; }
+.app .llm-preview h4 { margin: 18px 0 4px; color: var(--ink-primary); }
+
 @media(max-width: 760px) {
   .app .scenarios {
     grid-template-columns: 1fr;

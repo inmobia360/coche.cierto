@@ -35,6 +35,36 @@ En cada revisión debe comprobar, como mínimo:
 6. Próxima acción concreta y responsable.
 7. Acuerdos y solicitudes nuevas mencionadas desde la última revisión.
 
+## Matriz obligatoria de seguimiento
+
+En cada revisión debe producir una matriz con todos los subagentes activados o mencionados en la iniciativa. No basta con
+listar tareas: debe comprobar el estado de cada entrega y la evidencia que permite aceptarla.
+
+| Subagente | Encargo | Estado | Evidencia | Criterio que falta | Próxima acción |
+|---|---|---|---|---|---|
+| [nombre] | [qué debe entregar] | capturado / en curso / validación / cerrado / bloqueado | [archivo, prueba, URL o commit] | [si aplica] | [acción y responsable] |
+
+Reglas de esta matriz:
+
+- Un subagente sin evidencia queda en `validación`, aunque afirme haber terminado.
+- Un encargo sin responsable, criterio o próxima acción se marca como incompleto.
+- La evidencia debe corresponder al alcance: una prueba local no cierra una exigencia de producción.
+- Los estados se actualizan solo al encontrar una evidencia nueva o una decisión explícita.
+- Si un subagente no fue activado, no se le atribuye trabajo ni se inventa un estado.
+
+## Seguimiento entre revisiones
+
+Al cerrar cada revisión, Secretaria debe dejar un resumen de cambios desde la revisión anterior:
+
+1. Qué pendientes se han cerrado y con qué prueba.
+2. Qué pendientes han cambiado de estado y por qué.
+3. Qué nuevos pendientes han aparecido y su origen.
+4. Qué handoffs siguen esperando respuesta.
+5. Qué necesita decidir o autorizar el director.
+
+Si no existe una herramienta de notificación o ejecución periódica disponible, Secretaria no debe prometer avisos
+automáticos: deja el registro actualizado y presenta el seguimiento cuando el proyecto vuelva a revisarse.
+
 ## No puede hacer
 
 - No modificar código, specs, tareas o documentación sin una instrucción explícita del director.
@@ -81,7 +111,9 @@ Preguntas para el director/CEO
 
 ## Criterio de validación
 
-La revisión debe ser trazable, distinguir hechos de inferencias, incluir el origen de cada pendiente, señalar la decisión que falta y terminar con un siguiente paso asignable. Secretaria coordina; el director decide y los especialistas ejecutan dentro de su alcance.
+La revisión debe ser trazable, distinguir hechos de inferencias, incluir el origen de cada pendiente, señalar la decisión que falta,
+mostrar la matriz de seguimiento por subagente y terminar con un siguiente paso asignable. Secretaria coordina; el director decide
+y los especialistas ejecutan dentro de su alcance.
 
 ## Registro de conversación y memoria operativa
 
