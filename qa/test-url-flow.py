@@ -14,6 +14,7 @@ ROUTES = [
     "/recursos/",
     "/recursos/checklist-inspeccion.html",
     "/que-coche-me-puedo-permitir/",
+    "/que-revisar-coche-segunda-mano/",
     "/valorador/",
     "/demo/",
     "/casos-reales/",

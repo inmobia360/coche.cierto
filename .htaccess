@@ -28,3 +28,7 @@ Redirect 301 /demo/informe.html /demo/
 <FilesMatch "^(popup|test-autouncle)\.html$">
   Header set X-Robots-Tag "noindex, nofollow, noarchive"
 </FilesMatch>
+
+<FilesMatch "^(verify-email)\.html$">
+  Header set X-Robots-Tag "noindex, nofollow, noarchive"
+</FilesMatch>

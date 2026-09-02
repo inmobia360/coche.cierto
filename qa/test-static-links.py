@@ -55,7 +55,7 @@ for html in ROOT.rglob("*.html"):
 
 header = (ROOT / "site-header.js").read_text(encoding="utf-8")
 generated = [
-    "valorador/", "que-coche-me-puedo-permitir/", "como-funciona/", "que-analizamos/",
+    "valorador/", "que-coche-me-puedo-permitir/", "que-revisar-coche-segunda-mano/", "como-funciona/", "que-analizamos/",
     "guias/", "recursos/", "demo/", "casos-reales/", "quienes-somos/", "legal/"
 ]
 for route in generated:

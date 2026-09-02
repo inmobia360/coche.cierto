@@ -11,6 +11,13 @@ contener credenciales, datos personales innecesarios ni secretos.
 4. En cada revisión, cruzar las entradas abiertas con `AUTO-VALORADOR.md`, la spec activa, los planes y las evidencias.
 5. Marcar `cerrado` solo cuando exista una prueba o referencia enlazable.
 
+## 2026-09-02 — Prioridad inmediata SEO y P0
+
+- **Acción autorizada:** implementar superficie pública, metadatos, presupuesto, segundo activo P0 y validación local.
+- **Implementado:** `/que-revisar-coche-segunda-mano/`, spec `review-checklist.md`, schema/canonical/robots/OG/Twitter, sitemap, enlaces internos y QA SEO estático.
+- **Conservado como pendiente:** coste total, análisis de unidad, workbook de keywords, medición con receptor externo, pruebas desplegadas, campañas y páginas P1.
+- **Siguiente handoff:** SECRETARIA + QA-VALIDACION, con revisión de MIKE/PRODUCTO-SDD sobre el encaje de los P0.
+
 ## Estados
 
 | Estado | Significado |

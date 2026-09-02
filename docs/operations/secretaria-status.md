@@ -40,3 +40,28 @@ CTA `Valorar`, panel agrupado, cierre accesible y ausencia de textos cortados o 
 Se generaron e integraron cuatro PDFs P0 con descarga directa durante la beta. La auditoría local confirmó 446 enlaces
 estáticos válidos, cuatro PDFs de una página y un CTA interno en cada PDF hacia `/valorador/`. La verificación pública
 queda pendiente hasta el próximo despliegue autorizado.
+
+## Ejecución de prioridad inmediata SEO y P0 — 2 de septiembre de 2026
+
+### Completado en local
+
+| Entrega | Evidencia | Estado |
+|---|---|---|
+| Superficie P0 de presupuesto | `/que-coche-me-puedo-permitir/` existente y enlazada en sitemap | RC local |
+| Superficie P0 de revisión/riesgo | `/que-revisar-coche-segunda-mano/` con checklist y límites | RC local |
+| Metadatos P0 | Canonical, robots, OG/Twitter, H1 y JSON-LD en los dos activos | Validado por `qa/test-seo.py` |
+| Enlazado | Recursos y guía de índices enlazan la checklist; CTA conserva intención | Validado por `qa/test-static-links.py` |
+| Medición | Eventos locales sin PII para presupuesto y revisión | Sin receptor externo |
+| Control SEO | `qa/test-seo.py` añadido; sitemap excluye copias internas | Validado: `seo_qa=ok public_pages=3` |
+| Recorrido web | Rutas, header, menú, footer y nueva ruta P0 | Validado por `qa/test-url-flow.py` con Chromium local |
+| Checklist | Ocho puntos, resumen, CTA y eventos locales | Validado: `review_qa=ok items=8 local_events=3+` |
+
+### Pendientes conservados
+
+- Crear `/coste-real-coche/` y cerrar su modelo de costes con `FINANZAS-TCO`.
+- Cerrar `/analizar-anuncio-coche/` como activo P0 sin scraping ni diagnóstico.
+- Validar los cuatro territorios con `MIKE` y `PRODUCTO-SDD`.
+- Aprobar receptor de analítica consentida y probarlo en entorno autorizado.
+- Revisar textos legales definitivos y realizar pruebas de API/email en entorno desplegado.
+- Importar el workbook de keywords cuando esté disponible.
+- No iniciar campañas, páginas P1, contenido masivo, integraciones ni scraping.
