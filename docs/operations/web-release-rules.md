@@ -29,6 +29,20 @@ En viewport móvil, Secretaría debe comprobar que:
 
 Si el menú aparece incompleto, duplicado o depende de una recarga, el release queda bloqueado.
 
+## Descargas PDF de guías
+
+Las guías prioritarias pueden ofrecer una descarga directa durante la beta. No se debe exigir email para obtener el PDF: primero se entrega utilidad y la captura progresiva solo puede ser opcional, con consentimiento separado para comunicaciones comerciales.
+
+Antes de salir a web, Secretaría debe comprobar en primera carga directa de cada guía:
+
+- el enlace PDF devuelve el archivo correcto y no una página HTML;
+- el índice `/guias/` y `/recursos/` muestran el PDF que corresponde a cada contenido;
+- el enlace secundario lleva a `/valorador/`;
+- el PDF abre, tiene una sola página cuando corresponda, muestra fecha, límites y contacto;
+- el CTA del PDF enlaza al valorador;
+- se emiten `pdf_view`, `pdf_download` y `pdf_to_valuation_click` sin incluir datos personales;
+- no se presenta la guía como tasación, diagnóstico, asesoramiento financiero, aprobación de crédito o garantía.
+
 ## Evidencia mínima
 
 La revisión debe guardar las URLs probadas, viewport, resultado de primera carga, resultado de recarga, errores de

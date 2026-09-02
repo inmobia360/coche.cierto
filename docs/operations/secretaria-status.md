@@ -19,6 +19,7 @@ medición y decisión técnica.
 | Alta | Comparar APIs LLM para personalización y engagement | LLM-ARQUITECTURA | En curso: informe inicial creado; falta contrato, evaluación y revisión de datos |
 | Media | Revisar SEO técnico, schema, canonicals, sitemap y enlaces internos | SEO-AEO-GEO | Auditoría técnica |
 | Media | Cerrar responsive, accesibilidad y enlaces sociales | UX-CONTENIDO + QA-VALIDACION | Evidencia manual |
+| Media | Verificar descargas PDF de las guías P0 en producción | SECRETARIA + QA-VALIDACION | HTTP 200, descarga correcta, CTA y eventos comprobados |
 
 ## Seguimiento
 
@@ -33,3 +34,9 @@ recargar. Si una URL solo se corrige al recargar, el release queda bloqueado.
 
 La revisión incluye también la [regla de menú móvil](web-release-rules.md#menú-móvil-y-conversión): barra única,
 CTA `Valorar`, panel agrupado, cierre accesible y ausencia de textos cortados o desplazamiento horizontal.
+
+## Hecho en local — 2 de septiembre de 2026
+
+Se generaron e integraron cuatro PDFs P0 con descarga directa durante la beta. La auditoría local confirmó 446 enlaces
+estáticos válidos, cuatro PDFs de una página y un CTA interno en cada PDF hacia `/valorador/`. La verificación pública
+queda pendiente hasta el próximo despliegue autorizado.
