@@ -24,3 +24,12 @@ medición y decisión técnica.
 
 Secretaria volverá a revisar este documento cuando exista una nueva evidencia o decisión. Un pendiente solo se marca como
 cerrado con responsable, criterio de aceptación y prueba enlazable.
+
+## Regla añadida — 2 de septiembre de 2026
+
+Antes de cualquier salida a web, Secretaría debe ejecutar la [regla de primera carga directa](web-release-rules.md):
+logo, navegación completa —incluida “Guías”—, footer único, rutas profundas y service worker deben funcionar sin
+recargar. Si una URL solo se corrige al recargar, el release queda bloqueado.
+
+La revisión incluye también la [regla de menú móvil](web-release-rules.md#menú-móvil-y-conversión): barra única,
+CTA `Valorar`, panel agrupado, cierre accesible y ausencia de textos cortados o desplazamiento horizontal.
