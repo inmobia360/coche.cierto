@@ -49,6 +49,42 @@
   align-items: center;
 }
 
+.app fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.app fieldset legend {
+  width: 100%;
+  color: var(--ink-primary);
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.app label.choice {
+  position: relative;
+  gap: 12px;
+}
+
+.app label.choice input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--brand-orange);
+}
+
+.app label.choice span {
+  flex: 1;
+}
+
+.app label.choice:focus-within {
+  outline: 3px solid rgba(252, 76, 2, 0.35);
+  outline-offset: 3px;
+}
+
 .app .choice:hover {
   border-color: var(--brand-orange);
   background: var(--bg-surface);
@@ -141,9 +177,19 @@
   border-left-color: var(--brand-green, #2fae7b);
 }
 
-.app .decision-roadmap h3 { margin-top: 0; }
-.app .decision-roadmap ol { margin: 12px 0 16px; padding-left: 22px; line-height: 1.65; }
-.app .decision-roadmap li + li { margin-top: 8px; }
+.app .decision-roadmap h3 {
+  margin-top: 0;
+}
+
+.app .decision-roadmap ol {
+  margin: 12px 0 16px;
+  padding-left: 22px;
+  line-height: 1.65;
+}
+
+.app .decision-roadmap li + li {
+  margin-top: 8px;
+}
 
 .app .reasons {
   padding-left: 24px;

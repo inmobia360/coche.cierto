@@ -26,55 +26,6 @@
   <link rel="stylesheet" href="styles.css">
   <script src="../theme.js?v=20260829-15"></script>
   <script src="../site-header.js?v=20260902-03" defer></script>
-  <style>
-    .valuator-seo-extended { max-width: 760px; margin: 0 auto 4rem; padding: 0 1.25rem; line-height: 1.65; }
-    .valuator-seo-extended h2 { margin: 2.4rem 0 0.75rem; font-size: 1.5rem; color: var(--ink-primary); }
-    .valuator-seo-extended p, .valuator-seo-extended li { color: var(--ink-secondary); }
-    .valuator-seo-extended details { margin: 0.75rem 0; padding: 0.9rem 1rem; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); }
-    .valuator-seo-extended summary { font-weight: 700; cursor: pointer; color: var(--ink-primary); }
-    .valuator-seo-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
-    .valuator-seo-cta a { display: inline-block; padding: 0.7rem 1.1rem; border-radius: 999px; background: var(--brand-orange); color: #fff; font-weight: 700; text-decoration: none; }
-  </style>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "¿Qué coche puedo permitirme con mi presupuesto?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "El valorador calcula un presupuesto máximo orientativo separando el precio del vehículo, los gastos de compra y el coste mensual de uso. Te indica qué categoría de coche encaja con tu situación y qué margen conviene reservar, sin empujarte a gastar todo tu presupuesto."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿El valorador es una tasación o una inspección?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No. Es una orientación de compra basada en tus respuestas. No certifica el estado mecánico de ninguna unidad, no emite una tasación oficial y no sustituye la comprobación documental ni una inspección profesional."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Qué gastos incluye el coste mensual estimado?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Incluye combustible o recarga según tu kilometraje y zona, seguro estimado, mantenimiento preventivo y una provisión para imprevistos. No incluye la financiación concreta de una entidad, reparaciones específicas ni impuestos que dependan de la unidad y del titular."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Necesito dejar mi email para ver el resultado?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No. La orientación inicial se muestra sin registro. El email solo se pide si quieres guardar el resultado y recibir el informe completo, con un consentimiento separado para las comunicaciones comerciales."
-        }
-      }
-    ]
-  }
-  </script>
 </head>
 <body class="inner-page">
   <div class="site-shell">
@@ -82,57 +33,12 @@
     <main class="app" id="app">
       <section class="valuator-seo-context" aria-labelledby="valuator-seo-title">
         <h1 id="valuator-seo-title">Calcula qué coche puedes permitirte</h1>
-        <p>Responde unas preguntas sencillas sobre tu presupuesto, tu uso y tus prioridades. Obtendrás una orientación inicial sobre categoría, coste mensual y comprobaciones que conviene hacer antes de comprar.</p>
-        <p>El resultado es orientativo: no es una tasación, no confirma el estado mecánico de una unidad y no sustituye una inspección profesional.</p>
+        <p>Responde 9 preguntas y recibe una orientación inicial sobre categoría, coste y comprobaciones antes de comprar.</p>
       </section>
       <section id="screen" aria-live="polite"></section>
-      <section class="valuator-seo-extended" aria-labelledby="seo-extended-title">
-        <h2 id="seo-extended-title">Qué coche puedo permitirme: guía para interpretar tu resultado</h2>
-        <p>La pregunta más difícil de la compra no es solo "¿qué coche me gusta?", sino "¿qué coche puedo permitirme sin poner en riesgo mis finanzas?". Este valorador ordena tu situación en unos minutos y te devuelve una orientación inicial sobre categoría, coste mensual y comprobaciones. El informe completo amplía esa orientación con escenarios, presupuesto máximo orientativo y un checklist adaptado a tu caso.</p>
-        <h2>Qué calcula el valorador</h2>
-        <ul>
-          <li><strong>Encaje:</strong> qué categoría de coche y qué motorización (gasolina, híbrido, eléctrico o diésel) se adaptan mejor a tus kilómetros, tu tipo de trayecto y tu zona, incluidas las restricciones de etiqueta ZBE.</li>
-          <li><strong>Coste mensual:</strong> una estimación que separa combustible o recarga, seguro, mantenimiento preventivo y provisión para imprevistos.</li>
-          <li><strong>Presupuesto máximo orientativo:</strong> cuánto puedes destinar al coche sin ir al límite, separando el precio del vehículo, los gastos de compra y la reserva.</li>
-          <li><strong>Comprobaciones:</strong> qué documentación y qué pruebas conviene hacer antes de entregar una señal.</li>
-        </ul>
-        <h2>Qué información necesitas para empezar</h2>
-        <p>Con tu presupuesto disponible, tus kilómetros anuales, el tipo de trayecto y tu situación de uso (primer coche, familia, trabajo o cambio de vehículo) es suficiente. Si vas a cambiar de coche, también puedes indicar de forma opcional los datos del vehículo actual. No necesitas documentos ni registro para ver la orientación inicial.</p>
-        <h2>Cómo interpretar el presupuesto máximo y el coste mensual</h2>
-        <p>El presupuesto máximo es una referencia de prudencia, no una invitación a gastarlo todo: conviene reservar margen para gastos de transferencia, puesta a punto y posibles imprevistos. El coste mensual suma los gastos recurrentes de usar el coche, no solo la cuota o el precio de compra. Todos los números son estimaciones con supuestos visibles: cambian con tu perfil de seguro, la zona donde vives y el estado real de la unidad.</p>
-        <h2>Qué no incluye esta orientación</h2>
-        <p>No incluye una tasación oficial de tu coche actual, la financiación concreta que ofrezca una entidad, el coste de una reparación específica ni los impuestos o seguros finales que dependen de la unidad y del titular. Tampoco sustituye una inspección mecánica profesional ni la comprobación documental: ITV, cargas, titularidad e historial.</p>
-        <h2>Valoración, tasación e inspección: no son lo mismo</h2>
-        <p>Una <strong>valoración</strong> como la de CocheCierto es una orientación de compra basada en tus respuestas y en supuestos explicados. Una <strong>tasación</strong> es una estimación de mercado emitida por un profesional con criterios específicos. Una <strong>inspección</strong> es una revisión física de una unidad concreta. En esta herramienta no usamos esos términos como sinónimos: el resultado siempre indica qué es dato, qué es estimación y qué queda pendiente de comprobar.</p>
-        <h2>Un ejemplo de lo que recibirás</h2>
-        <p>Un perfil urbano con presupuesto ajustado y necesidad de etiqueta C o ECO recibirá orientación hacia un utilitario eficiente, con un coste mensual desglosado y una lista de comprobaciones adaptadas, en lugar de una recomendación genérica o de un modelo de gran cilindrada. Los datos de cada caso son simulados para ilustrar el formato; tu resultado se calcula con tus respuestas.</p>
-        <h2>Preguntas frecuentes</h2>
-        <details>
-          <summary>¿Qué coche puedo permitirme con mi presupuesto?</summary>
-          <p>El valorador calcula un presupuesto máximo orientativo separando el precio del vehículo, los gastos de compra y el coste mensual de uso. Te indica qué categoría encaja con tu situación y qué margen conviene reservar, sin empujarte a gastar todo tu presupuesto.</p>
-        </details>
-        <details>
-          <summary>¿El valorador es una tasación o una inspección?</summary>
-          <p>No. Es una orientación de compra basada en tus respuestas. No certifica el estado mecánico de ninguna unidad, no emite una tasación oficial y no sustituye la comprobación documental ni una inspección profesional.</p>
-        </details>
-        <details>
-          <summary>¿Qué gastos incluye el coste mensual estimado?</summary>
-          <p>Incluye combustible o recarga según tu kilometraje y zona, seguro estimado, mantenimiento preventivo y una provisión para imprevistos. No incluye la financiación concreta de una entidad, reparaciones específicas ni impuestos que dependan de la unidad y del titular.</p>
-        </details>
-        <details>
-          <summary>¿Necesito dejar mi email para ver el resultado?</summary>
-          <p>No. La orientación inicial se muestra sin registro. El email solo se pide si quieres guardar el resultado y recibir el informe completo, con un consentimiento separado para las comunicaciones comerciales.</p>
-        </details>
-        <div class="valuator-seo-cta">
-          <a href="../demo/">Ver un informe demo completo</a>
-          <a href="../recursos/checklist-inspeccion.html">Descargar el checklist de inspección</a>
-          <a href="../recursos/">Explorar recursos y guías</a>
-          <a href="../como-funciona/">Ver cómo funciona el método</a>
-        </div>
-      </section>
     </main>
   </div>
   <!-- Versionado para que una actualización nunca reutilice el app.js antiguo. -->
-  <script src="app.js?v=20260830-06"></script>
+  <script src="app.js?v=20260902-04"></script>
 </body>
 </html>
