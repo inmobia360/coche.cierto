@@ -17,7 +17,7 @@
   const nativeFetch = window.fetch.bind(window);
   window.fetch = (url, options) => {
     if (String(url).endsWith('/leads') && options?.body) {
-      try { const payload = JSON.parse(options.body); payload.situation = state.answers.situation || 'unknown'; payload.priority = state.answers.priority || 'unknown'; options = { ...options, body: JSON.stringify(payload) }; } catch {}
+      try { const payload = JSON.parse(options.body); payload.situation = state.answers.situation || 'unknown'; payload.priority = state.answers.priority || 'unknown'; payload.purchaseWindow = payload.purchaseWindow || 'unknown'; options = { ...options, body: JSON.stringify(payload) }; } catch {}
     }
     return nativeFetch(url, options);
   };
