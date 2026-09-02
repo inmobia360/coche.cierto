@@ -136,6 +136,15 @@
   margin: 20px 0;
 }
 
+.app .decision-roadmap {
+  margin-top: 24px;
+  border-left-color: var(--brand-green, #2fae7b);
+}
+
+.app .decision-roadmap h3 { margin-top: 0; }
+.app .decision-roadmap ol { margin: 12px 0 16px; padding-left: 22px; line-height: 1.65; }
+.app .decision-roadmap li + li { margin-top: 8px; }
+
 .app .reasons {
   padding-left: 24px;
   color: var(--ink-secondary);

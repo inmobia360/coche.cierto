@@ -51,6 +51,26 @@ const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people
 const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
   .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
   .map((key) => [key, answers[key]]));
+const LLM_RESPONSE_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['summary', 'profileReading', 'priorities', 'risks', 'decisionPlan', 'nextStep'],
+  properties: {
+    summary: { type: 'string' }, profileReading: { type: 'string' },
+    priorities: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3 },
+    risks: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3 },
+    decisionPlan: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3 },
+    nextStep: { type: 'string' }
+  }
+};
+const unsafeNarrative = (value) => /€|\b\d+(?:[.,]\d+)?\s*%?|\b(?:garantiza|garantizado|sin averías|aprobación de crédito|tasación|peritaje)\b/i.test(value);
+const cleanNarrative = (narrative) => {
+  const fields = ['summary', 'profileReading', 'nextStep']; const lists = ['priorities', 'risks', 'decisionPlan'];
+  if (!narrative || fields.some((field) => typeof narrative[field] !== 'string') || lists.some((field) => !Array.isArray(narrative[field]) || narrative[field].length < 3)) throw new Error('LLM invalid shape');
+  const result = { summary: narrative.summary.trim().slice(0, 900), profileReading: narrative.profileReading.trim().slice(0, 500), priorities: narrative.priorities.slice(0, 3).map((item) => String(item).trim().slice(0, 240)), risks: narrative.risks.slice(0, 3).map((item) => String(item).trim().slice(0, 220)), decisionPlan: narrative.decisionPlan.slice(0, 3).map((item) => String(item).trim().slice(0, 220)), nextStep: narrative.nextStep.trim().slice(0, 500) };
+  if ([result.summary, result.profileReading, result.nextStep, ...result.priorities, ...result.risks, ...result.decisionPlan].some(unsafeNarrative)) throw new Error('LLM unsafe content');
+  return result;
+};
 const fallbackNarrative = (report) => ({
   summary: report.situation === 'first-car' ? 'Como sería tu primer coche, conviene priorizar sencillez, documentación clara y margen para los gastos que aparecen después de comprar.' : 'Esta orientación te ayuda a comparar opciones con más contexto y a detectar qué debes confirmar antes de comprometer dinero.',
   priorities: ['Compara el coste total y no solo el precio anunciado.', 'Pide documentación verificable antes de desplazarte.', 'Conserva margen para seguro, puesta a punto e imprevistos.'],
@@ -61,15 +81,14 @@ const fallbackNarrative = (report) => ({
 });
 const requestLlmNarrative = async (report) => {
   if (!llm) return { narrative: fallbackNarrative(report), status: 'disabled' };
-  const context = { situation: report.situation, category: report.category, usageType: report.usageType, purchaseWindow: report.purchaseWindow, priority: report.priority, answers: report.answers };
+  const context = { stage: 'orientation', situation: report.situation, category: report.category, usageType: report.usageType, purchaseWindow: report.purchaseWindow, priority: report.priority, facts: { category: report.category, usageType: report.usageType }, assumptions: ['La orientación depende de las respuestas declaradas.', 'La unidad concreta, sus documentos y su estado aún no están verificados.'], uncertainties: ['costes finales', 'seguro', 'financiación', 'estado físico'], answers: report.answers };
   const prompt = `Redacta una guía práctica y cercana para un comprador de coches en España. Devuelve SOLO JSON válido con las claves summary (string), profileReading (string), priorities (array de 3 strings), risks (array de 3 strings), decisionPlan (array de 3 strings) y nextStep (string). Usa únicamente el contexto proporcionado. No inventes cifras, marcas, modelos, fuentes, garantías ni diagnósticos mecánicos. Distingue siempre orientación de hechos y recuerda que hace falta documentación e inspección. Contexto: ${JSON.stringify(context)}`;
   try {
-    const response = await fetch(`${llm.url}/v1/chat/completions`, { method: 'POST', signal: AbortSignal.timeout(8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify({ model: llm.model, temperature: 0.2, max_tokens: 420, messages: [{ role: 'system', content: 'Eres un redactor prudente de informes de compra. No inventes datos.' }, { role: 'user', content: prompt }] }) });
+    const response = await fetch(`${llm.url}/v1/chat/completions`, { method: 'POST', signal: AbortSignal.timeout(8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify({ model: llm.model, temperature: 0.2, max_tokens: 420, response_format: { type: 'json_schema', json_schema: { name: 'report_narrative_v1', strict: true, schema: LLM_RESPONSE_SCHEMA } }, messages: [{ role: 'system', content: 'Eres un redactor prudente de informes de compra. No inventes datos.' }, { role: 'user', content: prompt }] }) });
     if (!response.ok) throw new Error(`LLM ${response.status}`);
     const content = (await response.json())?.choices?.[0]?.message?.content;
     const parsed = JSON.parse(String(content || '').replace(/^```json\s*|```$/g, '').trim());
-    if (typeof parsed.summary !== 'string' || !Array.isArray(parsed.priorities) || parsed.priorities.length < 3 || typeof parsed.nextStep !== 'string') throw new Error('LLM invalid shape');
-    return { narrative: { summary: parsed.summary.slice(0, 900), profileReading: String(parsed.profileReading || '').slice(0, 500), priorities: parsed.priorities.slice(0, 3).map((item) => String(item).slice(0, 240)), risks: (Array.isArray(parsed.risks) ? parsed.risks : []).slice(0, 3).map((item) => String(item).slice(0, 220)), decisionPlan: (Array.isArray(parsed.decisionPlan) ? parsed.decisionPlan : []).slice(0, 3).map((item) => String(item).slice(0, 220)), nextStep: parsed.nextStep.slice(0, 500) }, status: 'ok' };
+    return { narrative: cleanNarrative(parsed), status: 'ok' };
   } catch (error) {
     console.warn('LLM narrative unavailable:', error.message);
     return { narrative: fallbackNarrative(report), status: 'fallback' };
@@ -163,6 +182,15 @@ const situationPack = (report) => {
   };
   return packs[report.situation] || ['Situación por concretar', 'uso, presupuesto y comprobaciones pendientes', 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.'];
 };
+const answerLabels = { budget: { '8-15': '8.000-15.000 EUR', '15-25': '15.000-25.000 EUR', unknown: 'Prefiero no decirlo' }, km: { medium: '10.000-20.000 km/año', unknown: 'No lo sé' }, use: { city: 'Ciudad', mixed: 'Ciudad y carretera', road: 'Carretera', work: 'Trabajo', family: 'Familia' } };
+const readableAnswer = (key, value) => answerLabels[key]?.[value] || value || 'No indicado';
+const roadmapFor = (report) => [
+  ['1. Antes de buscar', 'Confirma que el presupuesto total y la reserva dejan margen después de gastos iniciales. Usa el precio prudente como filtro, no como objetivo de gasto.'],
+  ['2. Antes de visitar', 'Pide por escrito anuncio, titularidad, informe DGT, ITV, cargas, historial y garantía. Si falta un documento clave, aplaza el desplazamiento.'],
+  ['3. Durante la visita', 'Comprueba el coche en frío, realiza una prueba y anota cualquier incoherencia. Contrasta el uso, el coste y la etiqueta con tus necesidades reales.'],
+  ['4. Antes de negociar', report.situation === 'professional-use' ? 'Calcula el coste por kilómetro y el impacto de un día parado. Confirma factura, garantía y mantenimiento.' : 'Compara al menos dos unidades equivalentes y negocia después de verificar, no solo por el precio anunciado.'],
+  ['5. Antes de pagar', 'No entregues señal si existen cargas, documentación incompleta, incoherencias o rechazo a una inspección independiente.']
+];
 const writeReportPdf = async (res, report) => {
   const situation = situationPack(report);
   const qr = await QRCode.toDataURL('https://cochecierto.com/recursos/', { margin: 1, width: 96 });
@@ -213,10 +241,18 @@ const writeReportPdf = async (res, report) => {
     doc.moveDown(.4).font('Helvetica-Bold').text('Prioridades para tu caso');
     report.narrative.priorities.forEach((priority) => doc.font('Helvetica').text(`- ${priority}`));
   }
-  doc.moveDown(.5).font('Helvetica-Bold').text('Contexto oficial del INE');
-  doc.font('Helvetica').text(`IPC nacional, variación anual: ${ineContext}. Fuente: INE, tabla ${INE_TABLE_ID}. Este dato contextualiza precios agregados y no sustituye tus datos ni predice tu gasto personal.`);
-  doc.moveDown(.7).font('Helvetica-Bold').text('Qué conviene hacer ahora');
-  doc.font('Helvetica').text('Compara varias unidades equivalentes, pide documentación verificable y reserva margen para seguro, puesta a punto e imprevistos. Antes de pagar, considera una inspección independiente.');
+  if (report.narrative?.risks?.length) {
+    doc.moveDown(.4).font('Helvetica-Bold').text('Riesgos que conviene vigilar');
+    report.narrative.risks.forEach((risk) => doc.font('Helvetica').text(`- ${risk}`));
+  }
+  doc.moveDown(.5).font('Helvetica-Bold').text('Trazabilidad de esta orientación');
+  doc.font('Helvetica').text(`Sabemos: tus respuestas declaradas (${readableAnswer('budget', report.answers?.budget)}, ${readableAnswer('km', report.answers?.km)}, ${readableAnswer('use', report.answers?.use)}).`);
+  doc.text('Estimamos: categoría, motorización, escenarios y prioridades de compra a partir de esas respuestas.');
+  doc.text('Falta validar: unidad concreta, documentación, estado físico, seguro, financiación y costes finales.');
+  doc.moveDown(.5).font('Helvetica-Bold').text('Contexto oficial consultado');
+  doc.font('Helvetica').text(`INE: IPC nacional, variación anual ${ineContext}. Tabla ${INE_TABLE_ID}. Se muestra como contexto agregado y no predice tu gasto personal.`);
+  doc.fillColor('#0b6f9c').text('Consultar INE', { link: 'https://www.ine.es/' });
+  doc.fillColor('#082333').text('Las fuentes oficiales ayudan a contrastar información; CocheCierto no certifica su aplicación al caso individual.');
   doc.addPage();
   drawBrandLogo(doc);
   doc.fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('DECISIÓN Y PRESUPUESTO');
@@ -230,6 +266,14 @@ const writeReportPdf = async (res, report) => {
   budgetRows.forEach(([label, value]) => { doc.font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
   doc.moveDown(1).font('Helvetica-Bold').text('Tres caminos para comparar');
   [['Conservador', 'Menor desembolso y más margen económico.'], ['Equilibrado', 'Balance entre coste, seguridad, uso y previsibilidad.'], ['Aspiracional', 'Más espacio o equipamiento, con mayor exigencia económica.']].forEach(([label, value]) => { doc.moveDown(.3).font('Helvetica-Bold').text(label, { continued: true }).font('Helvetica').text(`: ${value}`); });
+  doc.moveDown(1).font('Helvetica-Bold').text('Hoja de ruta asistida');
+  doc.font('Helvetica').fontSize(10);
+  const narrativePlan = report.narrative?.decisionPlan?.length ? report.narrative.decisionPlan : null;
+  (narrativePlan ? narrativePlan.map((item, index) => [`Orientación ${index + 1}`, item]) : roadmapFor(report)).forEach(([step, instruction]) => { doc.moveDown(.35).font('Helvetica-Bold').text(step, { continued: true }).font('Helvetica').text(`: ${instruction}`); });
+  if (narrativePlan) doc.moveDown(.35).font('Helvetica').text('La orientación automática se complementa con las comprobaciones operativas de este informe y nunca sustituye la verificación del vehículo.');
+  doc.moveDown(.7).font('Helvetica-Bold').text('Fuentes para contrastar');
+  doc.font('Helvetica').text('DGT: informe y situación administrativa del vehículo. ', { continued: true }).fillColor('#0b6f9c').text('Consultar DGT', { link: 'https://www.dgt.es/nuestros-servicios/tu-vehiculo/vas-a-comprar-o-vender-un-vehiculo-de-segunda-mano/comprar-un-vehiculo-de-segunda-mano/' });
+  doc.fillColor('#082333').text('Banco de España: coste total de una financiación, no solo la cuota. ', { continued: true }).fillColor('#0b6f9c').text('Consultar Banco de España', { link: 'https://clientebancario.bde.es/pcb/es/blog/en_que_te_fijas_comprar_coche.html' });
   doc.addPage();
   drawBrandLogo(doc);
   doc.fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('COMPROBACIONES ANTES DE PAGAR');
@@ -246,6 +290,8 @@ const writeReportPdf = async (res, report) => {
   doc.text('ROJO · No entregues señal mientras existan cargas, incoherencias o rechazo a una revisión.');
   doc.moveDown(1).font('Helvetica-Bold').text('Tu siguiente paso');
   doc.font('Helvetica').text(report.narrative?.nextStep || (report.situation === 'first-car' ? 'Compara tres coches equivalentes dentro del precio prudente y pide la documentación antes de desplazarte.' : 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.'));
+  doc.moveDown(.6).font('Helvetica-Bold').text('Regla de parada');
+  doc.font('Helvetica').text('Si no puedes confirmar documentación, costes relevantes o aceptación de una inspección independiente, detén la compra y vuelve a comparar.');
   doc.addPage();
   drawBrandLogo(doc);
   doc.moveDown(.5).fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('RECURSOS PARA SEGUIR DECIDIENDO');
