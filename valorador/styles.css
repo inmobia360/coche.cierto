@@ -352,6 +352,58 @@
 .app .llm-preview h3 { margin: 8px 0; }
 .app .llm-preview h4 { margin: 18px 0 4px; color: var(--ink-primary); }
 
+/* Informe ampliado: tarjetas imprimibles y campos reutilizables sin depender solo del color. */
+.app .report-expanded h3 { scroll-margin-top: 20px; }
+.app .report-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 20px;
+}
+.app .report-columns > section {
+  padding: 16px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 10px);
+}
+.app .report-columns h4 { margin: 0 0 8px; color: var(--ink-primary); }
+.app .report-columns ul { margin-bottom: 0; }
+.app .report-budget {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.app .report-budget p {
+  margin: 0;
+  padding: 13px 14px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 10px);
+}
+.app .report-fields {
+  margin: 12px 0 14px;
+  padding: 16px;
+  min-height: 92px;
+  line-height: 2;
+  background: var(--bg-subtle);
+  border: 1px dashed var(--ink-secondary);
+  border-radius: var(--radius-sm, 10px);
+  white-space: pre-line;
+}
+.app .report-check {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 8px 0;
+}
+.app .report-check span {
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--brand-orange);
+}
+
 @media(max-width: 760px) {
   .app .scenarios {
     grid-template-columns: 1fr;
@@ -361,6 +413,10 @@
   }
   .app .button {
     width: 100%;
+  }
+  .app .report-columns,
+  .app .report-budget {
+    grid-template-columns: 1fr;
   }
 }
  .valuator-seo-context{max-width:760px;margin:0 auto 24px;padding:0 20px;color:var(--ink-secondary)}

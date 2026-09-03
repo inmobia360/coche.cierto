@@ -26,7 +26,7 @@ if (mailer) {
 const attempts = new Map();
 const pendingReports = new Map();
 const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const resourcesUrl = `${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/recursos/`;
+const resourcesUrl = `${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/guias/`;
 const PDF_FONT_REGULAR = fs.existsSync('C:\\Windows\\Fonts\\arial.ttf') ? 'C:\\Windows\\Fonts\\arial.ttf' : 'Helvetica';
 const PDF_FONT_BOLD = fs.existsSync('C:\\Windows\\Fonts\\arialbd.ttf') ? 'C:\\Windows\\Fonts\\arialbd.ttf' : 'Helvetica-Bold';
 const resources = [
@@ -271,7 +271,7 @@ const writeReportPdf = async (res, report) => {
   report = completeReportContext(report);
   report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
   const situation = situationPack(report);
-  const qr = await QRCode.toDataURL('https://cochecierto.com/recursos/', { margin: 1, width: 96 });
+  const qr = await QRCode.toDataURL(resourcesUrl, { margin: 1, width: 132 });
   let ineContext = 'No disponible en esta consulta';
   try {
     const response = await fetch(INE_SOURCE_URL, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
@@ -282,7 +282,7 @@ const writeReportPdf = async (res, report) => {
       if (latest && Number.isFinite(Number(latest.Valor))) ineContext = `${latest.Valor}% de variación anual (${latest.Anyo}-${String(latest.FK_Periodo).padStart(2, '0')})`;
     }
   } catch {}
-  const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: 'Informe de orientación CocheCierto', Author: 'CocheCierto' } });
+  const doc = new PDFDocument({ size: 'A4', margin: 48, bufferPages: true, info: { Title: 'Informe de orientación CocheCierto', Author: 'CocheCierto', Subject: 'Guía personal de compra de coche de ocasión', Keywords: 'CocheCierto, compra, vehículo de ocasión' } });
   doc.registerFont('CCRegular', PDF_FONT_REGULAR).registerFont('CCBold', PDF_FONT_BOLD);
   const originalFont = doc.font.bind(doc);
   doc.font = (font, ...args) => originalFont(font === 'Helvetica' ? 'CCRegular' : font === 'Helvetica-Bold' ? 'CCBold' : font, ...args);
@@ -375,6 +375,59 @@ const writeReportPdf = async (res, report) => {
   doc.font('Helvetica').text(report.narrative?.nextStep || (report.situation === 'first-car' ? 'Compara tres coches equivalentes dentro del precio prudente y pide la documentación antes de desplazarte.' : 'Compara varias unidades equivalentes y confirma la documentación antes de desplazarte o entregar dinero.'));
   doc.moveDown(.6).font('Helvetica-Bold').text('Regla de parada');
   doc.font('Helvetica').text('Si no puedes confirmar documentación, costes relevantes o aceptación de una inspección independiente, detén la compra y vuelve a comparar.');
+
+  // Páginas operativas: el informe debe poder acompañar la compra, no quedarse en una recomendación.
+  const reportPage = (kicker, title, intro) => {
+    doc.addPage();
+    drawBrandLogo(doc);
+    doc.moveDown(.5).fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text(kicker);
+    doc.moveDown(.4).fillColor('#082333').fontSize(22).text(title);
+    doc.font('Helvetica').fontSize(11).fillColor('#58717d').text(intro);
+  };
+  const writeCheckRows = (items) => items.forEach((item) => {
+    doc.moveDown(.45).font('Helvetica-Bold').fillColor('#fc4c02').text('□', { continued: true }).fillColor('#082333').font('Helvetica').text(` ${item}`);
+  });
+  reportPage('ANALIZAR UN ANUNCIO', 'Ficha reutilizable de una unidad', 'Rellénala para cada candidato y conserva la evidencia que el vendedor aporte.');
+  doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Datos del anuncio');
+  ['Marca y modelo: ____________________   Versión/motor: ____________________', 'Año: __________   Kilómetros: __________   Precio: __________', 'Vendedor y ubicación: ____________________   Enlace: ____________________', 'Equipamiento: __________________________________________________________', 'Historial declarado y defectos: _________________________________________', 'Gastos previsibles y observaciones: _____________________________________'].forEach((line) => doc.moveDown(.55).font('Helvetica').text(line));
+  doc.moveDown(1).font('Helvetica-Bold').text('Semáforo de lectura');
+  doc.font('Helvetica').text('VERDE · Datos coherentes y evidencia suficiente para continuar comprobando.');
+  doc.text('ÁMBAR · Falta información: pedir documentos y respuestas antes de desplazarte.');
+  doc.text('ROJO · No enviar dinero: cargas, incoherencias, presión o rechazo a inspección.');
+  reportPage('PREGUNTAS Y DOCUMENTOS', 'Qué pedir antes de desplazarte', 'Una respuesta verbal no sustituye el documento o la evidencia que la respalda.');
+  doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Preguntas adaptadas a tu caso');
+  const tailoredQuestions = report.situation === 'professional-use' ? ['¿La operación incluye factura, garantía y mantenimiento por escrito?', '¿Qué uso intensivo ha tenido y qué piezas se han sustituido?', '¿Cuál sería el coste y el impacto de un día parado?', '¿Aceptas una inspección independiente antes de cerrar?'] : report.priority === 'space' ? ['¿Puedes mostrar el espacio con el equipamiento que transportaré?', '¿Qué mantenimiento y reparaciones están documentados?', '¿Puedo arrancarlo en frío y probarlo en carretera?', '¿Aceptas una inspección independiente antes de entregar dinero?'] : ['¿Puedes facilitar informe DGT, titularidad, ITV y cargas?', '¿Qué mantenimiento, accidentes o reparaciones están documentados?', '¿El precio incluye todos los gastos y qué queda fuera?', '¿Aceptas arrancarlo en frío y una inspección independiente?'];
+  writeCheckRows(tailoredQuestions);
+  doc.moveDown(1).font('Helvetica-Bold').text('Documentación mínima');
+  writeCheckRows(['Identidad y titularidad del vendedor', 'Permiso de circulación y ficha técnica', 'ITV, informe DGT, cargas, embargos y reserva de dominio', 'Impuesto municipal, historial y facturas', 'Contrato o factura y garantía cuando corresponda']);
+  reportPage('VISITA Y PRUEBA', 'Comprueba sin convertirlo en una garantía', 'La inspección ordena señales y pendientes; no certifica por sí sola el estado mecánico.');
+  doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Antes y durante la prueba');
+  writeCheckRows(['Antes de arrancar: fugas, daños, neumáticos, testigos y coherencia del kilometraje', 'Motor en frío: arranque, humo, ruidos, ralentí y temperatura', 'En marcha: frenos, dirección, embrague/cambio y comportamiento', 'Interior: climatización, luces, ayudas y equipamiento imprescindible', 'Al finalizar: anota diferencias, solicita evidencias y no cierres pendientes críticos']);
+  doc.moveDown(1).font('Helvetica-Bold').text('Cuándo pedir ayuda profesional');
+  doc.font('Helvetica').text('Si hay dudas, historial incompleto, antigüedad o kilometraje elevados, poco conocimiento mecánico o un valor económico relevante, reserva una inspección independiente antes de pagar.');
+  reportPage('CIERRE Y POSTCOMPRA', 'Negocia, compra y controla el primer año', 'La decisión final debe conservar trazabilidad y dejar claro qué queda pendiente.');
+  doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Antes de entregar una señal');
+  writeCheckRows(['Identifica partes, vehículo, importe, finalidad, condiciones y desistimiento', 'Usa medios de pago trazables y conserva contrato, factura, llaves y documentos', 'Confirma seguro y cambio de titularidad antes de circular']);
+  doc.moveDown(1).font('Helvetica-Bold').text('Primeras 72 horas');
+  writeCheckRows(['Seguro activo y documentos guardados', 'Fotos del estado y kilometraje de entrega', 'Comunicación escrita de incidencias']);
+  doc.moveDown(.7).font('Helvetica-Bold').text('Primeros 30 días y primer año');
+  writeCheckRows(['Revisión inicial, mantenimiento pendiente y control de consumo', 'Registrar testigos, ruidos, reparaciones y gastos reales', 'Revisar ITV, seguro, impuesto y reserva para imprevistos']);
+  reportPage('COMPARADOR', 'Decisión final entre candidatos', 'Utiliza esta tabla como apoyo: un dato pendiente no equivale a un dato correcto.');
+  doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Compara hasta tres unidades');
+  ['Candidato A: ____________________   Precio total: __________', 'Candidato B: ____________________   Precio total: __________', 'Candidato C: ____________________   Precio total: __________'].forEach((line) => doc.moveDown(.6).font('Helvetica').text(line));
+  doc.moveDown(1).font('Helvetica-Bold').text('Criterios: marca como confirmado, pendiente o no aplicable');
+  writeCheckRows(['Encaje con uso, ocupantes, vías y ZBE', 'Precio total, gastos iniciales y reserva', 'Historial, documentación y garantía', 'Estado físico y mecánico pendiente de verificar', 'Seguridad, consumo, mantenimiento y reventa', 'Confianza en el vendedor y condiciones de cierre']);
+  doc.moveDown(1).font('Helvetica-Bold').text('Decisión');
+  doc.font('Helvetica').text('Comprar / Negociar / Solicitar inspección / Seguir buscando / Descartar');
+  doc.moveDown(.6).text('Motivo: _______________________________________________________________');
+  doc.text('Pendiente más importante: ____________________________________________');
+  reportPage('SEGUIMIENTO', 'Controla tu decisión con el tiempo', 'La compra no termina al firmar: registra lo que ocurra para conocer el coste real.');
+  doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Primeras 72 horas');
+  writeCheckRows(['Seguro activo y documentación conservada', 'Kilometraje y estado de entrega registrados', 'Incidencias comunicadas por escrito']);
+  doc.moveDown(.8).font('Helvetica-Bold').text('Primeros 30 días');
+  writeCheckRows(['Revisión inicial y mantenimiento pendiente', 'Control de consumo, testigos, ruidos y temperatura', 'Garantía, facturas y próximos vencimientos organizados']);
+  doc.moveDown(.8).font('Helvetica-Bold').text('Primer año');
+  writeCheckRows(['ITV, seguro e impuesto revisados', 'Reparaciones y coste por kilómetro registrados', 'Reserva para imprevistos mantenida y encaje reevaluado']);
   doc.addPage();
   drawBrandLogo(doc);
   doc.moveDown(.5).fillColor('#ff4d00').font('Helvetica-Bold').fontSize(10).text('RECURSOS PARA SEGUIR DECIDIENDO');
@@ -391,10 +444,17 @@ const writeReportPdf = async (res, report) => {
   const infoX = doc.page.margins.left;
   doc.image(qr, infoX, infoY, { width: 52 });
   doc.fillColor('#082333').font('Helvetica-Bold').fontSize(10).text('Continúa con más herramientas', infoX + 70, infoY, { width: 380 });
-  doc.font('Helvetica').fontSize(9).fillColor('#58717d').text('https://cochecierto.com/recursos/', infoX + 70, infoY + 15, { width: 380 });
-  doc.text('Escanea el QR para abrir recursos y fuentes oficiales.', infoX + 70, infoY + 30, { width: 380 });
+  doc.font('Helvetica').fontSize(9).fillColor('#58717d').text(resourcesUrl, infoX + 70, infoY + 15, { width: 380 });
+  doc.text('Escanea el QR para abrir la guía de acompañamiento y fuentes oficiales.', infoX + 70, infoY + 30, { width: 380 });
   doc.text('cochecierto.com · hola@cochecierto.com', infoX + 70, infoY + 45, { width: 380 });
   doc.text('Informe beta sujeto a validación. El enlace privado es válido durante 7 días.', infoX + 70, infoY + 60, { width: 380 });
+  const pageRange = doc.bufferedPageRange();
+  for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
+    doc.switchToPage(pageRange.start + pageIndex);
+    doc.save().font('Helvetica').fontSize(7.5).fillColor('#58717d')
+      .text(`cochecierto.com · Guía personal de compra · Informe beta · Página ${pageIndex + 1} de ${pageRange.count}`, doc.page.margins.left, doc.page.height - 72, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right, align: 'center', lineBreak: false })
+      .fontSize(7).text('Orientación informativa. No sustituye una inspección mecánica, peritaje ni asesoramiento jurídico o fiscal individual.', doc.page.margins.left, doc.page.height - 60, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right, align: 'center', lineBreak: false }).restore();
+  }
   doc.end();
 };
 
