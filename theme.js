@@ -55,7 +55,7 @@
       const pathParts = normalizedPath.split('/').filter(Boolean);
       const pathDepth = normalizedPath.endsWith('/') ? pathParts.length : Math.max(0, pathParts.length - 1);
       const base = pathDepth ? '../'.repeat(pathDepth) : './';
-      const targetLogo = isLight ? base + 'brand-symbol-light.svg' : base + 'brand-symbol.svg';
+      const targetLogo = isLight ? '/brand-symbol-light.svg' : '/brand-symbol.svg';
       if (img.getAttribute('src') !== targetLogo) {
         img.src = targetLogo;
       }

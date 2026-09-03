@@ -48,7 +48,7 @@
       '<nav class="mobile-bottom-nav" aria-label="Accesos rápidos"><a href="' + base + '">' + navIcon('home') + '<span>Inicio</span></a><a href="' + base + 'guias/">' + navIcon('method') + '<span>Guías</span></a><a class="mobile-bottom-primary" href="' + base + 'valorador/">' + navIcon('report') + '<span>Valorar</span></a><button type="button" class="mobile-bottom-menu" data-mobile-menu-open aria-controls="mobile-menu-panel" aria-expanded="false">☰<span>Menú</span></button></nav>';
 
     var headerHTML = '<a class="brand-lockup" href="/" aria-label="CocheCierto, inicio">' +
-      '<img src="' + base + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36" onerror="this.onerror=null;this.src=\'' + base + 'favicon.svg\';">' +
+      '<img src="/' + (document.documentElement.classList.contains('theme-light') ? 'brand-symbol-light.svg' : 'brand-symbol.svg') + '" alt="CocheCierto" width="36" height="36" onerror="this.onerror=null;this.src=\'/favicon.svg\';">' +
       '<span>Coche<strong>Cierto</strong></span>' +
       '</a>' +
       '<nav class="nav-links" aria-label="Navegación principal">' +
