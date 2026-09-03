@@ -512,12 +512,13 @@ const pdfHeaderFixed = (doc, x, width) => {
   }
   pdfRule(doc, x, 96, width, PDF_COLORS.orange);
 };
-const writeReportPdfStyled = async (res, inputReport, shareToken = null) => {
+const writeReportPdfStyled = async (res, inputReport) => {
   const report = completeReportContext(inputReport);
   report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
   const situation = situationPack(report);
   const budget = budgetGuidance(report.answers?.budget);
-  const shareUrl = shareToken ? sharedReportUrl(shareToken) : null;
+  // El informe ya no incluye enlaces privados para compartir. Mantenerlo
+  // explícitamente vacío evita que una descarga dependa de esa funcionalidad.
   const qr = await QRCode.toDataURL(resourcesUrl, { margin: 2, width: 132, errorCorrectionLevel: 'M' });
   let ineContext = 'No disponible en esta consulta';
   try {
@@ -692,7 +693,7 @@ const writeReportPdfStyled = async (res, inputReport, shareToken = null) => {
   doc.image(qr, x + 18, y + 39, { width: 72 });
   pdfText(doc, 'Guías, listas de comprobación y fuentes oficiales para seguir tomando decisiones con criterio.', x + 115, y + 38, 350, { color: PDF_COLORS.white, size: 9.5, lineGap: 2 });
   pdfText(doc, resourcesUrl, x + 115, y + 70, 350, { color: '#c5d7de', font: 'Helvetica-Bold', size: 8, lineGap: 1 });
-  pdfText(doc, shareUrl ? `Comparte este informe: ${shareUrl}` : 'Acceso a recursos y listas de comprobación de CocheCierto.', x + 115, y + 91, 350, { color: '#c5d7de', size: 7.2, lineGap: 1 });
+  pdfText(doc, 'Acceso a recursos y listas de comprobación de CocheCierto.', x + 115, y + 91, 350, { color: '#c5d7de', size: 7.2, lineGap: 1 });
   const pageRange = doc.bufferedPageRange();
   for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
     doc.switchToPage(pageRange.start + pageIndex);
