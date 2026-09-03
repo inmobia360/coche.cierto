@@ -60,6 +60,8 @@ const googlePlaces = process.env.GOOGLE_PLACES_API_KEY && process.env.GOOGLE_PLA
   key: process.env.GOOGLE_PLACES_API_KEY,
   endpoint: 'https://places.googleapis.com/v1/places:searchNearby'
 } : null;
+const overpassEndpoints = (process.env.OVERPASS_ENDPOINTS || 'https://overpass-api.de/api/interpreter,https://overpass.kumi.systems/api/interpreter').split(',').map((value) => value.trim()).filter(Boolean);
+const nearbyCategories = { dealer: { label: 'Concesionarios', filters: ['nwr["shop"="car"]'] }, repair: { label: 'Talleres mecánicos', filters: ['nwr["shop"="car_repair"]', 'nwr["craft"="car_repair"]'] }, itv: { label: 'Estaciones ITV', filters: ['nwr["amenity"="vehicle_inspection"]'] }, fuel: { label: 'Gasolineras', filters: ['nwr["amenity"="fuel"]'] }, scrapyard: { label: 'Desguaces', filters: ['nwr["shop"="car_parts"]', 'nwr["amenity"="recycling"]["recycling_type"="scrap_metal"]'] }, parts: { label: 'Repuestos', filters: ['nwr["shop"="car_parts"]'] }, wash: { label: 'Lavaderos', filters: ['nwr["amenity"="car_wash"]'] }, tyres: { label: 'Neumáticos', filters: ['nwr["shop"="tyres"]'] } };
 const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people', 'parking', 'zbe', 'budget', 'priority', 'risk'];
 const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
   .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
@@ -759,6 +761,23 @@ app.post('/api/analyze', async (req, res) => {
   const report = { intent: typeof body.intent === 'string' ? body.intent.slice(0, 40) : 'buy', category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'No indicada', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
   const generated = await requestLlmNarrative(report);
   res.json({ narrative: generated.narrative, llmStatus: generated.status });
+});
+
+app.post('/api/nearby-services', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {}, lat = Number(body.lat), lon = Number(body.lon), radius = Number(body.radius || 10000), category = String(body.category || 'dealer');
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180 || ![2000, 5000, 10000, 25000].includes(radius) || !nearbyCategories[category]) return res.status(400).json({ ok: false, message: 'Ubicación, radio o categoría no válidos.' });
+  const filters = nearbyCategories[category].filters.map((filter) => `${filter}(around:${radius},${lat},${lon});`).join('');
+  const query = `[out:json][timeout:20];(${filters});out center tags;`;
+  for (const endpoint of overpassEndpoints) { try { const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'CocheCierto/1.0 (https://cochecierto.com)' }, body: new URLSearchParams({ data: query }), signal: AbortSignal.timeout(25000) }); if (!response.ok) continue; const payload = await response.json(); const toRad = (value) => value * Math.PI / 180; const distance = (item) => { const point = item.lat != null ? item : item.center || {}; const a = Math.sin(toRad(Number(point.lat) - lat) / 2) ** 2 + Math.cos(toRad(lat)) * Math.cos(toRad(Number(point.lat))) * Math.sin(toRad(Number(point.lon) - lon) / 2) ** 2; return Math.round(6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))); }; const places = (payload.elements || []).map((item) => { const point = item.lat != null ? item : item.center || {}; const tags = item.tags || {}; return { id: `${item.type}-${item.id}`, osmType: item.type, name: tags.name || null, category: nearbyCategories[category].label, latitude: Number(point.lat), longitude: Number(point.lon), address: [tags['addr:street'], tags['addr:housenumber'], tags['addr:postcode'], tags['addr:city']].filter(Boolean).join(', ') || null, phone: tags.phone || tags['contact:phone'] || null, website: tags.website || tags['contact:website'] || null, openingHours: tags.opening_hours || null, distanceMeters: distance(point), source: 'OpenStreetMap' }; }).filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude)).sort((a, b) => a.distanceMeters - b.distanceMeters).slice(0, 50); return res.json({ ok: true, source: 'OpenStreetMap', category, radius, places }); } catch (error) { console.error('Nearby services unavailable:', error.message); } }
+  return res.status(503).json({ ok: false, message: 'El servicio de mapas está temporalmente saturado. Inténtalo de nuevo en unos minutos.' });
+});
+
+app.post('/api/geocode', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const address = typeof req.body?.address === 'string' ? req.body.address.trim().slice(0, 120) : '';
+  if (!address) return res.status(400).json({ ok: false, message: 'Introduce una localidad o código postal.' });
+  try { const url = new URL('https://nominatim.openstreetmap.org/search'); url.searchParams.set('q', address); url.searchParams.set('format', 'jsonv2'); url.searchParams.set('limit', '1'); url.searchParams.set('countrycodes', 'es'); const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'CocheCierto/1.0 (https://cochecierto.com)' }, signal: AbortSignal.timeout(10000) }); if (!response.ok) throw new Error(`Nominatim ${response.status}`); const first = (await response.json())[0]; if (!first) return res.status(404).json({ ok: false, message: 'No hemos encontrado esa zona.' }); return res.json({ ok: true, location: { latitude: Number(first.lat), longitude: Number(first.lon) }, formattedAddress: first.display_name }); } catch (error) { console.error('OSM geocode unavailable:', error.message); return res.status(502).json({ ok: false, message: 'No se ha podido localizar esa zona.' }); }
 });
 
 app.post('/api/dealers/search', async (req, res) => {
