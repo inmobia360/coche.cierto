@@ -773,6 +773,23 @@ app.post('/api/nearby-services', async (req, res) => {
   return res.status(503).json({ ok: false, message: 'El servicio de mapas está temporalmente saturado. Inténtalo de nuevo en unos minutos.' });
 });
 
+app.post('/api/dealer-request-pdf', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {}, profile = body.profile || {};
+  const clean = (value) => typeof value === 'string' ? value.replace(/[\r\n]/g, ' ').slice(0, 120) : 'Por concretar';
+  const document = new PDFDocument({ size: 'A4', margins: { top: 52, bottom: 52, left: 54, right: 54 }, info: { Title: 'Ficha de necesidades CocheCierto', Author: 'CocheCierto' } });
+  res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', 'attachment; filename="ficha-oferta-ajustada-cochecierto.pdf"'); document.pipe(res);
+  const navy = '#082d46', orange = '#fc4c02', muted = '#58717d', pale = '#eef8f4';
+  const section = (title) => { document.moveDown(.8).font('Helvetica-Bold').fontSize(11).fillColor(orange).text(title.toUpperCase(), { characterSpacing: .7 }); document.moveDown(.25).font('Helvetica').fontSize(10).fillColor(navy); };
+  document.rect(0, 0, 595, 118).fill(navy).fillColor('#ffffff').font('Helvetica-Bold').fontSize(24).text('CocheCierto', 54, 42); document.font('Helvetica').fontSize(11).fillColor('#b8cbd2').text('FICHA DE NECESIDADES PARA SOLICITAR UNA OFERTA', 54, 78); document.fillColor(navy).font('Helvetica').fontSize(10).text(`Zona aproximada: ${clean(body.area)}  |  Radio: ${clean(body.radius)} km`, 54, 140);
+  section('Objetivo de la petición'); document.text('Preparar una oferta ajustada a necesidades reales, sin pagar por extras que no aportan valor al uso declarado. No se solicita una marca, modelo o precio concreto: se piden alternativas y diferencias explicadas.');
+  section('Perfil de uso'); [['Categoría', profile.category], ['Carrocería', profile.body], ['Uso principal', profile.usage], ['Kilómetros declarados', profile.kilometres], ['Personas habituales', profile.people], ['Presupuesto declarado', profile.budget], ['Prioridad', profile.priority], ['ZBE o restricciones', profile.zbe]].forEach(([label, value]) => document.fillColor(navy).font('Helvetica-Bold').text(`${label}: `, { continued: true }).font('Helvetica').text(clean(value)));
+  section('Datos que debe incluir la oferta'); ['Vehículo propuesto, versión, motor y equipamiento incluido.', 'Precio final desglosado, impuestos, matriculación y gastos adicionales.', 'Disponibilidad, plazo de entrega y condiciones de reserva.', 'Garantía, historial, kilometraje y estado de la unidad si es usada.', 'Financiación solo si se solicita: entrada, TAE, plazo, cuota y coste total.', 'Elementos opcionales separados del equipamiento necesario.', 'Condiciones de prueba, inspección independiente y desistimiento.'].forEach((item) => document.text(`• ${item}`, { indent: 10, hanging: 5 }));
+  section('Criterios de ajuste'); document.rect(54, document.y, 487, 50).fill(pale); document.fillColor(navy).font('Helvetica').text('Prioriza lo que resuelve el uso declarado. No añadas paquetes, servicios o extras sin explicar su utilidad y coste. Si un dato no está confirmado, indícalo como pendiente.', 68, document.y + 14, { width: 460 });
+  section('Siguiente paso'); document.text('Comparar la oferta con al menos una alternativa y confirmar por escrito disponibilidad, condiciones y coste total antes de pagar.');
+  document.moveDown(1.4).strokeColor('#d7e2df').moveTo(54, document.y).lineTo(541, document.y).stroke().moveDown(.5).fontSize(8).fillColor(muted).text('CocheCierto · Documento orientativo. No es una oferta, tasación, garantía ni asesoramiento financiero. No contiene datos personales ni sensibles.'); document.end();
+});
+
 app.post('/api/geocode', async (req, res) => {
   if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
   const address = typeof req.body?.address === 'string' ? req.body.address.trim().slice(0, 120) : '';
