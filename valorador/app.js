@@ -195,7 +195,7 @@
     const section=(number,kicker,title,intro,body,extra='')=>`<section class="screen-report-section" id="report-section-${number}" aria-labelledby="report-title-${number}"><div class="screen-section-head"><span class="screen-section-number">${number}</span><div><p class="eyebrow">${esc(kicker)}</p><h3 id="report-title-${number}">${esc(title)}</h3><p class="screen-section-intro">${esc(intro)}</p></div></div>${body}${extra}</section>`;
     const metric=(label,value,note,accent)=>`<div class="report-metric" style="--metric-accent:${accent}"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></div>`;
     const field=(label)=>`<label class="report-field"><span>${esc(label)}</span><input aria-label="${esc(label)}" placeholder="Escribe aquí"></label>`;
-    const gate=document.querySelector('#reportGate'); if(!gate)return;
+    const gate=document.querySelector('#screen'); if(!gate)return;
     const routeLabel=state.useType==='professional'?'profesional':'particular';
     gate.innerHTML=`<div class="full-report report-expanded screen-report">
       <header class="report-cover">
