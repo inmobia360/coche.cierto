@@ -71,7 +71,7 @@
     const options=q[1].map(([value,label])=>`<label class="choice ${selected===value?'selected':''}"><input type="radio" name="${esc(key)}" value="${esc(value)}" ${selected===value?'checked':''}><span>${esc(label)}</span></label>`).join('');
     const hint=key==='budget'?'<p class="muted">Incluye coche, trámites, seguro y puesta a punto.</p>':'';
     screen.innerHTML=`<div class="progress" role="progressbar" aria-label="Progreso" aria-valuemin="1" aria-valuemax="${qs.length}" aria-valuenow="${state.index+1}"><i style="width:${progress}%"></i></div><div class="card"><div class="eyebrow">Pregunta ${state.index+1} de ${qs.length}</div><fieldset><legend>${esc(q[0])}</legend>${hint}<div class="choices">${options}</div></fieldset><div class="actions"><button class="button secondary" id="back">${state.index?'Atrás':'Salir'}</button><button class="button" id="next" ${selected?'':'disabled'}>${state.index===qs.length-1?'Ver mi orientación':'Continuar'}</button></div></div>`;
-    document.querySelectorAll(`input[name="${key}"]`).forEach(input=>input.onchange=()=>{state.answers[key]=input.value;renderQuestion()});
+    document.querySelectorAll(`input[name="${key}"]`).forEach(input=>input.onchange=()=>{state.answers[key]=input.value;state.index===qs.length-1?renderResult():renderQuestion()});
     document.querySelector('#back').onclick=()=>state.index?(state.index--,renderQuestion()):landing();
     document.querySelector('#next').onclick=()=>{state.index++;state.index<qs.length?renderQuestion():renderResult()};
   }

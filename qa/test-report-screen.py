@@ -27,7 +27,8 @@ with sync_playwright() as p:
 
     for answer in answers:
         page.locator("label.choice", has_text=answer).first.click()
-        page.locator("#next").click()
+        if answer != answers[-1]:
+            page.locator("#next").click()
 
     page.locator(".screen-report").wait_for()
 
@@ -51,7 +52,8 @@ with sync_playwright() as p:
     mobile.get_by_role("button", name="Comenzar diagnóstico").click()
     for answer in answers:
         mobile.locator("label.choice", has_text=answer).first.click()
-        mobile.locator("#next").click()
+        if answer != answers[-1]:
+            mobile.locator("#next").click()
     mobile.locator(".screen-report").wait_for()
     assert mobile.locator(".report-triad").first.evaluate("el => getComputedStyle(el).gridTemplateColumns") == "390px"
     mobile.close()
