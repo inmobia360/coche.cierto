@@ -9,7 +9,8 @@
   function getPreferredTheme() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    // La experiencia pública parte en claro; el usuario puede conservar su elección.
+    return 'light';
   }
 
   function applyTheme(theme) {
@@ -34,6 +35,17 @@
     updateLogo(isLight);
     updateCarImage(isLight);
     updateButtons(isLight);
+    updateThemeColor(isLight);
+  }
+
+  function updateThemeColor(isLight) {
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+    }
+    meta.content = isLight ? '#f3f7f5' : '#021a2d';
   }
 
   function updateLogo(isLight) {

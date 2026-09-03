@@ -185,6 +185,9 @@
         beta.setAttribute('role', 'status');
         beta.innerHTML = '<strong>Versión beta</strong><span>Estamos probando CocheCierto. Los resultados son orientativos y pueden cambiar mientras validamos la plataforma.</span>';
         (document.querySelector('.site-shell') || document.body).prepend(beta);
+        window.setTimeout(function () {
+          if (beta.isConnected) beta.remove();
+        }, 10000);
       }
     }
 

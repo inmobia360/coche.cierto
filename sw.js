@@ -1,6 +1,6 @@
 // Incrementar esta versión en cada actualización de archivos compartidos.
 // Evita que la primera visita reciba una cabecera/footer antiguos desde el SW.
-const CACHE_NAME = 'cochecierto-shell-v12';
+const CACHE_NAME = 'cochecierto-shell-v13';
 const SHELL = ['./', './como-funciona/', './que-analizamos/', './demo/', './casos-reales/', './recursos/', './recursos/checklist-inspeccion.html', './theme.css', './theme.js', './site-header.js', './brand-symbol.svg', './brand-symbol-light.svg', './favicon.svg', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {

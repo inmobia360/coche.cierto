@@ -50,9 +50,9 @@
     }
     localStorage.setItem('cc-theme', theme);
   }
-  setTheme(localStorage.getItem('cc-theme') || 'dark');
+  setTheme(localStorage.getItem('cc-theme') || 'light');
   document.addEventListener('DOMContentLoaded', () => {
-    setTheme(localStorage.getItem('cc-theme') || 'dark');
+    setTheme(localStorage.getItem('cc-theme') || 'light');
     const themeToggle = document.querySelector('#themeToggle, .theme-toggle-btn');
     if (themeToggle) themeToggle.onclick = () => setTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
   });
