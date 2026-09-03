@@ -56,6 +56,10 @@ const llm = process.env.LLM_BASE_URL && process.env.LLM_MODEL ? {
   key: process.env.LLM_API_KEY || '',
   mode: process.env.LLM_API_MODE || 'openai'
 } : null;
+const googlePlaces = process.env.GOOGLE_PLACES_API_KEY && process.env.GOOGLE_PLACES_ENABLED === 'true' ? {
+  key: process.env.GOOGLE_PLACES_API_KEY,
+  endpoint: 'https://places.googleapis.com/v1/places:searchNearby'
+} : null;
 const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people', 'parking', 'zbe', 'budget', 'priority', 'risk'];
 const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
   .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
@@ -755,6 +759,51 @@ app.post('/api/analyze', async (req, res) => {
   const report = { intent: typeof body.intent === 'string' ? body.intent.slice(0, 40) : 'buy', category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'No indicada', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
   const generated = await requestLlmNarrative(report);
   res.json({ narrative: generated.narrative, llmStatus: generated.status });
+});
+
+app.post('/api/dealers/search', async (req, res) => {
+  if (!googlePlaces) return res.status(503).json({ ok: false, configured: false, message: 'La búsqueda local aún no está activa.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {};
+  const latitude = Number(body.latitude), longitude = Number(body.longitude), radius = Number(body.radius || 10);
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || ![5, 10, 25, 50].includes(radius)) {
+    return res.status(400).json({ ok: false, message: 'Ubicación o radio no válidos.' });
+  }
+  try {
+    const response = await fetch(googlePlaces.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': googlePlaces.key, 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.types' },
+      body: JSON.stringify({ includedPrimaryTypes: ['car_dealer'], maxResultCount: 20, rankPreference: 'DISTANCE', locationRestriction: { circle: { center: { latitude, longitude }, radius: radius * 1000 } } }),
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error(`Places ${response.status}`);
+    const payload = await response.json();
+    const places = Array.isArray(payload.places) ? payload.places.map((place) => ({ id: place.id || null, name: place.displayName?.text || 'Concesionario sin nombre', address: place.formattedAddress || null, location: place.location || null, phone: place.nationalPhoneNumber || null, website: place.websiteUri || null, mapsUrl: place.googleMapsUri || null, types: Array.isArray(place.types) ? place.types : [] })) : [];
+    return res.json({ ok: true, source: 'Google Places API (New)', radius, places });
+  } catch (error) {
+    console.error('Dealer search unavailable:', error.message);
+    return res.status(502).json({ ok: false, message: 'No se han podido consultar opciones locales.' });
+  }
+});
+
+app.post('/api/dealers/geocode', async (req, res) => {
+  if (!googlePlaces) return res.status(503).json({ ok: false, configured: false, message: 'La búsqueda local aún no está activa.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const address = typeof req.body?.address === 'string' ? req.body.address.trim().slice(0, 120) : '';
+  if (!address) return res.status(400).json({ ok: false, message: 'Introduce una localidad o código postal.' });
+  try {
+    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+    url.searchParams.set('address', address); url.searchParams.set('region', 'es'); url.searchParams.set('language', 'es'); url.searchParams.set('key', googlePlaces.key);
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!response.ok) throw new Error(`Geocoding ${response.status}`);
+    const payload = await response.json();
+    const first = payload.results?.[0];
+    if (!first?.geometry?.location) return res.status(404).json({ ok: false, message: 'No hemos encontrado esa zona.' });
+    return res.json({ ok: true, location: { latitude: first.geometry.location.lat, longitude: first.geometry.location.lng }, formattedAddress: first.formatted_address || address });
+  } catch (error) {
+    console.error('Dealer geocode unavailable:', error.message);
+    return res.status(502).json({ ok: false, message: 'No se ha podido localizar esa zona.' });
+  }
 });
 
 app.post('/api/leads', async (req, res) => {
