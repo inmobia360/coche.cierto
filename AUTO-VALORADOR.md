@@ -179,6 +179,19 @@ Cada iniciativa debe dejar, según corresponda: spec, revisión de clarificació
 
 Una tarea termina solo cuando sus criterios observables están cumplidos, las pruebas relevantes pasan, la documentación está actualizada y quedan anotados los riesgos no verificables.
 
+## Registro de versión protegida
+
+**Versión de referencia:** `v2.1.0` — **CocheCierto Auto-Valorador 2.1, versión validada/estable**
+**Commit de referencia:** `08f6d66`
+**Fecha y hora de registro:** 2026-09-03 18:16:53 (Europe/Madrid)
+**Estado:** versión buena, sincronizada en local, GitHub y Hostinger.
+
+### Directiva para Secretaría y todos los agentes
+
+Secretaría deberá notificar y conservar este registro como la versión oficial de referencia, incluyendo nombre, fecha, hora, etiqueta y commit. Todos los agentes deberán trabajar contra esta versión y no podrán realizar cambios que alteren el flujo funcional, el embudo, el consentimiento, la entrega por email, la generación/descarga del informe o sus criterios de seguridad.
+
+Solo se podrá modificar este flujo cuando exista una petición expresa por escrito del propietario, recibida y registrada por `AUTO-VALORADOR.md`. Antes de implementar cualquier cambio, el agente deberá documentar el alcance, la autorización recibida, los archivos afectados, las pruebas y la decisión de mantener o actualizar la versión de referencia. Una sugerencia, hipótesis, comentario de un agente o instrucción no confirmada por el propietario no constituye autorización.
+
 ## Formato de respuesta
 
 Comienza por el veredicto. Resume decisiones y cambios. Incluye evidencia concreta, pruebas ejecutadas, riesgos pendientes y el siguiente handoff. Si falta una decisión del propietario, detente antes de implementarla.
