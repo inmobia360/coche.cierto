@@ -209,7 +209,7 @@ const loadAirtableReport = async (token) => {
   let details = {};
   try { details = JSON.parse(fields.Notes || '{}'); } catch { return null; }
   if (!details.expiresAt || new Date(details.expiresAt).getTime() <= Date.now()) return null;
-  return { email: fields.Email, category: details.recommendedCategory, usageType: details.usageType, purchaseWindow: details.purchaseWindow, priority: details.priority || 'No indicada', situation: details.situation || 'unknown', answers: cleanAnswers(details.answers), narrative: details.narrative || null, consentCommercial: details.consentCommercial === true, expiresAt: new Date(details.expiresAt).getTime(), verified: fields.Status === 'validada' };
+  return { airtableRecordId: result.records[0].id, email: fields.Email, category: details.recommendedCategory, usageType: details.usageType, purchaseWindow: details.purchaseWindow, priority: details.priority || 'No indicada', situation: details.situation || 'unknown', answers: cleanAnswers(details.answers), narrative: details.narrative || null, consentCommercial: details.consentCommercial === true, expiresAt: new Date(details.expiresAt).getTime(), verified: fields.Status === 'validada' };
 };
 
 app.use(helmet());
@@ -793,14 +793,24 @@ app.get('/api/verify-email', async (req, res) => {
   if (!report) { try { report = await loadAirtableReport(received); if (report) addReport(received, report); } catch (error) { console.error('No se pudo consultar Airtable:', error.message); } }
   if (!report) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
   report.verified = true;
+  if (pool) await pool.execute('UPDATE leads SET verified_at = NOW() WHERE verification_token_hash = ?', [hash(received)]);
+  if (airtable && report.airtableRecordId) {
+    try {
+      await airtableRequest(`${airtableUrl(airtable.leadsTable)}/${report.airtableRecordId}`, { method: 'PATCH', body: JSON.stringify({ fields: { Status: 'validada' } }) });
+    } catch (error) { console.error('No se pudo marcar el lead como validado en Airtable:', error.message); }
+  }
   res.json({ verified: true, message: 'Email validado. Ya puedes descargar el informe.', downloadUrl: `/api/report.pdf?token=${received}`, expiresAt: new Date(report.expiresAt).toISOString() });
 });
 
 app.get('/api/report.pdf', async (req, res) => {
   const token = String(req.query.token || '');
-  const report = getReport(token);
+  let report = getReport(token);
+  if (!report) {
+    try { report = await loadAirtableReport(token); if (report) addReport(token, report); }
+    catch (error) { console.error('No se pudo recuperar el informe para descargarlo:', error.message); }
+  }
   if (!report || !report.verified) return res.status(403).json({ error: 'Primero valida tu email o solicita un nuevo informe.' });
-  await writeReportPdfStyled(res, report, token);
+  await writeReportPdfStyled(res, report);
 });
 
 app.listen(port, () => console.log(`CocheCierto API escuchando en http://localhost:${port}`));
