@@ -4,7 +4,7 @@ declare(strict_types=1);
 // Proxy same-origin para la API Node alojada en api.cochecierto.com.
 // No guarda tokens ni datos: solo reenvía la petición al backend.
 $route = $_GET['route'] ?? '';
-if (!in_array($route, ['leads', 'verify-email', 'report.pdf'], true)) {
+if (!in_array($route, ['leads', 'verify-email', 'report.pdf', 'share-report', 'shared-report'], true)) {
     http_response_code(404);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Ruta no encontrada']);

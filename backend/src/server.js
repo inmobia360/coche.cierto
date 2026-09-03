@@ -8,6 +8,8 @@ import nodemailer from 'nodemailer';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -26,7 +28,11 @@ if (mailer) {
 const attempts = new Map();
 const pendingReports = new Map();
 const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const resourcesUrl = `${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/guias/`;
+const reportBaseUrl = process.env.REPORT_BASE_URL || 'https://cochecierto.com';
+const resourcesUrl = `${reportBaseUrl}/guias/`;
+const sharedReportUrl = (token) => `${reportBaseUrl}/api/shared-report?token=${encodeURIComponent(token)}`;
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const PDF_LOGO_PATH = path.join(projectRoot, 'valorador', 'brand-lockup-official.png');
 const PDF_FONT_REGULAR = fs.existsSync('C:\\Windows\\Fonts\\arial.ttf') ? 'C:\\Windows\\Fonts\\arial.ttf' : 'Helvetica';
 const PDF_FONT_BOLD = fs.existsSync('C:\\Windows\\Fonts\\arialbd.ttf') ? 'C:\\Windows\\Fonts\\arialbd.ttf' : 'Helvetica-Bold';
 const resources = [
@@ -213,6 +219,7 @@ app.use(express.json({ limit: '32kb' }));
 
 const required = (body, fields) => fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 const rateLimit = (key) => { const now = Date.now(); const recent = (attempts.get(key) || []).filter((time) => now - time < 60_000); if (recent.length >= 10) return false; recent.push(now); attempts.set(key, recent); return true; };
 const createReportToken = () => crypto.randomBytes(32).toString('hex');
 const cleanReports = () => { const now = Date.now(); for (const [token, report] of pendingReports) if (report.expiresAt <= now) pendingReports.delete(token); };
@@ -221,6 +228,11 @@ const getReport = (token) => { cleanReports(); const report = pendingReports.get
 const drawBrandLogo = (doc) => {
   const x = doc.x;
   const y = doc.y;
+  if (fs.existsSync(PDF_LOGO_PATH)) {
+    doc.image(PDF_LOGO_PATH, x, y, { width: 150 });
+    doc.y = y + 48;
+    return;
+  }
   doc.save().lineWidth(4).strokeColor('#082333').circle(x + 14, y + 14, 12).stroke()
     .lineWidth(3.5).strokeColor('#fc4c02').moveTo(x + 8, y + 14).lineTo(x + 13, y + 19).lineTo(x + 22, y + 9).stroke().restore();
   doc.fillColor('#082333').font('Helvetica-Bold').fontSize(18).text('Coche', x + 34, y + 5, { continued: true })
@@ -228,10 +240,10 @@ const drawBrandLogo = (doc) => {
   doc.y = y + 34;
 };
 const drawMetricCard = (doc, x, y, width, label, value, note, accent) => {
-  doc.save().fillColor('#ffffff').strokeColor('#d7e2df').lineWidth(1).roundedRect(x, y, width, 72, 8).fillAndStroke().restore();
+  doc.save().fillColor('#ffffff').strokeColor('#d7e2df').lineWidth(1).roundedRect(x, y, width, 84, 8).fillAndStroke().restore();
   doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(label, x + 10, y + 10, { width: width - 20 });
-  doc.fillColor(accent || '#082333').font('Helvetica-Bold').fontSize(18).text(value, x + 10, y + 27, { width: width - 20 });
-  doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(note, x + 10, y + 52, { width: width - 20 });
+  doc.fillColor(accent || '#082333').font('Helvetica-Bold').fontSize(11.5).text(value, x + 10, y + 29, { width: width - 20, lineBreak: false });
+  doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(note, x + 10, y + 64, { width: width - 20, lineBreak: false });
 };
 const situationPack = (report) => {
   const packs = {
@@ -385,7 +397,7 @@ const writeReportPdfLegacy = async (res, report) => {
     doc.font('Helvetica').fontSize(11).fillColor('#58717d').text(intro);
   };
   const writeCheckRows = (items) => items.forEach((item) => {
-    doc.moveDown(.45).font('Helvetica-Bold').fillColor('#fc4c02').text('□', { continued: true }).fillColor('#082333').font('Helvetica').text(` ${item}`);
+    doc.moveDown(.45).font('Helvetica-Bold').fillColor('#fc4c02').text('[ ]', { continued: true }).fillColor('#082333').font('Helvetica').text(` ${item}`);
   });
   reportPage('ANALIZAR UN ANUNCIO', 'Ficha reutilizable de una unidad', 'Rellénala para cada candidato y conserva la evidencia que el vendedor aporte.');
   doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Datos del anuncio');
@@ -494,18 +506,21 @@ const pdfPageTop = (doc, kicker, title, intro) => {
   return 196;
 };
 const pdfHeaderFixed = (doc, x, width) => {
-  doc.save().lineWidth(4).strokeColor(PDF_COLORS.navy).circle(x + 14, 60, 12).stroke()
-    .lineWidth(3.5).strokeColor(PDF_COLORS.orange).moveTo(x + 8, 60).lineTo(x + 13, 65).lineTo(x + 22, 55).stroke().restore();
+  if (fs.existsSync(PDF_LOGO_PATH)) doc.image(PDF_LOGO_PATH, x, 45, { width: 150 });
+  else {
+    doc.save().lineWidth(4).strokeColor(PDF_COLORS.navy).circle(x + 14, 60, 12).stroke().lineWidth(3.5).strokeColor(PDF_COLORS.orange).moveTo(x + 8, 60).lineTo(x + 13, 65).lineTo(x + 22, 55).stroke().restore();
     pdfText(doc, 'Coche', x + 34, 51, 82, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 17, lineBreak: false });
     pdfText(doc, 'Cierto', x + 112, 51, 78, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 17, lineBreak: false });
-  pdfRule(doc, x, 91, width, PDF_COLORS.orange);
+  }
+  pdfRule(doc, x, 96, width, PDF_COLORS.orange);
 };
-const writeReportPdfStyled = async (res, inputReport) => {
+const writeReportPdfStyled = async (res, inputReport, shareToken = null) => {
   const report = completeReportContext(inputReport);
   report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
   const situation = situationPack(report);
   const budget = budgetGuidance(report.answers?.budget);
-  const qr = await QRCode.toDataURL(resourcesUrl, { margin: 1, width: 132 });
+  const shareUrl = shareToken ? sharedReportUrl(shareToken) : resourcesUrl;
+  const qr = await QRCode.toDataURL(shareUrl, { margin: 2, width: 132, errorCorrectionLevel: 'M' });
   let ineContext = 'No disponible en esta consulta';
   try {
     const response = await fetch(INE_SOURCE_URL, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
@@ -528,7 +543,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   let renderedPages = 0;
   const newPage = (kicker, title, intro) => { if (renderedPages > 0) doc.addPage(); renderedPages += 1; return pdfPageTop(doc, kicker, title, intro); };
   const sectionLabel = (label, y) => pdfText(doc, label, x, y, contentWidth, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 12 });
-  const smallCard = (label, value, note, cx, cy, cw, accent) => { pdfCard(doc, cx, cy, cw, 70, { accent }); pdfText(doc, label, cx + 12, cy + 11, cw - 24, { color: PDF_COLORS.muted, size: 8 }); pdfText(doc, value, cx + 12, cy + 28, cw - 24, { color: accent || PDF_COLORS.navy, font: 'Helvetica-Bold', size: 14 }); pdfText(doc, note, cx + 12, cy + 51, cw - 24, { color: PDF_COLORS.muted, size: 7.5 }); };
+  const smallCard = (label, value, note, cx, cy, cw, accent) => { pdfCard(doc, cx, cy, cw, 84, { accent }); pdfText(doc, label, cx + 12, cy + 11, cw - 24, { color: PDF_COLORS.muted, size: 8 }); pdfText(doc, value, cx + 12, cy + 29, cw - 24, { color: accent || PDF_COLORS.navy, font: 'Helvetica-Bold', size: 11.5, lineBreak: false }); pdfText(doc, note, cx + 12, cy + 64, cw - 24, { color: PDF_COLORS.muted, size: 7.5, lineBreak: false }); };
 
   // 1. Portada: una lectura editorial, no una pared de texto.
   let y = newPage('Informe de orientación · versión beta', `Tu guía personal de compra`, 'El coche que te conviene y cómo comprarlo con criterio. Una hoja de ruta basada en tus respuestas, con comprobaciones para una unidad concreta.');
@@ -545,7 +560,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   smallCard('Presupuesto', readableAnswer('budget', report.answers?.budget), 'total disponible', x + cw + 6, y, cw, PDF_COLORS.green);
   smallCard('Prioridad', readableAnswer('priority', report.priority), 'criterio principal', x + (cw + 6) * 2, y, cw, PDF_COLORS.orange);
   smallCard('Confianza', 'Orientativa', 'unidad por verificar', x + (cw + 6) * 3, y, cw, PDF_COLORS.navy);
-  y += 95;
+  y += 108;
   sectionLabel('Lectura personalizada', y);
   pdfText(doc, report.narrative?.summary || 'Esta orientación ordena tus respuestas para ayudarte a decidir con más margen.', x, y + 23, contentWidth, { size: 11, lineGap: 3 });
   pdfText(doc, report.narrative?.profileReading || `Tu decisión debe priorizar ${situation[1]}.`, x, y + 55, contentWidth, { color: PDF_COLORS.muted, size: 10, lineGap: 2 });
@@ -625,7 +640,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   const docs = ['Identidad y titularidad del vendedor', 'Permiso de circulación y ficha técnica', 'ITV y kilometraje registrado', 'Informe DGT y cargas', 'Embargos, precintos y reserva de dominio', 'Impuesto municipal al corriente', 'Historial de mantenimiento y facturas', 'Contrato / factura y garantía cuando corresponda'];
   pdfCard(doc, x, y, contentWidth, 38, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
   pdfText(doc, 'DOCUMENTO', x + 16, y + 12, 230, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 }); pdfText(doc, 'QUÉ CONFIRMAR', x + 265, y + 12, 125, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 }); pdfText(doc, 'RESULTADO', x + 410, y + 12, 65, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 });
-  docs.forEach((item, i) => { const ry = y + 40 + i * 40; pdfCard(doc, x, ry, contentWidth, 34, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 3 }); pdfText(doc, item, x + 16, ry + 9, 230, { color: PDF_COLORS.ink, font: 'Helvetica-Bold', size: 8.5 }); pdfText(doc, i < 3 ? 'Identidad, vigencia y coincidencia' : 'Documento, fecha, titular y limitaciones', x + 265, ry + 9, 130, { color: PDF_COLORS.muted, size: 7.5 }); pdfText(doc, '□ Correcto   □ Falta   □ Duda', x + 407, ry + 9, 75, { color: PDF_COLORS.navy, size: 7.2 }); });
+  docs.forEach((item, i) => { const ry = y + 40 + i * 40; pdfCard(doc, x, ry, contentWidth, 34, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 3 }); pdfText(doc, item, x + 16, ry + 9, 230, { color: PDF_COLORS.ink, font: 'Helvetica-Bold', size: 8.5 }); pdfText(doc, i < 3 ? 'Identidad, vigencia y coincidencia' : 'Documento, fecha, titular y limitaciones', x + 265, ry + 9, 130, { color: PDF_COLORS.muted, size: 7.5 }); pdfText(doc, '[ ] Correcto   [ ] Falta   [ ] Duda', x + 407, ry + 9, 75, { color: PDF_COLORS.navy, size: 7.2 }); });
   y += 40 + docs.length * 40 + 22;
   pdfCard(doc, x, y, contentWidth, 66, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
   pdfText(doc, 'Antes de desplazarte', x + 18, y + 14, 200, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9 });
@@ -640,7 +655,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   pdfCard(doc, x, y, contentWidth, 92, { fill: PDF_COLORS.pale, accent: PDF_COLORS.green });
   pdfText(doc, 'Cuándo pedir ayuda profesional', x + 18, y + 16, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 11 });
   pdfText(doc, 'Si hay dudas, historial incompleto, antigüedad o kilometraje elevados, pocos conocimientos mecánicos o un valor económico relevante, reserva una inspección independiente antes de pagar.', x + 18, y + 39, contentWidth - 36, { color: PDF_COLORS.ink, size: 9.5, lineGap: 2 });
-  pdfText(doc, 'Resultado de la visita:  □ Avanzar   □ Pedir más evidencia   □ Inspección   □ Descartar', x + 18, y + 69, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.5 });
+  pdfText(doc, 'Resultado de la visita:  [ ] Avanzar   [ ] Pedir más evidencia   [ ] Inspección   [ ] Descartar', x + 18, y + 69, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.5 });
 
   // 8. Cierre.
   y = newPage('07 · Compra', 'Negociación y cierre seguro', 'Negocia después de verificar. El objetivo no es solo bajar el precio: es dejar claras las condiciones y conservar trazabilidad.');
@@ -651,7 +666,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   pdfText(doc, 'Condiciones que deben quedar escritas', x + 18, y + 16, contentWidth - 36, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9 });
   pdfText(doc, 'Partes: ____________________   Vehículo: ____________________   Importe: __________', x + 18, y + 39, contentWidth - 36, { size: 9 });
   pdfText(doc, 'Finalidad de la señal: ____________________   Fecha: __________   Desistimiento: ____________________', x + 18, y + 62, contentWidth - 36, { size: 9 });
-  pdfText(doc, 'Decisión:  □ Comprar   □ Negociar   □ Inspección   □ Seguir buscando   □ Descartar', x + 18, y + 84, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.5 });
+  pdfText(doc, 'Decisión:  [ ] Comprar   [ ] Negociar   [ ] Inspección   [ ] Seguir buscando   [ ] Descartar', x + 18, y + 84, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.5 });
 
   // 9. Postcompra.
   y = newPage('08 · Después', 'Las primeras horas también cuentan', 'Una compra segura conserva evidencias y convierte los primeros días en un control de seguridad, garantía y coste real.');
@@ -667,19 +682,19 @@ const writeReportPdfStyled = async (res, inputReport) => {
   const candidates = ['Candidato A', 'Candidato B', 'Candidato C'];
   pdfCard(doc, x, y, contentWidth, 43, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
   pdfText(doc, 'CRITERIO', x + 14, y + 14, 190, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 }); candidates.forEach((name, i) => pdfText(doc, name, x + 205 + i * 90, y + 14, 82, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8, align: 'center' }));
-  ['Encaje con uso, ocupantes, vías y ZBE', 'Precio total, gastos y reserva', 'Historial, documentación y garantía', 'Estado físico y mecánico pendiente', 'Seguridad, consumo y mantenimiento', 'Confianza y condiciones de cierre'].forEach((label, i) => { const ry = y + 45 + i * 31; pdfCard(doc, x, ry, contentWidth, 27, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 2 }); pdfText(doc, label, x + 14, ry + 8, 190, { color: PDF_COLORS.ink, size: 7.8 }); candidates.forEach((_, j) => pdfText(doc, '□ Sí  □ Pend.', x + 207 + j * 90, ry + 8, 82, { color: PDF_COLORS.muted, size: 7.2, align: 'center' })); });
+  ['Encaje con uso, ocupantes, vías y ZBE', 'Precio total, gastos y reserva', 'Historial, documentación y garantía', 'Estado físico y mecánico pendiente', 'Seguridad, consumo y mantenimiento', 'Confianza y condiciones de cierre'].forEach((label, i) => { const ry = y + 45 + i * 31; pdfCard(doc, x, ry, contentWidth, 27, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 2 }); pdfText(doc, label, x + 14, ry + 8, 190, { color: PDF_COLORS.ink, size: 7.8 }); candidates.forEach((_, j) => pdfText(doc, '[ ] Sí  [ ] Pend.', x + 207 + j * 90, ry + 8, 82, { color: PDF_COLORS.muted, size: 7.2, align: 'center' })); });
   y += 45 + 6 * 31 + 22;
   pdfCard(doc, x, y, contentWidth, 75, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
   pdfText(doc, 'MI DECISIÓN', x + 18, y + 14, 150, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: .7 });
-  pdfText(doc, '□ Comprar   □ Negociar   □ Solicitar inspección   □ Seguir buscando   □ Descartar', x + 18, y + 33, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 9 });
+  pdfText(doc, '[ ] Comprar   [ ] Negociar   [ ] Solicitar inspección   [ ] Seguir buscando   [ ] Descartar', x + 18, y + 33, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 9 });
   pdfText(doc, 'Motivo: __________________________________________________________________________________', x + 18, y + 53, contentWidth - 36, { color: PDF_COLORS.ink, size: 8.5 });
   y += 98;
-  pdfCard(doc, x, y, contentWidth, 112, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
+  pdfCard(doc, x, y, contentWidth, 132, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
   pdfText(doc, 'CONTINÚA CON MÁS HERRAMIENTAS', x + 18, y + 16, 280, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: .7 });
-  doc.image(qr, x + 18, y + 35, { width: 78 });
+  doc.image(qr, x + 18, y + 39, { width: 72 });
   pdfText(doc, 'Guías, listas de comprobación y fuentes oficiales para seguir tomando decisiones con criterio.', x + 115, y + 38, 350, { color: PDF_COLORS.white, size: 9.5, lineGap: 2 });
-  pdfText(doc, resourcesUrl, x + 115, y + 70, 350, { color: '#c5d7de', font: 'Helvetica-Bold', size: 9 });
-  pdfText(doc, 'El enlace privado será válido durante 7 días; la caducidad afecta al enlace, no al PDF descargado.', x + 115, y + 87, 350, { color: '#c5d7de', size: 7.5, lineGap: 1 });
+  pdfText(doc, shareUrl, x + 115, y + 70, 350, { color: '#c5d7de', font: 'Helvetica-Bold', size: 8, lineGap: 1 });
+  pdfText(doc, shareToken ? 'Enlace privado para compartir; caduca en 7 días. El PDF descargado no caduca.' : 'Acceso a recursos y listas de comprobación de CocheCierto.', x + 115, y + 91, 350, { color: '#c5d7de', size: 7.5, lineGap: 1 });
   const pageRange = doc.bufferedPageRange();
   for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
     doc.switchToPage(pageRange.start + pageIndex);
@@ -743,6 +758,31 @@ app.post('/api/analyze', async (req, res) => {
   res.json({ narrative: generated.narrative, llmStatus: generated.status });
 });
 
+app.post('/api/share-report', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {};
+  const report = { intent: typeof body.intent === 'string' ? body.intent.slice(0, 40) : 'buy', category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'unknown', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
+  const token = createReportToken();
+  const generated = await requestLlmNarrative(report);
+  report.narrative = generated.narrative;
+  report.llmStatus = generated.status;
+  addReport(token, report);
+  res.status(201).json({ url: sharedReportUrl(token), expiresAt: new Date(Date.now() + REPORT_TTL_MS).toISOString() });
+});
+
+app.get('/api/shared-report', async (req, res) => {
+  const token = String(req.query.token || '');
+  if (!/^[a-f0-9]{64}$/.test(token)) return res.status(404).type('html').send('<h1>Enlace no disponible</h1><p>Este enlace no es válido.</p>');
+  let report = getReport(token);
+  if (!report) { try { report = await loadAirtableReport(token); if (report) addReport(token, report); } catch (error) { console.error('No se pudo consultar el informe compartido:', error.message); } }
+  if (!report) return res.status(404).type('html').send('<h1>Enlace caducado</h1><p>Solicita un nuevo enlace privado desde CocheCierto.</p>');
+  const context = completeReportContext(report);
+  const narrative = context.narrative || fallbackNarrative(context);
+  const answerRows = [['Uso', readableAnswer('use', context.answers?.use)], ['Presupuesto', readableAnswer('budget', context.answers?.budget)], ['Prioridad', readableAnswer('priority', context.priority)], ['Kilómetros', readableAnswer('km', context.answers?.km)]];
+  const list = (items) => (items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+  res.type('html').send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe compartido · CocheCierto</title><style>body{margin:0;background:#f3f7f6;color:#173746;font:16px/1.55 Arial,sans-serif}.wrap{max-width:860px;margin:0 auto;padding:28px 18px 48px}.brand{display:inline-block;padding:10px 14px;background:#fff;border-radius:10px;font-weight:800;color:#082333;box-shadow:0 4px 16px #0823331a}.brand b{color:#fc4c02}.hero,.card{margin-top:18px;padding:24px;border-radius:16px;background:#fff;border:1px solid #d7e2df}.hero{background:#082d46;color:#fff}.hero h1{margin:8px 0;font-size:clamp(28px,5vw,48px);line-height:1.05}.eyebrow{color:#fc4c02;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{padding:14px;border-radius:10px;background:#eef5f3}.metric small{display:block;color:#58717d}.metric strong{display:block;margin-top:4px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card h2{margin-top:0;color:#082333}.card li+li{margin-top:7px}.notice{margin-top:18px;padding:16px;border-left:4px solid #fc4c02;background:#fff7f2}@media(max-width:640px){.metrics,.cols{grid-template-columns:1fr 1fr}.hero,.card{padding:18px}} </style></head><body><main class="wrap"><div class="brand">Coche<b>Cierto</b></div><section class="hero"><div class="eyebrow">Informe compartido</div><h1>Busco un ${escapeHtml(context.category || 'vehículo por concretar')}</h1><p>Una orientación personal para comparar opciones y comprobarlas antes de comprometer dinero.</p></section><section class="card"><div class="metrics">${answerRows.map(([label, value]) => `<div class="metric"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`).join('')}</div></section><section class="card"><h2>Lectura de la búsqueda</h2><p>${escapeHtml(narrative.summary)}</p><p>${escapeHtml(narrative.profileReading)}</p><div class="cols"><div><h3>Prioridades</h3><ul>${list(narrative.priorities)}</ul></div><div><h3>Riesgos a comprobar</h3><ul>${list(narrative.risks)}</ul></div></div><div class="notice"><strong>Siguiente paso:</strong> ${escapeHtml(narrative.nextStep)}</div></section><p style="color:#58717d;font-size:13px">Enlace privado temporal. No es una tasación, un peritaje ni una garantía mecánica. <a href="https://cochecierto.com/valorador/">Crear mi propia orientación</a></p></main></body></html>`);
+});
+
 app.post('/api/leads', async (req, res) => {
   if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
   const body = req.body || {};
@@ -786,7 +826,7 @@ app.get('/api/report.pdf', async (req, res) => {
   const token = String(req.query.token || '');
   const report = getReport(token);
   if (!report || !report.verified) return res.status(403).json({ error: 'Primero valida tu email o solicita un nuevo informe.' });
-  await writeReportPdfStyled(res, report);
+  await writeReportPdfStyled(res, report, token);
 });
 
 app.listen(port, () => console.log(`CocheCierto API escuchando en http://localhost:${port}`));
