@@ -30,7 +30,6 @@ const pendingReports = new Map();
 const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const reportBaseUrl = process.env.REPORT_BASE_URL || 'https://cochecierto.com';
 const resourcesUrl = `${reportBaseUrl}/recursos/`;
-const sharedReportUrl = (token) => `${reportBaseUrl}/api/shared-report?token=${encodeURIComponent(token)}`;
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PDF_LOGO_PATH = path.join(projectRoot, 'valorador', 'brand-lockup-official.png');
 const PDF_FONT_REGULAR = fs.existsSync('C:\\Windows\\Fonts\\arial.ttf') ? 'C:\\Windows\\Fonts\\arial.ttf' : 'Helvetica';
@@ -219,7 +218,6 @@ app.use(express.json({ limit: '32kb' }));
 
 const required = (body, fields) => fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
-const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 const rateLimit = (key) => { const now = Date.now(); const recent = (attempts.get(key) || []).filter((time) => now - time < 60_000); if (recent.length >= 10) return false; recent.push(now); attempts.set(key, recent); return true; };
 const createReportToken = () => crypto.randomBytes(32).toString('hex');
 const cleanReports = () => { const now = Date.now(); for (const [token, report] of pendingReports) if (report.expiresAt <= now) pendingReports.delete(token); };
@@ -756,31 +754,6 @@ app.post('/api/analyze', async (req, res) => {
   const report = { intent: typeof body.intent === 'string' ? body.intent.slice(0, 40) : 'buy', category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'No indicada', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
   const generated = await requestLlmNarrative(report);
   res.json({ narrative: generated.narrative, llmStatus: generated.status });
-});
-
-app.post('/api/share-report', async (req, res) => {
-  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
-  const body = req.body || {};
-  const report = { intent: typeof body.intent === 'string' ? body.intent.slice(0, 40) : 'buy', category: typeof body.category === 'string' ? body.category.slice(0, 80) : 'pendiente', usageType: body.usageType === 'professional' ? 'professional' : 'private', purchaseWindow: typeof body.purchaseWindow === 'string' ? body.purchaseWindow.slice(0, 40) : 'unknown', priority: typeof body.priority === 'string' ? body.priority.slice(0, 80) : 'unknown', situation: typeof body.situation === 'string' ? body.situation.slice(0, 80) : 'unknown', answers: cleanAnswers(body.answers) };
-  const token = createReportToken();
-  const generated = await requestLlmNarrative(report);
-  report.narrative = generated.narrative;
-  report.llmStatus = generated.status;
-  addReport(token, report);
-  res.status(201).json({ url: sharedReportUrl(token), expiresAt: new Date(Date.now() + REPORT_TTL_MS).toISOString() });
-});
-
-app.get('/api/shared-report', async (req, res) => {
-  const token = String(req.query.token || '');
-  if (!/^[a-f0-9]{64}$/.test(token)) return res.status(404).type('html').send('<h1>Enlace no disponible</h1><p>Este enlace no es válido.</p>');
-  let report = getReport(token);
-  if (!report) { try { report = await loadAirtableReport(token); if (report) addReport(token, report); } catch (error) { console.error('No se pudo consultar el informe compartido:', error.message); } }
-  if (!report) return res.status(404).type('html').send('<h1>Enlace caducado</h1><p>Solicita un nuevo enlace privado desde CocheCierto.</p>');
-  const context = completeReportContext(report);
-  const narrative = context.narrative || fallbackNarrative(context);
-  const answerRows = [['Uso', readableAnswer('use', context.answers?.use)], ['Presupuesto', readableAnswer('budget', context.answers?.budget)], ['Prioridad', readableAnswer('priority', context.priority)], ['Kilómetros', readableAnswer('km', context.answers?.km)]];
-  const list = (items) => (items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-  res.type('html').send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe compartido · CocheCierto</title><style>body{margin:0;background:#f3f7f6;color:#173746;font:16px/1.55 Arial,sans-serif}.wrap{max-width:860px;margin:0 auto;padding:28px 18px 48px}.brand{display:inline-block;padding:10px 14px;background:#fff;border-radius:10px;font-weight:800;color:#082333;box-shadow:0 4px 16px #0823331a}.brand b{color:#fc4c02}.hero,.card{margin-top:18px;padding:24px;border-radius:16px;background:#fff;border:1px solid #d7e2df}.hero{background:#082d46;color:#fff}.hero h1{margin:8px 0;font-size:clamp(28px,5vw,48px);line-height:1.05}.eyebrow{color:#fc4c02;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{padding:14px;border-radius:10px;background:#eef5f3}.metric small{display:block;color:#58717d}.metric strong{display:block;margin-top:4px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card h2{margin-top:0;color:#082333}.card li+li{margin-top:7px}.notice{margin-top:18px;padding:16px;border-left:4px solid #fc4c02;background:#fff7f2}@media(max-width:640px){.metrics,.cols{grid-template-columns:1fr 1fr}.hero,.card{padding:18px}} </style></head><body><main class="wrap"><div class="brand">Coche<b>Cierto</b></div><section class="hero"><div class="eyebrow">Informe compartido</div><h1>Busco un ${escapeHtml(context.category || 'vehículo por concretar')}</h1><p>Una orientación personal para comparar opciones y comprobarlas antes de comprometer dinero.</p></section><section class="card"><div class="metrics">${answerRows.map(([label, value]) => `<div class="metric"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`).join('')}</div></section><section class="card"><h2>Lectura de la búsqueda</h2><p>${escapeHtml(narrative.summary)}</p><p>${escapeHtml(narrative.profileReading)}</p><div class="cols"><div><h3>Prioridades</h3><ul>${list(narrative.priorities)}</ul></div><div><h3>Riesgos a comprobar</h3><ul>${list(narrative.risks)}</ul></div></div><div class="notice"><strong>Siguiente paso:</strong> ${escapeHtml(narrative.nextStep)}</div></section><p style="color:#58717d;font-size:13px">Enlace privado temporal. No es una tasación, un peritaje ni una garantía mecánica. <a href="https://cochecierto.com/valorador/">Crear mi propia orientación</a></p></main></body></html>`);
 });
 
 app.post('/api/leads', async (req, res) => {
