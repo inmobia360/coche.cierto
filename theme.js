@@ -51,13 +51,10 @@
   function updateLogo(isLight) {
     const logos = document.querySelectorAll('.brand-lockup img, .site-brand img');
     logos.forEach(img => {
-      const isSubdir = window.location.pathname.includes('/como-funciona/') ||
-                       window.location.pathname.includes('/que-analizamos/') ||
-                       window.location.pathname.includes('/demo/') ||
-                       window.location.pathname.includes('/recursos/') ||
-                       window.location.pathname.includes('/valorador/') ||
-                       window.location.pathname.includes('/analizar-coche/');
-      const base = isSubdir ? '../' : './';
+      const normalizedPath = window.location.pathname.replace(/\/index\.html$/, '/');
+      const pathParts = normalizedPath.split('/').filter(Boolean);
+      const pathDepth = normalizedPath.endsWith('/') ? pathParts.length : Math.max(0, pathParts.length - 1);
+      const base = pathDepth ? '../'.repeat(pathDepth) : './';
       const targetLogo = isLight ? base + 'brand-symbol-light.svg' : base + 'brand-symbol.svg';
       if (img.getAttribute('src') !== targetLogo) {
         img.src = targetLogo;
