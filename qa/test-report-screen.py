@@ -23,14 +23,12 @@ with sync_playwright() as p:
     page.route("**/api/leads", lambda route: route.abort())
     page.goto(f"file:///{(ROOT / 'valorador' / 'index.html').as_posix()}?skipIntro=1")
     page.wait_for_load_state("networkidle")
+    page.get_by_role("button", name="Comenzar diagnóstico").click()
 
     for answer in answers:
         page.locator("label.choice", has_text=answer).first.click()
         page.locator("#next").click()
 
-    page.locator("#emailGate input[type=email]").fill("qa-screen@example.test")
-    page.locator("#emailGate input[type=checkbox]").first.check()
-    page.locator("#emailGate button[type=submit]").click()
     page.locator(".screen-report").wait_for()
 
     sections = page.locator(".screen-report-section")
@@ -50,12 +48,10 @@ with sync_playwright() as p:
     mobile = browser.new_page(viewport={"width": 390, "height": 844})
     mobile.goto(f"file:///{(ROOT / 'valorador' / 'index.html').as_posix()}?skipIntro=1")
     mobile.wait_for_load_state("networkidle")
+    mobile.get_by_role("button", name="Comenzar diagnóstico").click()
     for answer in answers:
         mobile.locator("label.choice", has_text=answer).first.click()
         mobile.locator("#next").click()
-    mobile.locator("#emailGate input[type=email]").fill("qa-screen@example.test")
-    mobile.locator("#emailGate input[type=checkbox]").first.check()
-    mobile.locator("#emailGate button[type=submit]").click()
     mobile.locator(".screen-report").wait_for()
     assert mobile.locator(".report-triad").first.evaluate("el => getComputedStyle(el).gridTemplateColumns") == "390px"
     mobile.close()

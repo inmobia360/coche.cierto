@@ -210,11 +210,17 @@
       ${section('08','Después','Las primeras horas también cuentan','Una compra segura conserva evidencias y convierte los primeros días en control de seguridad, garantía y coste real.',`<div class="timeline-grid"><article><strong>72 horas</strong><ul>${list(post72)}</ul></article><article><strong>30 días</strong><ul>${list(post30)}</ul></article><article><strong>Primer año</strong><ul>${list(postYear)}</ul></article></div><div class="report-write-grid">${field('Fecha / kilometraje')}${field('Incidencia / mantenimiento')}${field('Importe / evidencia')}${field('Siguiente vencimiento')}${field('Qué revisarás de nuevo')}</div>`)}
       ${section('09','Decisión','Comparador y decisión final','Un dato pendiente no equivale a un dato correcto. Compara hasta tres candidatos y decide solo cuando los riesgos importantes estén controlados.',`<div class="compare-table"><div class="compare-head"><span>Criterio</span><span>Candidato A</span><span>Candidato B</span><span>Candidato C</span></div>${compare.map(item=>`<div class="compare-row"><span>${esc(item)}</span><span>□ Sí · □ Pend.</span><span>□ Sí · □ Pend.</span><span>□ Sí · □ Pend.</span></div>`).join('')}</div><div class="report-write-card decision-card"><span class="eyebrow">Mi decisión</span><strong>□ Comprar &nbsp; □ Negociar &nbsp; □ Solicitar inspección &nbsp; □ Seguir buscando &nbsp; □ Descartar</strong><p>Motivo: ______________________________________________________________</p></div>`)}
       ${section('10','Siguiente paso','Tu hoja de ruta continúa','Guarda esta guía y vuelve a ella cuando tengas una unidad concreta delante.',`<div class="report-final-cta"><div><span class="eyebrow">Acción personalizada</span><h4>${esc(p.action||'Compara dos unidades equivalentes y solicita la documentación antes de desplazarte.')}</h4><p>El informe orienta la decisión; no certifica un vehículo, no es una tasación ni sustituye un peritaje.</p></div><div class="report-qr-placeholder" aria-hidden="true">↗</div></div><div class="facts-grid"><div><strong>Dato de usuario</strong><span>Uso, kilómetros, ocupantes, aparcamiento, ZBE, presupuesto y prioridades declaradas.</span></div><div><strong>Regla / estimación</strong><span>Categoría, alertas y rangos se derivan de esas respuestas.</span></div><div><strong>Pendiente</strong><span>Unidad, estado físico, historial, seguro, financiación, impuestos y normativa local.</span></div></div>${unknown.length?`<div class="notice"><strong>Aún falta concretar:</strong> ${esc(unknown.join(', '))}. Confirma esos datos antes de decidir.</div>`:''}`)}
-      <footer class="report-screen-footer"><span>CocheCierto · guía personal de compra</span><button class="button secondary" id="printReport" type="button">Imprimir / guardar PDF</button></footer>
+      <div id="leadbox"></div><footer class="report-screen-footer"><span>CocheCierto · guía personal de compra</span><div class="report-screen-actions"><button class="button secondary" id="saveReport" type="button">Guardar mi guía</button><button class="button secondary" id="printReport" type="button">Imprimir / guardar PDF</button></div></footer>
     </div>`;
     const print=document.querySelector('#printReport'); if(print) print.onclick=()=>window.print();
   }
   renderFullReport = function(r){ polishedReport(r); };
+  renderResult = function(){
+    const r=recommendation();
+    polishedReport(r);
+    const save=document.querySelector('#saveReport');
+    if(save) save.onclick=()=>renderLead(r);
+  };
 
   renderDemo=function(){
     document.body.classList.add('demo-mode');
