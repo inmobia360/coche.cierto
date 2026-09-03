@@ -267,7 +267,7 @@ const roadmapFor = (report) => [
   ['4. Antes de negociar', report.situation === 'professional-use' ? 'Calcula el coste por kilómetro y el impacto de un día parado. Confirma factura, garantía y mantenimiento.' : 'Compara al menos dos unidades equivalentes y negocia después de verificar, no solo por el precio anunciado.'],
   ['5. Antes de pagar', 'No entregues señal si existen cargas, documentación incompleta, incoherencias o rechazo a una inspección independiente.']
 ];
-const writeReportPdf = async (res, report) => {
+const writeReportPdfLegacy = async (res, report) => {
   report = completeReportContext(report);
   report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
   const situation = situationPack(report);
@@ -458,6 +458,241 @@ const writeReportPdf = async (res, report) => {
   doc.end();
 };
 
+const PDF_COLORS = {
+  navy: '#082333', ink: '#173746', muted: '#58717d', orange: '#fc4c02',
+  blue: '#0b6f9c', green: '#2fae7b', amber: '#c98518', red: '#b83a32',
+  pale: '#f3f7f6', line: '#d7e2df', white: '#ffffff'
+};
+const pdfText = (doc, value, x, y, width, options = {}) => {
+  const { color = PDF_COLORS.ink, font = 'Helvetica', size = 10, ...rest } = options;
+  return doc.fillColor(color).font(font).fontSize(size).text(String(value || ''), x, y, { width, ...rest });
+};
+const pdfCard = (doc, x, y, width, height, options = {}) => {
+  const { fill = PDF_COLORS.white, stroke = PDF_COLORS.line, radius = 10, accent } = options;
+  doc.save().fillColor(fill).strokeColor(stroke).lineWidth(1).roundedRect(x, y, width, height, radius).fillAndStroke();
+  if (accent) doc.fillColor(accent).roundedRect(x, y, 5, height, radius).fill();
+  doc.restore();
+};
+const pdfKicker = (doc, label, x, y, width) => pdfText(doc, label.toUpperCase(), x, y, width, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: 1.1 });
+const pdfTitle = (doc, title, x, y, width, size = 22) => pdfText(doc, title, x, y, width, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size, lineGap: 2 });
+const pdfRule = (doc, x, y, width, color = PDF_COLORS.line) => doc.save().strokeColor(color).lineWidth(1).moveTo(x, y).lineTo(x + width, y).stroke().restore();
+const pdfBullet = (doc, text, x, y, width, color = PDF_COLORS.ink) => {
+  doc.save().fillColor(PDF_COLORS.orange).circle(x + 3, y + 6, 2).fill().restore();
+  return pdfText(doc, text, x + 12, y, width - 12, { color, size: 9.5, lineGap: 1.5 });
+};
+const pdfField = (doc, label, x, y, width, lines = 1) => {
+  pdfText(doc, label, x, y, width, { color: PDF_COLORS.muted, font: 'Helvetica-Bold', size: 8 });
+  for (let i = 0; i < lines; i += 1) pdfRule(doc, x, y + 15 + i * 14, width, '#aebfbd');
+};
+const pdfPageTop = (doc, kicker, title, intro) => {
+  const x = doc.page.margins.left;
+  doc.x = x;
+  doc.y = doc.page.margins.top;
+  pdfKicker(doc, kicker, x, 111, 500);
+  pdfTitle(doc, title, x, 129, 500, 22);
+  if (intro) pdfText(doc, intro, x, 164, 500, { color: PDF_COLORS.muted, size: 10.5, lineGap: 2 });
+  return 196;
+};
+const pdfHeaderFixed = (doc, x, width) => {
+  doc.save().lineWidth(4).strokeColor(PDF_COLORS.navy).circle(x + 14, 60, 12).stroke()
+    .lineWidth(3.5).strokeColor(PDF_COLORS.orange).moveTo(x + 8, 60).lineTo(x + 13, 65).lineTo(x + 22, 55).stroke().restore();
+    pdfText(doc, 'Coche', x + 34, 51, 82, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 17, lineBreak: false });
+    pdfText(doc, 'Cierto', x + 112, 51, 78, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 17, lineBreak: false });
+  pdfRule(doc, x, 91, width, PDF_COLORS.orange);
+};
+const writeReportPdfStyled = async (res, inputReport) => {
+  const report = completeReportContext(inputReport);
+  report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
+  const situation = situationPack(report);
+  const budget = budgetGuidance(report.answers?.budget);
+  const qr = await QRCode.toDataURL(resourcesUrl, { margin: 1, width: 132 });
+  let ineContext = 'No disponible en esta consulta';
+  try {
+    const response = await fetch(INE_SOURCE_URL, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
+    if (response.ok) {
+      const series = await response.json();
+      const annual = Array.isArray(series) && series.find((item) => /variación anual/i.test(item.Nombre || ''));
+      const latest = annual?.Data?.[0];
+      if (latest && Number.isFinite(Number(latest.Valor))) ineContext = `${latest.Valor}% (${latest.Anyo}-${String(latest.FK_Periodo).padStart(2, '0')})`;
+    }
+  } catch {}
+  const doc = new PDFDocument({ size: 'A4', margin: 46, bufferPages: true, info: { Title: 'Tu guía personal de compra - CocheCierto', Author: 'CocheCierto', Subject: 'Guía personal de compra de coche de ocasión', Keywords: 'CocheCierto, compra, vehículo de ocasión' } });
+  doc.registerFont('CCRegular', PDF_FONT_REGULAR).registerFont('CCBold', PDF_FONT_BOLD);
+  const originalFont = doc.font.bind(doc);
+  doc.font = (font, ...args) => originalFont(font === 'Helvetica' ? 'CCRegular' : font === 'Helvetica-Bold' ? 'CCBold' : font, ...args);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="informe-cochecierto.pdf"');
+  doc.pipe(res);
+  const x = doc.page.margins.left;
+  const contentWidth = doc.page.width - x - doc.page.margins.right;
+  let renderedPages = 0;
+  const newPage = (kicker, title, intro) => { if (renderedPages > 0) doc.addPage(); renderedPages += 1; return pdfPageTop(doc, kicker, title, intro); };
+  const sectionLabel = (label, y) => pdfText(doc, label, x, y, contentWidth, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 12 });
+  const smallCard = (label, value, note, cx, cy, cw, accent) => { pdfCard(doc, cx, cy, cw, 70, { accent }); pdfText(doc, label, cx + 12, cy + 11, cw - 24, { color: PDF_COLORS.muted, size: 8 }); pdfText(doc, value, cx + 12, cy + 28, cw - 24, { color: accent || PDF_COLORS.navy, font: 'Helvetica-Bold', size: 14 }); pdfText(doc, note, cx + 12, cy + 51, cw - 24, { color: PDF_COLORS.muted, size: 7.5 }); };
+
+  // 1. Portada: una lectura editorial, no una pared de texto.
+  let y = newPage('Informe de orientación · versión beta', `Tu guía personal de compra`, 'El coche que te conviene y cómo comprarlo con criterio. Una hoja de ruta basada en tus respuestas, con comprobaciones para una unidad concreta.');
+  pdfCard(doc, x, y, contentWidth, 92, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy, accent: PDF_COLORS.orange });
+  pdfText(doc, situation[0], x + 20, y + 17, 250, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9, characterSpacing: .7 });
+  pdfText(doc, 'Tu punto de partida', x + 20, y + 38, 280, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 17 });
+  pdfText(doc, `${situation[1]}.`, x + 20, y + 62, 320, { color: '#c5d7de', size: 10 });
+  pdfText(doc, 'ORIENTACIÓN', x + 392, y + 19, 90, { color: '#c5d7de', font: 'Helvetica-Bold', size: 7, align: 'right', characterSpacing: 1 });
+  pdfText(doc, report.category || 'Pendiente', x + 300, y + 34, 182, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 15, align: 'right', lineGap: 1 });
+  pdfText(doc, 'categoría a estudiar', x + 300, y + 76, 182, { color: '#c5d7de', size: 8, align: 'right' });
+  y += 111;
+  const cw = (contentWidth - 18) / 4;
+  smallCard('Uso declarado', readableAnswer('use', report.answers?.use), readableAnswer('km', report.answers?.km), x, y, cw, PDF_COLORS.blue);
+  smallCard('Presupuesto', readableAnswer('budget', report.answers?.budget), 'total disponible', x + cw + 6, y, cw, PDF_COLORS.green);
+  smallCard('Prioridad', readableAnswer('priority', report.priority), 'criterio principal', x + (cw + 6) * 2, y, cw, PDF_COLORS.orange);
+  smallCard('Confianza', 'Orientativa', 'unidad por verificar', x + (cw + 6) * 3, y, cw, PDF_COLORS.navy);
+  y += 95;
+  sectionLabel('Lectura personalizada', y);
+  pdfText(doc, report.narrative?.summary || 'Esta orientación ordena tus respuestas para ayudarte a decidir con más margen.', x, y + 23, contentWidth, { size: 11, lineGap: 3 });
+  pdfText(doc, report.narrative?.profileReading || `Tu decisión debe priorizar ${situation[1]}.`, x, y + 55, contentWidth, { color: PDF_COLORS.muted, size: 10, lineGap: 2 });
+  y += 96;
+  pdfCard(doc, x, y, contentWidth, 96, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
+  pdfKicker(doc, 'Siguiente paso', x + 18, y + 15, 450);
+  pdfText(doc, report.narrative?.nextStep || situation[2], x + 18, y + 34, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 12, lineGap: 2 });
+  pdfText(doc, 'No es una tasación, un peritaje ni una garantía mecánica. La unidad concreta y sus documentos quedan pendientes de verificar.', x + 18, y + 70, contentWidth - 36, { color: PDF_COLORS.muted, size: 8.5 });
+
+  // 2. Objetivo de búsqueda.
+  y = newPage('01 · Búsqueda', 'Esto es lo que deberías buscar', 'Convierte tu situación en un filtro de búsqueda. Lo imprescindible protege tu uso; lo negociable evita pagar por extras; el descarte protege tu margen.');
+  const colW = (contentWidth - 16) / 3;
+  const profileColumns = [
+    ['IMPRESCINDIBLE', report.priority === 'space' ? ['Plazas y acceso adecuados para tus ocupantes', 'Maletero probado con tu carga habitual', 'Seguridad y mantenimiento documentables'] : report.situation === 'professional-use' ? ['Coste por kilómetro controlable', 'Disponibilidad y mantenimiento documentados', 'Factura y garantía por escrito'] : ['Compatibilidad con tu uso y vías', 'Historial y mantenimiento demostrables', 'Reserva después de la compra']],
+    ['PUEDES NEGOCIAR', ['Color y extras no esenciales', 'Antigüedad dentro de un rango razonable', 'Equipamiento deseable si no eleva el coste total']],
+    ['DEBES DESCARTAR', ['Cargas o titularidad sin aclarar', 'Incoherencias de kilometraje o historial', 'Presión para pagar o rechazo a inspección']]
+  ];
+  profileColumns.forEach(([label, items], index) => { const cx = x + index * (colW + 8); pdfCard(doc, cx, y, colW, 171, { fill: index === 2 ? '#fff8f7' : PDF_COLORS.white, stroke: index === 2 ? '#e8c1bc' : PDF_COLORS.line, accent: index === 0 ? PDF_COLORS.green : index === 1 ? PDF_COLORS.amber : PDF_COLORS.red }); pdfText(doc, label, cx + 15, y + 16, colW - 30, { color: index === 0 ? PDF_COLORS.green : index === 1 ? PDF_COLORS.amber : PDF_COLORS.red, font: 'Helvetica-Bold', size: 8, characterSpacing: .6 }); items.forEach((item, i) => pdfBullet(doc, item, cx + 15, y + 45 + i * 35, colW - 30)); });
+  y += 198;
+  sectionLabel('Por qué encaja contigo', y);
+  pdfText(doc, `Has declarado ${readableAnswer('use', report.answers?.use).toLowerCase()}, ${readableAnswer('km', report.answers?.km).toLowerCase()} y una prioridad de ${readableAnswer('priority', report.priority).toLowerCase()}. Por eso la recomendación inicial es estudiar un ${report.category || 'vehículo por concretar'} y comparar su coste total antes de elegir una unidad.`, x, y + 23, contentWidth, { size: 10.5, lineGap: 3 });
+  y += 82;
+  pdfCard(doc, x, y, contentWidth, 151, { fill: PDF_COLORS.pale, accent: PDF_COLORS.blue });
+  pdfText(doc, 'Motorización y antigüedad', x + 18, y + 16, 230, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 11 });
+  pdfBullet(doc, `A estudiar: ${report.power || 'la opción que mejor responda a tus trayectos'}.`, x + 18, y + 42, 230);
+  pdfBullet(doc, 'Precaución: la etiqueta, el estado real y el mantenimiento deben confirmarse sobre cada unidad.', x + 18, y + 76, 230);
+  pdfBullet(doc, 'No fijamos una antigüedad o kilometraje exactos sin conocer la unidad, el historial y el presupuesto final.', x + 18, y + 112, 230);
+  pdfText(doc, 'Regla', x + 280, y + 16, 90, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: 1 });
+  pdfText(doc, 'Una preferencia deja de ser buena elección cuando entra en conflicto con tu uso, tu zona o tu margen.', x + 280, y + 38, contentWidth - 300, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 11, lineGap: 3 });
+
+  // 3. Presupuesto.
+  y = newPage('02 · Dinero', 'Tu presupuesto real', 'El precio del anuncio es solo una parte. Esta página separa lo que sabes, lo que estimamos y lo que debes confirmar antes de pagar.');
+  pdfCard(doc, x, y, contentWidth, 72, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy, accent: PDF_COLORS.orange });
+  pdfText(doc, 'PRESUPUESTO TOTAL DECLARADO', x + 18, y + 14, 240, { color: '#c5d7de', font: 'Helvetica-Bold', size: 8, characterSpacing: .6 });
+  pdfText(doc, budget[0], x + 18, y + 32, 250, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 18 });
+  pdfText(doc, 'No es el precio máximo del vehículo.', x + 300, y + 32, 180, { color: '#c5d7de', size: 9, align: 'right' });
+  y += 92;
+  const budgetItems = [['Precio prudente del vehículo', budget[1], 'estimación'], ['Gastos iniciales', budget[2], 'estimación'], ['Reserva para imprevistos', budget[3], 'regla orientativa'], ['Seguro, financiación e impuestos', 'Pendiente de confirmar', 'depende de titular y unidad']];
+  budgetItems.forEach(([label, value, note], i) => { const by = y + i * 48; pdfCard(doc, x, by, contentWidth, 38, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 6 }); pdfText(doc, label, x + 13, by + 9, 245, { font: 'Helvetica-Bold', size: 9 }); pdfText(doc, value, x + 270, by + 9, 125, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 9, align: 'right' }); pdfText(doc, note, x + 405, by + 10, contentWidth - 418, { color: PDF_COLORS.muted, size: 7.5, align: 'right' }); });
+  y += 214;
+  pdfCard(doc, x, y, contentWidth, 83, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
+  pdfText(doc, 'REGLA DE PROTECCIÓN', x + 18, y + 15, contentWidth - 36, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: .8 });
+  pdfText(doc, 'Si después de pagar el coche no puedes afrontar transferencia, seguro, revisión y una reserva razonable, esa unidad está por encima de tu presupuesto real.', x + 18, y + 35, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 11, lineGap: 2 });
+  y += 107;
+  sectionLabel('Anota el coste de una unidad concreta', y);
+  pdfField(doc, 'Precio del vehículo', x, y + 26, 155); pdfField(doc, 'Trámites e impuestos', x + 175, y + 26, 155); pdfField(doc, 'Seguro', x + 350, y + 26, contentWidth - 350);
+  pdfField(doc, 'Revisión inicial / reparaciones', x, y + 70, 235); pdfField(doc, 'Reserva que conservarás', x + 255, y + 70, contentWidth - 255);
+  pdfText(doc, `Supuesto: ${budget[2]} de gastos iniciales y ${budget[3]} de reserva para este tramo. Son estimaciones, no importes definitivos. Contexto INE consultado: ${ineContext}; no predice tu gasto personal.`, x, y + 122, contentWidth, { color: PDF_COLORS.muted, size: 8, lineGap: 2 });
+
+  // 4. Ficha de anuncio.
+  y = newPage('03 · Anuncio', 'Ficha para analizar un anuncio', 'Imprime esta página para cada candidato. Una ficha completa convierte la emoción del anuncio en evidencia comparable.');
+  pdfCard(doc, x, y, contentWidth, 207, { fill: PDF_COLORS.white, accent: PDF_COLORS.blue });
+  pdfText(doc, 'DATOS DEL CANDIDATO', x + 18, y + 16, 200, { color: PDF_COLORS.blue, font: 'Helvetica-Bold', size: 8, characterSpacing: .8 });
+  pdfField(doc, 'Marca y modelo', x + 18, y + 39, 215); pdfField(doc, 'Versión / motor', x + 255, y + 39, 215);
+  pdfField(doc, 'Matrícula / bastidor', x + 18, y + 82, 215); pdfField(doc, 'Año / kilómetros', x + 255, y + 82, 215);
+  pdfField(doc, 'Precio anunciado', x + 18, y + 125, 215); pdfField(doc, 'Vendedor / ubicación', x + 255, y + 125, 215);
+  pdfField(doc, 'Enlace del anuncio', x + 18, y + 168, 447);
+  y += 232;
+  pdfCard(doc, x, y, contentWidth, 144, { fill: PDF_COLORS.pale, accent: PDF_COLORS.green });
+  pdfText(doc, 'LO QUE DICE EL ANUNCIO', x + 18, y + 16, 200, { color: PDF_COLORS.green, font: 'Helvetica-Bold', size: 8, characterSpacing: .8 });
+  pdfField(doc, 'Equipamiento', x + 18, y + 39, 215, 2); pdfField(doc, 'Historial declarado', x + 255, y + 39, 215, 2); pdfField(doc, 'Defectos reconocidos / gastos previsibles', x + 18, y + 93, 447);
+  y += 168;
+  const lights = [['VERDE', 'Datos coherentes y evidencia suficiente para continuar.', PDF_COLORS.green], ['ÁMBAR', 'Falta información: pide documentos antes de desplazarte.', PDF_COLORS.amber], ['ROJO', 'Cargas, presión o rechazo a inspección: no envíes dinero.', PDF_COLORS.red]];
+  lights.forEach(([label, text, color], i) => { const cx = x + i * (colW + 8); pdfCard(doc, cx, y, colW, 73, { fill: PDF_COLORS.white, stroke: color, accent: color, radius: 8 }); pdfText(doc, label, cx + 14, y + 12, colW - 28, { color, font: 'Helvetica-Bold', size: 8, characterSpacing: .6 }); pdfText(doc, text, cx + 14, y + 31, colW - 28, { color: PDF_COLORS.ink, size: 8.5, lineGap: 1.5 }); });
+
+  // 5. Preguntas.
+  y = newPage('04 · Vendedor', 'Preguntas que merecen evidencia', 'No anotes solo la respuesta. Registra qué documento, foto o comprobación la respalda y qué queda pendiente.');
+  const qRows = report.situation === 'professional-use' ? ['¿La operación incluye factura, garantía y mantenimiento por escrito?', '¿Qué uso intensivo ha tenido y qué piezas se han sustituido?', '¿Cuál sería el coste y el impacto de un día parado?', '¿Aceptas una inspección independiente antes de cerrar?', '¿Qué gastos quedan fuera del precio anunciado?'] : ['¿Puedes facilitar informe DGT, titularidad, ITV y cargas?', '¿Qué mantenimiento, accidentes o reparaciones están documentados?', '¿El precio incluye todos los gastos y qué queda fuera?', '¿Puedes arrancarlo en frío y probarlo en carretera?', '¿Aceptas una inspección independiente antes de entregar dinero?'];
+  qRows.forEach((question, i) => { const ry = y + i * 68; pdfCard(doc, x, ry, contentWidth, 56, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 7, accent: i === 0 ? PDF_COLORS.orange : PDF_COLORS.blue }); pdfText(doc, `${i + 1}`, x + 14, ry + 12, 22, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 12 }); pdfText(doc, question, x + 42, ry + 10, 255, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.8, lineGap: 1 }); pdfText(doc, 'Respuesta / evidencia', x + 310, ry + 9, 145, { color: PDF_COLORS.muted, font: 'Helvetica-Bold', size: 7.5 }); pdfRule(doc, x + 310, ry + 29, 155, '#aebfbd'); pdfText(doc, 'Pendiente', x + 310, ry + 36, 145, { color: PDF_COLORS.muted, size: 7.5 }); });
+  y += qRows.length * 68 + 16;
+  pdfCard(doc, x, y, contentWidth, 76, { fill: '#fff8f7', stroke: '#e8c1bc', accent: PDF_COLORS.red });
+  pdfText(doc, 'REGLA DE PARADA', x + 18, y + 15, contentWidth - 36, { color: PDF_COLORS.red, font: 'Helvetica-Bold', size: 8, characterSpacing: .7 });
+  pdfText(doc, 'Una respuesta verbal no sustituye la evidencia. Si el vendedor no aclara un punto crítico, aplaza la visita o descarta.', x + 18, y + 35, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 10.5 });
+
+  // 6. Documentación.
+  y = newPage('05 · Documentos', 'Documentación antes de pagar', 'Marca cada elemento como correcto, falta o duda. La documentación no certifica el estado mecánico, pero sí evita errores administrativos y de titularidad.');
+  const docs = ['Identidad y titularidad del vendedor', 'Permiso de circulación y ficha técnica', 'ITV y kilometraje registrado', 'Informe DGT y cargas', 'Embargos, precintos y reserva de dominio', 'Impuesto municipal al corriente', 'Historial de mantenimiento y facturas', 'Contrato / factura y garantía cuando corresponda'];
+  pdfCard(doc, x, y, contentWidth, 38, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
+  pdfText(doc, 'DOCUMENTO', x + 16, y + 12, 230, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 }); pdfText(doc, 'QUÉ CONFIRMAR', x + 265, y + 12, 125, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 }); pdfText(doc, 'RESULTADO', x + 410, y + 12, 65, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 });
+  docs.forEach((item, i) => { const ry = y + 40 + i * 40; pdfCard(doc, x, ry, contentWidth, 34, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 3 }); pdfText(doc, item, x + 16, ry + 9, 230, { color: PDF_COLORS.ink, font: 'Helvetica-Bold', size: 8.5 }); pdfText(doc, i < 3 ? 'Identidad, vigencia y coincidencia' : 'Documento, fecha, titular y limitaciones', x + 265, ry + 9, 130, { color: PDF_COLORS.muted, size: 7.5 }); pdfText(doc, '□ Correcto   □ Falta   □ Duda', x + 407, ry + 9, 75, { color: PDF_COLORS.navy, size: 7.2 }); });
+  y += 40 + docs.length * 40 + 22;
+  pdfCard(doc, x, y, contentWidth, 66, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
+  pdfText(doc, 'Antes de desplazarte', x + 18, y + 14, 200, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9 });
+  pdfText(doc, 'Pide copias o datos verificables con antelación. Si aparece una carga, una titularidad incoherente o una reserva de dominio, no entregues señal hasta resolverlo.', x + 18, y + 33, contentWidth - 36, { color: PDF_COLORS.navy, size: 9.5, lineGap: 2 });
+
+  // 7. Inspección.
+  y = newPage('06 · Visita', 'Inspección y prueba de conducción', 'La prueba ordena señales y preguntas; no descarta por sí sola una avería. Si el riesgo o el valor lo justifican, paga una inspección independiente.');
+  const visitGroups = [['Antes de arrancar', ['Fugas, daños, neumáticos, testigos y coherencia del kilometraje', 'Carrocería, lunas, luces y desgaste desigual']], ['Motor en frío', ['Arranque, humo, ruidos, ralentí y temperatura', 'Historial de mantenimiento y piezas sustituidas']], ['En marcha', ['Frenos, dirección, embrague/cambio y comportamiento', 'Ruidos, vibraciones, climatización y equipamiento']], ['Al finalizar', ['Anota diferencias y solicita evidencias', 'No cierres pendientes críticos por presión']]];
+  const gW = (contentWidth - 10) / 2;
+  visitGroups.forEach(([label, items], i) => { const gx = x + (i % 2) * (gW + 10); const gy = y + Math.floor(i / 2) * 126; pdfCard(doc, gx, gy, gW, 111, { fill: i === 3 ? '#fff8f7' : PDF_COLORS.white, accent: i === 3 ? PDF_COLORS.red : PDF_COLORS.blue }); pdfText(doc, label, gx + 16, gy + 15, gW - 32, { color: i === 3 ? PDF_COLORS.red : PDF_COLORS.blue, font: 'Helvetica-Bold', size: 9 }); items.forEach((item, j) => pdfBullet(doc, item, gx + 16, gy + 43 + j * 28, gW - 32)); });
+  y += 266;
+  pdfCard(doc, x, y, contentWidth, 92, { fill: PDF_COLORS.pale, accent: PDF_COLORS.green });
+  pdfText(doc, 'Cuándo pedir ayuda profesional', x + 18, y + 16, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 11 });
+  pdfText(doc, 'Si hay dudas, historial incompleto, antigüedad o kilometraje elevados, pocos conocimientos mecánicos o un valor económico relevante, reserva una inspección independiente antes de pagar.', x + 18, y + 39, contentWidth - 36, { color: PDF_COLORS.ink, size: 9.5, lineGap: 2 });
+  pdfText(doc, 'Resultado de la visita:  □ Avanzar   □ Pedir más evidencia   □ Inspección   □ Descartar', x + 18, y + 69, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.5 });
+
+  // 8. Cierre.
+  y = newPage('07 · Compra', 'Negociación y cierre seguro', 'Negocia después de verificar. El objetivo no es solo bajar el precio: es dejar claras las condiciones y conservar trazabilidad.');
+  const closeCards = [['Negocia con evidencia', ['Usa defectos documentados y mantenimiento pendiente', 'Compara unidades equivalentes', 'No negocies desde el límite absoluto'], PDF_COLORS.orange], ['Señal con condiciones', ['Identifica partes, vehículo e importe', 'Define finalidad, fecha y desistimiento', 'No pagues si faltan documentos críticos'], PDF_COLORS.red], ['Entrega ordenada', ['Pago trazable y contrato / factura', 'Llaves, documentación y garantía', 'Seguro y titularidad antes de circular'], PDF_COLORS.green]];
+  closeCards.forEach(([label, items, accent], i) => { const cx = x + i * (colW + 8); pdfCard(doc, cx, y, colW, 180, { fill: PDF_COLORS.white, accent }); pdfText(doc, label, cx + 15, y + 16, colW - 30, { color: accent, font: 'Helvetica-Bold', size: 9 }); items.forEach((item, j) => pdfBullet(doc, item, cx + 15, y + 48 + j * 35, colW - 30)); });
+  y += 207;
+  pdfCard(doc, x, y, contentWidth, 102, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
+  pdfText(doc, 'Condiciones que deben quedar escritas', x + 18, y + 16, contentWidth - 36, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9 });
+  pdfText(doc, 'Partes: ____________________   Vehículo: ____________________   Importe: __________', x + 18, y + 39, contentWidth - 36, { size: 9 });
+  pdfText(doc, 'Finalidad de la señal: ____________________   Fecha: __________   Desistimiento: ____________________', x + 18, y + 62, contentWidth - 36, { size: 9 });
+  pdfText(doc, 'Decisión:  □ Comprar   □ Negociar   □ Inspección   □ Seguir buscando   □ Descartar', x + 18, y + 84, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 8.5 });
+
+  // 9. Postcompra.
+  y = newPage('08 · Después', 'Las primeras horas también cuentan', 'Una compra segura conserva evidencias y convierte los primeros días en un control de seguridad, garantía y coste real.');
+  const timeline = [['72 HORAS', PDF_COLORS.orange, ['Seguro activo y documentos guardados', 'Fotos del estado y kilometraje de entrega', 'Incidencias comunicadas por escrito']], ['30 DÍAS', PDF_COLORS.blue, ['Revisión inicial y mantenimiento pendiente', 'Control de consumo, testigos, ruidos y temperatura', 'Garantía, facturas y vencimientos organizados']], ['PRIMER AÑO', PDF_COLORS.green, ['ITV, seguro e impuesto revisados', 'Reparaciones y coste por kilómetro registrados', 'Reserva mantenida y encaje reevaluado']]];
+  timeline.forEach(([label, accent, items], i) => { const tx = x + i * (colW + 8); pdfCard(doc, tx, y, colW, 205, { fill: PDF_COLORS.white, accent }); pdfText(doc, label, tx + 16, y + 17, colW - 32, { color: accent, font: 'Helvetica-Bold', size: 10, characterSpacing: .5 }); pdfRule(doc, tx + 16, y + 39, colW - 32, accent); items.forEach((item, j) => pdfBullet(doc, item, tx + 16, y + 58 + j * 42, colW - 32)); });
+  y += 234;
+  sectionLabel('Registro que te ayudará a conocer el coste real', y);
+  pdfField(doc, 'Fecha / kilometraje', x, y + 26, 155); pdfField(doc, 'Incidencia o mantenimiento', x + 175, y + 26, 155); pdfField(doc, 'Importe / evidencia', x + 350, y + 26, contentWidth - 350);
+  pdfField(doc, 'Siguiente vencimiento', x, y + 70, 235); pdfField(doc, 'Qué revisarás de nuevo', x + 255, y + 70, contentWidth - 255);
+
+  // 10. Comparador + recursos.
+  y = newPage('09 · Decisión', 'Comparador y decisión final', 'Un dato pendiente no equivale a un dato correcto. Compara hasta tres candidatos y decide solo cuando los riesgos importantes estén controlados.');
+  const candidates = ['Candidato A', 'Candidato B', 'Candidato C'];
+  pdfCard(doc, x, y, contentWidth, 43, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
+  pdfText(doc, 'CRITERIO', x + 14, y + 14, 190, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8 }); candidates.forEach((name, i) => pdfText(doc, name, x + 205 + i * 90, y + 14, 82, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 8, align: 'center' }));
+  ['Encaje con uso, ocupantes, vías y ZBE', 'Precio total, gastos y reserva', 'Historial, documentación y garantía', 'Estado físico y mecánico pendiente', 'Seguridad, consumo y mantenimiento', 'Confianza y condiciones de cierre'].forEach((label, i) => { const ry = y + 45 + i * 31; pdfCard(doc, x, ry, contentWidth, 27, { fill: i % 2 ? PDF_COLORS.pale : PDF_COLORS.white, radius: 2 }); pdfText(doc, label, x + 14, ry + 8, 190, { color: PDF_COLORS.ink, size: 7.8 }); candidates.forEach((_, j) => pdfText(doc, '□ Sí  □ Pend.', x + 207 + j * 90, ry + 8, 82, { color: PDF_COLORS.muted, size: 7.2, align: 'center' })); });
+  y += 45 + 6 * 31 + 22;
+  pdfCard(doc, x, y, contentWidth, 75, { fill: '#fff7f2', stroke: '#f4c8b7', accent: PDF_COLORS.orange });
+  pdfText(doc, 'MI DECISIÓN', x + 18, y + 14, 150, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: .7 });
+  pdfText(doc, '□ Comprar   □ Negociar   □ Solicitar inspección   □ Seguir buscando   □ Descartar', x + 18, y + 33, contentWidth - 36, { color: PDF_COLORS.navy, font: 'Helvetica-Bold', size: 9 });
+  pdfText(doc, 'Motivo: __________________________________________________________________________________', x + 18, y + 53, contentWidth - 36, { color: PDF_COLORS.ink, size: 8.5 });
+  y += 98;
+  pdfCard(doc, x, y, contentWidth, 112, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy });
+  pdfText(doc, 'CONTINÚA CON MÁS HERRAMIENTAS', x + 18, y + 16, 280, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: .7 });
+  doc.image(qr, x + 18, y + 35, { width: 78 });
+  pdfText(doc, 'Guías, listas de comprobación y fuentes oficiales para seguir tomando decisiones con criterio.', x + 115, y + 38, 350, { color: PDF_COLORS.white, size: 9.5, lineGap: 2 });
+  pdfText(doc, resourcesUrl, x + 115, y + 70, 350, { color: '#c5d7de', font: 'Helvetica-Bold', size: 9 });
+  pdfText(doc, 'El enlace privado será válido durante 7 días; la caducidad afecta al enlace, no al PDF descargado.', x + 115, y + 87, 350, { color: '#c5d7de', size: 7.5, lineGap: 1 });
+  const pageRange = doc.bufferedPageRange();
+  for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
+    doc.switchToPage(pageRange.start + pageIndex);
+    doc.x = doc.page.margins.left;
+    doc.y = doc.page.margins.top;
+    pdfHeaderFixed(doc, doc.page.margins.left, contentWidth);
+    doc.save().font('Helvetica').fontSize(7.5).fillColor(PDF_COLORS.muted)
+      .text(`cochecierto.com · Guía personal de compra · Informe beta · Página ${pageIndex + 1} de ${pageRange.count}`, doc.page.margins.left, doc.page.height - 72, { width: contentWidth, align: 'center', lineBreak: false })
+      .fontSize(7).text('Orientación informativa. No sustituye una inspección mecánica, peritaje ni asesoramiento jurídico o fiscal individual.', doc.page.margins.left, doc.page.height - 60, { width: contentWidth, align: 'center', lineBreak: false }).restore();
+  }
+  doc.end();
+};
+
 app.get('/health', async (_req, res) => {
   let database = 'not-configured';
   if (pool) { try { await pool.query('SELECT 1'); database = 'ok'; } catch { database = 'unavailable'; } }
@@ -551,7 +786,7 @@ app.get('/api/report.pdf', async (req, res) => {
   const token = String(req.query.token || '');
   const report = getReport(token);
   if (!report || !report.verified) return res.status(403).json({ error: 'Primero valida tu email o solicita un nuevo informe.' });
-  await writeReportPdf(res, report);
+  await writeReportPdfStyled(res, report);
 });
 
 app.listen(port, () => console.log(`CocheCierto API escuchando en http://localhost:${port}`));
