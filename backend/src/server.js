@@ -29,7 +29,7 @@ const attempts = new Map();
 const pendingReports = new Map();
 const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const reportBaseUrl = process.env.REPORT_BASE_URL || 'https://cochecierto.com';
-const resourcesUrl = `${reportBaseUrl}/guias/`;
+const resourcesUrl = `${reportBaseUrl}/recursos/`;
 const sharedReportUrl = (token) => `${reportBaseUrl}/api/shared-report?token=${encodeURIComponent(token)}`;
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PDF_LOGO_PATH = path.join(projectRoot, 'valorador', 'brand-lockup-official.png');
@@ -519,8 +519,8 @@ const writeReportPdfStyled = async (res, inputReport, shareToken = null) => {
   report.narrative = cleanNarrative(enforceNarrativeGuardrails(report, report.narrative));
   const situation = situationPack(report);
   const budget = budgetGuidance(report.answers?.budget);
-  const shareUrl = shareToken ? sharedReportUrl(shareToken) : resourcesUrl;
-  const qr = await QRCode.toDataURL(shareUrl, { margin: 2, width: 132, errorCorrectionLevel: 'M' });
+  const shareUrl = shareToken ? sharedReportUrl(shareToken) : null;
+  const qr = await QRCode.toDataURL(resourcesUrl, { margin: 2, width: 132, errorCorrectionLevel: 'M' });
   let ineContext = 'No disponible en esta consulta';
   try {
     const response = await fetch(INE_SOURCE_URL, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
@@ -693,8 +693,8 @@ const writeReportPdfStyled = async (res, inputReport, shareToken = null) => {
   pdfText(doc, 'CONTINÚA CON MÁS HERRAMIENTAS', x + 18, y + 16, 280, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 8, characterSpacing: .7 });
   doc.image(qr, x + 18, y + 39, { width: 72 });
   pdfText(doc, 'Guías, listas de comprobación y fuentes oficiales para seguir tomando decisiones con criterio.', x + 115, y + 38, 350, { color: PDF_COLORS.white, size: 9.5, lineGap: 2 });
-  pdfText(doc, shareUrl, x + 115, y + 70, 350, { color: '#c5d7de', font: 'Helvetica-Bold', size: 8, lineGap: 1 });
-  pdfText(doc, shareToken ? 'Enlace privado para compartir; caduca en 7 días. El PDF descargado no caduca.' : 'Acceso a recursos y listas de comprobación de CocheCierto.', x + 115, y + 91, 350, { color: '#c5d7de', size: 7.5, lineGap: 1 });
+  pdfText(doc, resourcesUrl, x + 115, y + 70, 350, { color: '#c5d7de', font: 'Helvetica-Bold', size: 8, lineGap: 1 });
+  pdfText(doc, shareUrl ? `Comparte este informe: ${shareUrl}` : 'Acceso a recursos y listas de comprobación de CocheCierto.', x + 115, y + 91, 350, { color: '#c5d7de', size: 7.2, lineGap: 1 });
   const pageRange = doc.bufferedPageRange();
   for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
     doc.switchToPage(pageRange.start + pageIndex);
