@@ -81,9 +81,9 @@ queda pendiente hasta el próximo despliegue autorizado.
 | Campo | Valor |
 |---|---|
 | Fuente de verdad | GitHub `main` |
-| Commit de referencia | `8d00881` — unificación de conversión y medición con consentimiento |
+| Commit de referencia | `c994903` — registro operativo; base funcional `8d00881` |
 | Carpeta local | Sin cambios pendientes frente a `origin/main` |
 | Hostinger estático | Desplegado desde `8d00881` |
 | Hostinger backend | Publicado en `84c5ebc` |
-| Instrucción | Todos los agentes deben partir de `main@8d00881` y no reabrir versiones anteriores |
+| Instrucción | Todos los agentes deben partir de `main@c994903` y no reabrir versiones anteriores |
 | Pendientes conservados | Email, CRM, migraciones, accesibilidad, rendimiento y revisión legal |
