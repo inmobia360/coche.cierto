@@ -181,10 +181,10 @@ Una tarea termina solo cuando sus criterios observables están cumplidos, las pr
 
 ## Registro de versión protegida
 
-**Versión de referencia:** `v2.1.0` — **CocheCierto Auto-Valorador 2.1, versión validada/estable**
-**Commit de referencia:** `08f6d66`
+**Versión de referencia:** `main` — **versión buena declarada por el propietario**
+**Commit de referencia:** `942d35d` — `merge: reconcile remote dealer improvements`
 **Fecha y hora de registro:** 2026-09-03 18:16:53 (Europe/Madrid)
-**Estado:** versión buena, sincronizada en local, GitHub y Hostinger.
+**Estado:** GitHub es la fuente de verdad. La sincronización local y la publicación en Hostinger quedan pendientes de validación.
 
 ### Directiva para Secretaría y todos los agentes
 

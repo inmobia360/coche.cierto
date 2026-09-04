@@ -30,6 +30,7 @@ const pendingReports = new Map();
 const REPORT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const reportBaseUrl = process.env.REPORT_BASE_URL || 'https://cochecierto.com';
 const resourcesUrl = `${reportBaseUrl}/recursos/`;
+const requestBaseUrl = process.env.REQUEST_BASE_URL || reportBaseUrl;
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PDF_LOGO_PATH = path.join(projectRoot, 'valorador', 'brand-lockup-official.png');
 const PDF_FONT_REGULAR = fs.existsSync('C:\\Windows\\Fonts\\arial.ttf') ? 'C:\\Windows\\Fonts\\arial.ttf' : 'Helvetica';
@@ -56,6 +57,12 @@ const llm = process.env.LLM_BASE_URL && process.env.LLM_MODEL ? {
   key: process.env.LLM_API_KEY || '',
   mode: process.env.LLM_API_MODE || 'openai'
 } : null;
+const googlePlaces = process.env.GOOGLE_PLACES_API_KEY && process.env.GOOGLE_PLACES_ENABLED === 'true' ? {
+  key: process.env.GOOGLE_PLACES_API_KEY,
+  endpoint: 'https://places.googleapis.com/v1/places:searchNearby'
+} : null;
+const overpassEndpoints = (process.env.OVERPASS_ENDPOINTS || 'https://overpass-api.de/api/interpreter,https://overpass.kumi.systems/api/interpreter').split(',').map((value) => value.trim()).filter(Boolean);
+const nearbyCategories = { dealer: { label: 'Concesionarios', filters: ['nwr["shop"="car"]'] }, repair: { label: 'Talleres mecánicos', filters: ['nwr["shop"="car_repair"]', 'nwr["craft"="car_repair"]'] }, itv: { label: 'Estaciones ITV', filters: ['nwr["amenity"="vehicle_inspection"]'] }, fuel: { label: 'Gasolineras', filters: ['nwr["amenity"="fuel"]'] }, scrapyard: { label: 'Desguaces', filters: ['nwr["shop"="car_parts"]', 'nwr["amenity"="recycling"]["recycling_type"="scrap_metal"]'] }, parts: { label: 'Repuestos', filters: ['nwr["shop"="car_parts"]'] }, wash: { label: 'Lavaderos', filters: ['nwr["amenity"="car_wash"]'] }, tyres: { label: 'Neumáticos', filters: ['nwr["shop"="tyres"]'] } };
 const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people', 'parking', 'zbe', 'budget', 'priority', 'risk'];
 const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
   .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
@@ -141,7 +148,9 @@ const requestLlmNarrative = async (report) => {
     const payload = isOllama
       ? { model: ollamaModel, stream: false, think: false, format: 'json', options: { temperature: 0.1, num_predict: 400 }, messages }
       : { model: llm.model, temperature: 0.2, max_tokens: 420, response_format: { type: 'json_schema', json_schema: { name: 'report_narrative_v1', strict: true, schema: LLM_RESPONSE_SCHEMA } }, messages };
+
     const response = await fetch(endpoint, { method: 'POST', signal: AbortSignal.timeout(isOllama ? 30000 : 8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify(payload) });
+
     if (!response.ok) throw new Error(`LLM ${response.status}`);
     const body = await response.json();
     const content = isOllama ? body?.message?.content : body?.choices?.[0]?.message?.content;
@@ -213,8 +222,10 @@ const loadAirtableReport = async (token) => {
 };
 
 app.use(helmet());
-app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || allowedOrigins.has(requestOrigin) || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST'] }));
+app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || allowedOrigins.has(requestOrigin) || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST', 'DELETE'] }));
 app.use(express.json({ limit: '32kb' }));
+app.use('/api/purchase-', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
+app.use('/api/crm', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
 
 const required = (body, fields) => fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
@@ -223,6 +234,52 @@ const createReportToken = () => crypto.randomBytes(32).toString('hex');
 const cleanReports = () => { const now = Date.now(); for (const [token, report] of pendingReports) if (report.expiresAt <= now) pendingReports.delete(token); };
 const addReport = (token, report) => { cleanReports(); pendingReports.set(token, { ...report, expiresAt: Date.now() + REPORT_TTL_MS }); };
 const getReport = (token) => { cleanReports(); const report = pendingReports.get(token); return report && report.expiresAt > Date.now() ? report : null; };
+const requestStates = new Set(['active', 'withdrawn', 'expired']);
+const requestProfileKeys = ['category', 'body', 'usage', 'kilometres', 'people', 'budget', 'priority', 'zbe'];
+const cleanRequestProfile = (profile) => Object.fromEntries(requestProfileKeys
+  .filter((key) => typeof profile?.[key] === 'string' && profile[key].trim().length <= 120)
+  .map((key) => [key, profile[key].trim()]));
+const requestPayload = (body) => {
+  const radius = Number(body?.radius);
+  const area = typeof body?.area === 'string' ? body.area.trim().slice(0, 80) : '';
+  if (!area || ![5, 10, 25, 50].includes(radius)) return null;
+  const profile = cleanRequestProfile(body.profile);
+  return { area, radius, profile, version: 'request-v1' };
+};
+const validRequestToken = (value) => typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
+const dealerOffersEnabled = process.env.DEALER_OFFERS_ENABLED === 'true';
+const crmSchemaReady = process.env.CRM_SCHEMA_READY === 'true';
+const crmEnabled = process.env.CRM_ENABLED === 'true' && crmSchemaReady;
+const crmRuntimeEnabled = crmEnabled;
+const crmAdminToken = process.env.CRM_ADMIN_TOKEN || '';
+const crmStages = ['visitor', 'diagnostic_started', 'report_requested', 'report_verified', 'request_draft', 'request_active', 'shared_manual', 'offer_received', 'comparison', 'contact_authorized', 'visit_requested', 'test_requested', 'purchased', 'aftercare', 'closed', 'withdrawn', 'expired', 'blocked'];
+const crmTransitions = {
+  visitor: ['diagnostic_started', 'withdrawn', 'blocked'], diagnostic_started: ['report_requested', 'withdrawn', 'blocked'],
+  report_requested: ['report_verified', 'withdrawn', 'blocked'], report_verified: ['request_draft', 'withdrawn', 'blocked'],
+  request_draft: ['request_active', 'withdrawn', 'blocked'], request_active: ['shared_manual', 'withdrawn', 'blocked'],
+  shared_manual: ['offer_received', 'withdrawn', 'blocked'], offer_received: ['comparison', 'withdrawn', 'blocked'],
+  comparison: ['contact_authorized', 'withdrawn', 'blocked'], contact_authorized: ['visit_requested', 'withdrawn', 'blocked'],
+  visit_requested: ['test_requested', 'purchased', 'withdrawn', 'blocked'], test_requested: ['purchased', 'withdrawn', 'blocked'],
+  purchased: ['aftercare', 'closed', 'blocked'], aftercare: ['closed', 'blocked'], closed: [], withdrawn: [], blocked: []
+};
+const crmText = (value, max = 255) => typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null;
+const crmOperationalNote = (value) => { const note = crmText(value, 500); if (!note) return null; return /[^\s@]+@[^\s@]+\.[^\s@]+|\d[\d\s().+-]{6,}\d/.test(note) ? null : note; };
+const crmContactEmail = (value) => { const email = crmText(value, 255); return !email || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? email : null; };
+const crmContactPhone = (value) => { const phone = crmText(value, 40); return !phone || /^[+\d][\d\s().-]{5,38}$/.test(phone) ? phone : null; };
+const expireCrmRequest = async (requestId) => { if (!crmRuntimeEnabled || !pool || !requestId) return; try { const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE purchase_request_id = ? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [requestId]); const current = cases[0]; if (current && !['closed', 'withdrawn', 'expired', 'blocked'].includes(current.stage)) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['expired', current.id]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [current.id, current.stage, 'expired', 'system', 'Petición caducada']); } } catch (error) { console.error('CRM expiry tracking unavailable:', error.message); } };
+const crmJson = (value) => Array.isArray(value) ? JSON.stringify(value.slice(0, 30).map((item) => crmText(item, 120)).filter(Boolean)) : null;
+const crmAuthorized = (req) => {
+  if (!crmRuntimeEnabled || !crmAdminToken) return false;
+  const supplied = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!/^[a-f0-9]{64}$/i.test(supplied) && supplied.length < 16) return false;
+  const expected = Buffer.from(hash(crmAdminToken), 'hex');
+  const actual = Buffer.from(hash(supplied), 'hex');
+  return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+};
+const offerKeys = ['dealerName', 'companyId', 'vehicle', 'version', 'year', 'kilometres', 'condition', 'availability', 'finalCashPrice', 'priceBreakdown', 'financing', 'warranty', 'usedHistory', 'testAndInspection', 'deliveryConditions', 'reservationReturn', 'offerValidity', 'extras', 'notes', 'accuracyDeclaration'];
+const cleanOffer = (offer) => Object.fromEntries(offerKeys
+  .filter((key) => typeof offer?.[key] === 'string' && offer[key].trim().length <= 500)
+  .map((key) => [key, offer[key].trim()]));
 const drawBrandLogo = (doc) => {
   const x = doc.x;
   const y = doc.y;
@@ -244,7 +301,9 @@ const drawMetricCard = (doc, x, y, width, label, value, note, accent) => {
   doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(note, x + 10, y + 64, { width: width - 20, lineBreak: false });
 };
 const situationPack = (report) => {
+
   const packs = {
+
     'first-car': ['Primer coche', 'margen, seguro, sencillez y documentación', 'Compara tres unidades sencillas dentro del precio prudente y pide su documentación antes de desplazarte.'],
     'budget-tight': ['Presupuesto ajustado', 'precio prudente, reserva y coste de una avería', 'Define primero la reserva mínima y descarta cualquier unidad que te deje sin margen.'],
     'family-space': ['Compra familiar', 'espacio, seguridad, carga y cambios previsibles', 'Prueba el coche con el equipamiento familiar real antes de negociar.'],
@@ -395,7 +454,7 @@ const writeReportPdfLegacy = async (res, report) => {
     doc.font('Helvetica').fontSize(11).fillColor('#58717d').text(intro);
   };
   const writeCheckRows = (items) => items.forEach((item) => {
-    doc.moveDown(.45).font('Helvetica-Bold').fillColor('#fc4c02').text('[ ]', { continued: true }).fillColor('#082333').font('Helvetica').text(` ${item}`);
+
   });
   reportPage('ANALIZAR UN ANUNCIO', 'Ficha reutilizable de una unidad', 'Rellénala para cada candidato y conserva la evidencia que el vendedor aporte.');
   doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Datos del anuncio');
@@ -546,7 +605,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
 
   // 1. Portada: una lectura editorial, no una pared de texto.
   let y = newPage('Informe de orientación · versión beta', `Tu guía personal de compra`, 'El coche que te conviene y cómo comprarlo con criterio. Una hoja de ruta basada en tus respuestas, con comprobaciones para una unidad concreta.');
-  pdfCard(doc, x, y, contentWidth, 92, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy, accent: PDF_COLORS.orange });
+
   pdfText(doc, situation[0], x + 20, y + 17, 250, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9, characterSpacing: .7 });
   pdfText(doc, 'Tu punto de partida', x + 20, y + 38, 280, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 17 });
   pdfText(doc, `${situation[1]}.`, x + 20, y + 62, 320, { color: '#c5d7de', size: 10 });
@@ -697,7 +756,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   const pageRange = doc.bufferedPageRange();
   for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
     doc.switchToPage(pageRange.start + pageIndex);
-    doc.x = doc.page.margins.left;
+
     doc.y = doc.page.margins.top;
     pdfHeaderFixed(doc, doc.page.margins.left, contentWidth);
     doc.save().font('Helvetica').fontSize(7.5).fillColor(PDF_COLORS.muted)
@@ -757,6 +816,519 @@ app.post('/api/analyze', async (req, res) => {
   res.json({ narrative: generated.narrative, llmStatus: generated.status });
 });
 
+app.post('/api/purchase-requests', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las peticiones privadas aún no están configuradas.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  if (req.body?.consent?.saveRequest !== true) return res.status(400).json({ ok: false, message: 'Debes confirmar que aceptas guardar la ficha privada.' });
+  if (req.body?.consent?.manualShare !== true) return res.status(400).json({ ok: false, message: 'Debes confirmar por separado que compartirás la ficha manualmente.' });
+  const payload = requestPayload(req.body);
+  if (!payload) return res.status(400).json({ ok: false, message: 'La zona o el radio de referencia no son válidos.' });
+  const ownerToken = createReportToken(), shareToken = createReportToken(), expiresAt = new Date(Date.now() + REPORT_TTL_MS);
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+    const [result] = await connection.execute('INSERT INTO purchase_requests (owner_token_hash, share_token_hash, payload, state, expires_at) VALUES (?, ?, ?, ?, ?)', [hash(ownerToken), hash(shareToken), JSON.stringify(payload), 'active', expiresAt]);
+    await connection.execute('INSERT INTO purchase_request_consents (request_id, consent_type, granted) VALUES (?, ?, ?)', [result.insertId, 'save_request', true]);
+    await connection.execute('INSERT INTO purchase_request_consents (request_id, consent_type, granted) VALUES (?, ?, ?)', [result.insertId, 'manual_share', true]);
+    await connection.commit();
+    if (crmEnabled) {
+      try { const [crmCase] = await pool.execute('INSERT INTO crm_cases (purchase_request_id, stage, source, consent_snapshot) VALUES (?, ?, ?, ?)', [result.insertId, 'request_active', 'purchase-request', JSON.stringify({ saveRequest: true, manualShare: true, capturedAt: new Date().toISOString() })]); await pool.execute('INSERT INTO crm_case_events (case_id, to_stage, actor_type, reason) VALUES (?, ?, ?, ?)', [crmCase.insertId, 'request_active', 'system', 'Petición privada creada']); } catch (error) { console.error('CRM purchase request tracking unavailable:', error.message); }
+    }
+    const base = requestBaseUrl.replace(/\/$/, '');
+    return res.status(201).json({ ok: true, ownerToken, shareToken, ownerUrl: `${base}/solicitud/?token=${ownerToken}&role=owner`, shareUrl: `${base}/solicitud/?token=${shareToken}`, state: 'active', expiresAt: expiresAt.toISOString() });
+  } catch (error) {
+    if (connection) await connection.rollback().catch(() => {});
+    console.error('Purchase request creation unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido guardar la petición. Inténtalo de nuevo más tarde.' });
+  } finally { connection?.release(); }
+});
+
+app.get('/api/purchase-requests/:token', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las peticiones privadas aún no están configuradas.' });
+  const token = req.params.token;
+  if (!validRequestToken(token)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  try {
+    const tokenHash = hash(token);
+    const [rows] = await pool.execute('SELECT id, payload, state, expires_at, revoked_at, owner_token_hash FROM purchase_requests WHERE share_token_hash = ? OR owner_token_hash = ? LIMIT 1', [tokenHash, tokenHash]);
+    const row = rows[0];
+    if (!row) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+    const expired = new Date(row.expires_at).getTime() <= Date.now();
+    if (expired && row.state === 'active') { await pool.execute('UPDATE purchase_requests SET state = ? WHERE id = ?', ['expired', row.id]); await expireCrmRequest(row.id); }
+    if (row.state !== 'active' || expired || row.revoked_at) return res.status(410).json({ ok: false, state: row.state === 'active' && expired ? 'expired' : row.state, message: 'Esta petición ha caducado o ha sido retirada.' });
+    const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+    return res.json({ ok: true, role: row.owner_token_hash === tokenHash ? 'owner' : 'viewer', state: 'active', expiresAt: new Date(row.expires_at).toISOString(), request: payload });
+  } catch (error) {
+    console.error('Purchase request lookup unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido consultar la petición.' });
+  }
+});
+
+app.post('/api/purchase-requests/:token/revoke', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las peticiones privadas aún no están configuradas.' });
+  const token = req.params.token;
+  if (!validRequestToken(token)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  try {
+    const [result] = await pool.execute('UPDATE purchase_requests SET state = ?, revoked_at = CURRENT_TIMESTAMP WHERE owner_token_hash = ? AND state = ?', ['withdrawn', hash(token), 'active']);
+    if (!result.affectedRows) return res.status(404).json({ ok: false, message: 'Petición no disponible o ya retirada.' });
+    if (crmEnabled) { try { const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE purchase_request_id = (SELECT id FROM purchase_requests WHERE owner_token_hash = ? LIMIT 1) AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [hash(token)]); const current = cases[0]; if (current && crmTransitions[current.stage]?.includes('withdrawn')) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['withdrawn', current.id]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [current.id, current.stage, 'withdrawn', 'user', 'Petición retirada por el propietario']); } } catch (error) { console.error('CRM withdrawal tracking unavailable:', error.message); }
+    }
+    return res.json({ ok: true, state: 'withdrawn' });
+  } catch (error) {
+    console.error('Purchase request revocation unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido retirar la petición.' });
+  }
+});
+
+app.delete('/api/purchase-requests/:token', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las peticiones privadas aún no están configuradas.' });
+  const token = req.params.token;
+  if (!validRequestToken(token)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  try {
+    const [requestRows] = await pool.execute('SELECT id FROM purchase_requests WHERE owner_token_hash = ? LIMIT 1', [hash(token)]);
+    const requestId = requestRows[0]?.id;
+    const [result] = await pool.execute('DELETE FROM purchase_requests WHERE owner_token_hash = ?', [hash(token)]);
+    if (!result.affectedRows) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+    if (crmEnabled && requestId) { try { await pool.execute('DELETE FROM crm_cases WHERE purchase_request_id = ?', [requestId]); } catch (error) { console.error('CRM privacy cleanup unavailable:', error.message); } }
+    return res.json({ ok: true, state: 'deleted' });
+  } catch (error) {
+    console.error('Purchase request deletion unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido eliminar la petición.' });
+  }
+});
+
+app.post('/api/purchase-requests/:token/invitations', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las invitaciones aún no están configuradas.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  const ownerToken = req.params.token;
+  if (!validRequestToken(ownerToken)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  if (req.body?.consent?.receiveOffers !== true) return res.status(400).json({ ok: false, message: 'Debes confirmar por separado que aceptas recibir una oferta de este concesionario.' });
+  const dealerName = typeof req.body?.dealerName === 'string' ? req.body.dealerName.trim().slice(0, 160) : null;
+  const dealerId = req.body?.dealerId ? crmId(req.body.dealerId) : null;
+  if (req.body?.dealerId && (!dealerId || !crmEnabled)) return res.status(400).json({ ok: false, message: 'El concesionario seleccionado no está disponible.' });
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+    const [rows] = await connection.execute('SELECT id, expires_at FROM purchase_requests WHERE owner_token_hash = ? AND state = ? LIMIT 1', [hash(ownerToken), 'active']);
+    const request = rows[0];
+    if (!request || new Date(request.expires_at).getTime() <= Date.now()) { await connection.rollback(); return res.status(404).json({ ok: false, message: 'Petición no disponible.' }); }
+    if (dealerId) { const [dealerRows] = await connection.execute('SELECT id, trade_name, legal_name FROM crm_dealers WHERE id = ? AND status = ? AND data_processing_status = ? AND archived_at IS NULL LIMIT 1', [dealerId, 'verified', 'approved']); if (!dealerRows[0]) { await connection.rollback(); return res.status(400).json({ ok: false, message: 'El concesionario seleccionado no está verificado.' }); } }
+    const inviteToken = createReportToken(), expiresAt = new Date(Math.min(new Date(request.expires_at).getTime(), Date.now() + REPORT_TTL_MS));
+    if (dealerId) await connection.execute('INSERT INTO purchase_request_invites (request_id, dealer_id, token_hash, dealer_name, expires_at) VALUES (?, ?, ?, ?, ?)', [request.id, dealerId, hash(inviteToken), dealerName || null, expiresAt]);
+    else await connection.execute('INSERT INTO purchase_request_invites (request_id, token_hash, dealer_name, expires_at) VALUES (?, ?, ?, ?)', [request.id, hash(inviteToken), dealerName || null, expiresAt]);
+    await connection.execute('INSERT INTO purchase_request_consents (request_id, consent_type, granted) VALUES (?, ?, ?)', [request.id, 'receive_offers', true]);
+    await connection.commit();
+    if (dealerId && crmEnabled) { try { const [cases] = await pool.execute('SELECT id FROM crm_cases WHERE purchase_request_id = ? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [request.id]); if (cases[0]) await pool.execute('INSERT INTO crm_case_dealers (case_id, dealer_id, relationship_state) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE relationship_state = VALUES(relationship_state), updated_at = CURRENT_TIMESTAMP', [cases[0].id, dealerId, 'invited']); } catch (error) { console.error('CRM dealer association unavailable:', error.message); } }
+    if (crmEnabled) {
+      try { const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE purchase_request_id = ? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [request.id]); const current = cases[0]; if (current && crmTransitions[current.stage]?.includes('shared_manual')) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['shared_manual', current.id]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [current.id, current.stage, 'shared_manual', 'system', 'Invitación manual creada']); } } catch (error) { console.error('CRM invitation tracking unavailable:', error.message); }
+    }
+    return res.status(201).json({ ok: true, inviteToken, inviteUrl: `${requestBaseUrl.replace(/\/$/, '')}/respuesta-oferta/?token=${inviteToken}`, expiresAt: expiresAt.toISOString() });
+  } catch (error) {
+    if (connection) await connection.rollback().catch(() => {});
+    console.error('Dealer invitation creation unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido crear la invitación.' });
+  } finally { connection?.release(); }
+});
+
+app.get('/api/purchase-offer-invites/:token', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las invitaciones aún no están configuradas.' });
+  const inviteToken = req.params.token;
+  if (!validRequestToken(inviteToken)) return res.status(404).json({ ok: false, message: 'Invitación no disponible.' });
+  try {
+    const [rows] = await pool.execute('SELECT invite.dealer_name, invite.expires_at, request.payload FROM purchase_request_invites invite JOIN purchase_requests request ON request.id = invite.request_id WHERE invite.token_hash = ? AND invite.state = ? AND request.state = ? AND invite.expires_at > CURRENT_TIMESTAMP AND request.expires_at > CURRENT_TIMESTAMP LIMIT 1', [hash(inviteToken), 'active', 'active']);
+    const row = rows[0];
+    if (!row) return res.status(404).json({ ok: false, message: 'Invitación no disponible.' });
+    const request = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+    return res.json({ ok: true, offersEnabled: dealerOffersEnabled, expiresAt: new Date(row.expires_at).toISOString(), dealerName: row.dealer_name || null, request });
+  } catch (error) {
+    console.error('Dealer invitation lookup unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido consultar la invitación.' });
+  }
+});
+
+app.post('/api/purchase-offer-invites/:token/offers', async (req, res) => {
+  if (!dealerOffersEnabled) return res.status(503).json({ ok: false, configured: false, message: 'La recepción de ofertas aún no está activa.' });
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'La recepción de ofertas aún no está configurada.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  const inviteToken = req.params.token;
+  if (!validRequestToken(inviteToken)) return res.status(404).json({ ok: false, message: 'Invitación no disponible.' });
+  const offer = cleanOffer(req.body?.offer);
+  const requiredOfferFields = ['dealerName', 'vehicle', 'version', 'condition', 'availability', 'finalCashPrice', 'priceBreakdown', 'warranty', 'testAndInspection', 'offerValidity', 'accuracyDeclaration'];
+  if (requiredOfferFields.some((key) => !offer[key])) return res.status(400).json({ ok: false, message: 'Completa los campos obligatorios de la oferta.', fields: requiredOfferFields.filter((key) => !offer[key]) });
+  try {
+    const [rows] = await pool.execute('SELECT invite.id, invite.request_id FROM purchase_request_invites invite JOIN purchase_requests request ON request.id = invite.request_id WHERE invite.token_hash = ? AND invite.state = ? AND request.state = ? AND invite.expires_at > CURRENT_TIMESTAMP AND request.expires_at > CURRENT_TIMESTAMP LIMIT 1', [hash(inviteToken), 'active', 'active']);
+    const invite = rows[0];
+    if (!invite) return res.status(404).json({ ok: false, message: 'Invitación no disponible.' });
+    const [versionRows] = await pool.execute('SELECT COALESCE(MAX(version), 0) + 1 AS next_version FROM purchase_offers WHERE invite_id = ?', [invite.id]);
+    const version = Number(versionRows[0]?.next_version || 1);
+    const [result] = await pool.execute('INSERT INTO purchase_offers (request_id, invite_id, version, payload, state) VALUES (?, ?, ?, ?, ?)', [invite.request_id, invite.id, version, JSON.stringify({ ...offer, source: 'dealer-submission-v1' }), 'received']);
+    if (crmEnabled) {
+      try { const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE purchase_request_id = ? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [invite.request_id]); const current = cases[0]; if (current && crmTransitions[current.stage]?.includes('offer_received')) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['offer_received', current.id]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [current.id, current.stage, 'offer_received', 'system', 'Oferta recibida']); } } catch (error) { console.error('CRM offer tracking unavailable:', error.message); }
+    }
+    return res.status(201).json({ ok: true, offerId: result.insertId, version, state: 'received' });
+  } catch (error) {
+    console.error('Dealer offer creation unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se ha podido registrar la oferta.' });
+  }
+});
+
+app.get('/api/purchase-requests/:token/offers', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'Las ofertas aún no están configuradas.' });
+  const ownerToken = req.params.token;
+  if (!validRequestToken(ownerToken)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  try {
+    const [requests] = await pool.execute('SELECT id, state FROM purchase_requests WHERE owner_token_hash = ? AND state = ? AND expires_at > CURRENT_TIMESTAMP LIMIT 1', [hash(ownerToken), 'active']);
+    const request = requests[0];
+    if (!request) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+    const [offers] = await pool.execute('SELECT id, version, payload, state, created_at FROM purchase_offers WHERE request_id = ? ORDER BY created_at DESC, version DESC', [request.id]);
+    return res.json({ ok: true, state: request.state, offers: offers.map((offer) => ({ id: offer.id, version: offer.version, state: offer.state, createdAt: offer.created_at, offer: typeof offer.payload === 'string' ? JSON.parse(offer.payload) : offer.payload })) });
+  } catch (error) {
+    console.error('Purchase offers lookup unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se han podido consultar las ofertas.' });
+  }
+});
+
+app.post('/api/purchase-requests/:token/comparison-viewed', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'El seguimiento de comparación aún no está configurado.' });
+  const ownerToken = req.params.token;
+  if (!validRequestToken(ownerToken)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  try {
+    const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE purchase_request_id = (SELECT id FROM purchase_requests WHERE owner_token_hash = ? AND state = \'active\' AND expires_at > CURRENT_TIMESTAMP LIMIT 1) AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [hash(ownerToken)]);
+    const current = cases[0];
+    if (crmEnabled && current && crmTransitions[current.stage]?.includes('comparison')) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['comparison', current.id]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [current.id, current.stage, 'comparison', 'user', 'Comparador de ofertas abierto']); }
+    return res.json({ ok: true, tracked: Boolean(crmEnabled && current), contactAuthorizationAvailable: Boolean(crmEnabled && current && crmTransitions[current.stage]?.includes('contact_authorized')) });
+  } catch (error) { console.error('Comparison tracking unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido registrar la comparación.' }); }
+});
+
+app.post('/api/purchase-requests/:token/contact-authorized', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, configured: false, message: 'La autorización de contacto aún no está configurada.' });
+  const ownerToken = req.params.token;
+  if (!validRequestToken(ownerToken)) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+  if (req.body?.consent?.contact !== true) return res.status(400).json({ ok: false, message: 'Debes confirmar por separado la autorización de contacto.' });
+  try {
+    const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE purchase_request_id = (SELECT id FROM purchase_requests WHERE owner_token_hash = ? AND state = \'active\' AND expires_at > CURRENT_TIMESTAMP LIMIT 1) AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [hash(ownerToken)]);
+    const current = cases[0];
+    if (!current) return res.status(404).json({ ok: false, message: 'Petición no disponible.' });
+    if (!crmEnabled || !crmTransitions[current.stage]?.includes('contact_authorized')) return res.status(409).json({ ok: false, message: 'La autorización no está disponible en esta fase.' });
+    await pool.execute('UPDATE crm_cases SET stage = ?, consent_snapshot = JSON_SET(COALESCE(consent_snapshot, JSON_OBJECT()), \'$.contact\', true, \'$.contactAt\', CURRENT_TIMESTAMP) WHERE id = ?', ['contact_authorized', current.id]);
+    await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason, metadata) VALUES (?, ?, ?, ?, ?, ?)', [current.id, current.stage, 'contact_authorized', 'user', 'Autorización explícita de contacto', JSON.stringify({ contact: true })]);
+    return res.json({ ok: true, authorized: true, message: 'Autorización registrada. No se ha enviado ningún mensaje automáticamente.' });
+  } catch (error) { console.error('Contact authorization unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido registrar la autorización.' }); }
+});
+
+const crmGuard = (req, res) => {
+  if (!crmRuntimeEnabled) { res.status(503).json({ ok: false, configured: false, message: 'El CRM aún no está activado.' }); return false; }
+  if (!pool) { res.status(503).json({ ok: false, configured: false, message: 'El CRM requiere MySQL configurado.' }); return false; }
+  if (!rateLimit(`crm:${req.ip || 'unknown'}`)) { res.status(429).json({ ok: false, message: 'Demasiados intentos de acceso al CRM.' }); return false; }
+  if (!crmAuthorized(req)) { res.status(401).json({ ok: false, message: 'Autorización interna requerida.' }); return false; }
+  return true;
+};
+const crmId = (value) => /^\d+$/.test(String(value || '')) ? Number(value) : null;
+
+app.get('/api/crm/status', (_req, res) => {
+  const checks = { mysql: Boolean(pool), featureFlag: process.env.CRM_ENABLED === 'true', schemaReady: crmSchemaReady, adminCredential: Boolean(crmAdminToken) };
+  const enabled = checks.mysql && checks.featureFlag && checks.schemaReady && checks.adminCredential;
+  return res.json({ ok: true, enabled, checks, message: enabled ? 'CRM preparado para acceso interno.' : 'CRM cerrado hasta completar las puertas de activación.' });
+});
+
+app.get('/api/crm/meta', (req, res) => {
+  if (!crmGuard(req, res)) return;
+  return res.json({ ok: true, stages: crmStages, transitions: crmTransitions, dealerStatuses: ['draft', 'pending_review', 'verified', 'suspended', 'archived'], relationshipStates: ['candidate', 'invited', 'responded', 'selected', 'declined', 'blocked'] });
+});
+
+app.get('/api/crm/summary', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  try {
+    const [[cases]] = await pool.query('SELECT COUNT(*) AS total, SUM(stage IN (\'visitor\', \'diagnostic_started\', \'report_requested\', \'report_verified\')) AS diagnostics, SUM(stage IN (\'purchased\', \'aftercare\')) AS aftercare, SUM(next_action_at IS NOT NULL AND next_action_at < CURRENT_TIMESTAMP AND stage NOT IN (\'closed\', \'withdrawn\', \'blocked\')) AS overdue FROM crm_cases WHERE deleted_at IS NULL');
+    const [stageRows] = await pool.query('SELECT stage, COUNT(*) AS total FROM crm_cases WHERE deleted_at IS NULL GROUP BY stage ORDER BY total DESC, stage ASC');
+    const [[dealers]] = await pool.query('SELECT COUNT(*) AS total, SUM(status = \'verified\') AS verified FROM crm_dealers WHERE archived_at IS NULL');
+    const [[tasks]] = await pool.query('SELECT COUNT(*) AS open FROM crm_aftercare_tasks WHERE status = \'open\'');
+    return res.json({ ok: true, cases: { ...(cases || {}), byStage: Object.fromEntries(stageRows.map((row) => [row.stage, Number(row.total)])) }, dealers: dealers || {}, aftercare: tasks || {} });
+  } catch (error) { console.error('CRM summary unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar el resumen.' }); }
+});
+
+app.get('/api/crm/dealers', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  try {
+    const [rows] = await pool.query('SELECT id, legal_name AS legalName, trade_name AS tradeName, website, status, verification_status AS verificationStatus, contract_status AS contractStatus, data_processing_status AS dataProcessingStatus, created_at AS createdAt FROM crm_dealers WHERE archived_at IS NULL ORDER BY updated_at DESC');
+    return res.json({ ok: true, dealers: rows });
+  } catch (error) { console.error('CRM dealers unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido consultar los concesionarios.' }); }
+});
+
+app.get('/api/crm/dealers/:id/contacts', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+
+  const dealerId = crmId(req.params.id);
+
+  if (!dealerId) return res.status(400).json({ ok: false, message: 'Concesionario no válido.' });
+  try {
+    const [rows] = await pool.execute('SELECT id, contact_name AS contactName, role, email, phone, whatsapp, preferred_channel AS preferredChannel, consent_status AS consentStatus, created_at AS createdAt FROM crm_dealer_contacts WHERE dealer_id = ? AND deleted_at IS NULL ORDER BY created_at ASC, id ASC', [dealerId]);
+    return res.json({ ok: true, dealerId, contacts: rows });
+  } catch (error) { console.error('CRM dealer contacts unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido consultar los contactos del concesionario.' }); }
+});
+
+app.get('/api/crm/cases', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const stage = crmText(req.query.stage, 40);
+  try {
+    const [rows] = await pool.execute('SELECT id, lead_id AS leadId, purchase_request_id AS purchaseRequestId, stage, source, assigned_to AS assignedTo, priority, next_action_at AS nextActionAt, created_at AS createdAt, updated_at AS updatedAt FROM crm_cases WHERE deleted_at IS NULL AND (? IS NULL OR stage = ?) ORDER BY next_action_at IS NULL, next_action_at ASC, updated_at DESC LIMIT 200', [stage, stage]);
+    return res.json({ ok: true, cases: rows });
+  } catch (error) { console.error('CRM cases unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido consultar los casos.' }); }
+});
+
+app.get('/api/crm/cases/:id', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const caseId = crmId(req.params.id);
+  if (!caseId) return res.status(400).json({ ok: false, message: 'Caso no válido.' });
+  try {
+    const [[caseRow]] = await pool.execute('SELECT id, lead_id AS leadId, purchase_request_id AS purchaseRequestId, stage, source, assigned_to AS assignedTo, priority, next_action_at AS nextActionAt, created_at AS createdAt, updated_at AS updatedAt, closed_at AS closedAt FROM crm_cases WHERE id = ? AND deleted_at IS NULL LIMIT 1', [caseId]);
+    if (!caseRow) return res.status(404).json({ ok: false, message: 'Caso no encontrado.' });
+    const [events] = await pool.execute('SELECT id, from_stage AS fromStage, to_stage AS toStage, actor_type AS actorType, reason, created_at AS createdAt FROM crm_case_events WHERE case_id = ? ORDER BY created_at ASC, id ASC', [caseId]);
+    const [dealers] = await pool.execute('SELECT link.dealer_id AS dealerId, dealer.trade_name AS tradeName, dealer.legal_name AS legalName, link.relationship_state AS relationshipState, link.contact_authorized_at AS contactAuthorizedAt FROM crm_case_dealers link JOIN crm_dealers dealer ON dealer.id = link.dealer_id WHERE link.case_id = ? ORDER BY link.created_at ASC', [caseId]);
+    const [tasks] = await pool.execute('SELECT id, task_type AS taskType, status, owner_type AS ownerType, due_at AS dueAt, notes, created_at AS createdAt FROM crm_aftercare_tasks WHERE case_id = ? ORDER BY status ASC, due_at ASC, id ASC', [caseId]);
+    return res.json({ ok: true, case: caseRow, events, dealers, tasks });
+  } catch (error) { console.error('CRM case detail unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar el caso.' }); }
+});
+
+app.post('/api/crm/dealers', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const body = req.body || {}, legalName = crmText(body.legalName, 180), contactName = crmText(body.contactName, 160);
+  if (!legalName || !contactName) return res.status(400).json({ ok: false, message: 'La razón social y el contacto principal son obligatorios.' });
+  const contactEmail = crmContactEmail(body.contactEmail), phone = crmContactPhone(body.phone), whatsapp = crmContactPhone(body.whatsapp);
+  if ((body.contactEmail && !contactEmail) || (body.phone && !phone) || (body.whatsapp && !whatsapp)) return res.status(400).json({ ok: false, message: 'El email o teléfono del contacto no tiene un formato válido.' });
+  try {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [dealer] = await connection.execute('INSERT INTO crm_dealers (legal_name, trade_name, tax_id, website, service_areas, specialties) VALUES (?, ?, ?, ?, ?, ?)', [legalName, crmText(body.tradeName, 180), crmText(body.taxId, 40), crmText(body.website, 255), crmJson(body.serviceAreas), crmJson(body.specialties)]);
+      await connection.execute('INSERT INTO crm_dealer_contacts (dealer_id, contact_name, role, email, phone, whatsapp, preferred_channel) VALUES (?, ?, ?, ?, ?, ?, ?)', [dealer.insertId, contactName, crmText(body.contactRole, 100), contactEmail, phone, whatsapp, crmText(body.preferredChannel, 24)]);
+      await connection.commit();
+      return res.status(201).json({ ok: true, dealerId: dealer.insertId, status: 'draft', message: 'Concesionario guardado como borrador; pendiente de revisión.' });
+    } catch (error) { await connection.rollback().catch(() => {}); throw error; } finally { connection.release(); }
+  } catch (error) { console.error('CRM dealer creation unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido guardar el concesionario.' }); }
+});
+
+app.post('/api/crm/dealers/:id/status', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const dealerId = crmId(req.params.id), status = crmText(req.body?.status, 24), verificationStatus = crmText(req.body?.verificationStatus, 24), dataProcessingStatus = crmText(req.body?.dataProcessingStatus, 24);
+  if (!dealerId || !['draft', 'pending_review', 'verified', 'suspended', 'archived'].includes(status)) return res.status(400).json({ ok: false, message: 'Concesionario o estado no válidos.' });
+  if (status === 'verified' && dataProcessingStatus !== 'approved') return res.status(400).json({ ok: false, message: 'No se puede verificar sin aprobación del estado de tratamiento de datos.' });
+  try {
+    if (status === 'verified') { const [[approvedContact]] = await pool.execute('SELECT COUNT(*) AS total FROM crm_dealer_contacts WHERE dealer_id = ? AND consent_status = ? AND deleted_at IS NULL', [dealerId, 'approved']); if (Number(approvedContact?.total || 0) < 1) return res.status(400).json({ ok: false, message: 'No se puede verificar sin al menos un contacto aprobado.' }); }
+    const [result] = await pool.execute('UPDATE crm_dealers SET status = ?, verification_status = COALESCE(?, verification_status), data_processing_status = COALESCE(?, data_processing_status), archived_at = IF(? = \'archived\', CURRENT_TIMESTAMP, archived_at) WHERE id = ?', [status, verificationStatus, dataProcessingStatus, status, dealerId]);
+    if (!result.affectedRows) return res.status(404).json({ ok: false, message: 'Concesionario no encontrado.' });
+    return res.json({ ok: true, dealerId, status, verificationStatus: verificationStatus || null, dataProcessingStatus: dataProcessingStatus || null });
+  } catch (error) { console.error('CRM dealer status unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido actualizar el estado del concesionario.' }); }
+});
+
+app.post('/api/crm/dealers/:id/contacts', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const dealerId = crmId(req.params.id), contactName = crmText(req.body?.contactName, 160);
+  if (!dealerId || !contactName) return res.status(400).json({ ok: false, message: 'Concesionario y nombre del contacto son obligatorios.' });
+  const email = crmContactEmail(req.body?.email), phone = crmContactPhone(req.body?.phone), whatsapp = crmContactPhone(req.body?.whatsapp);
+  if ((req.body?.email && !email) || (req.body?.phone && !phone) || (req.body?.whatsapp && !whatsapp)) return res.status(400).json({ ok: false, message: 'El email o teléfono del contacto no tiene un formato válido.' });
+  try {
+    const [dealerRows] = await pool.execute('SELECT id FROM crm_dealers WHERE id = ? AND archived_at IS NULL LIMIT 1', [dealerId]);
+    if (!dealerRows[0]) return res.status(404).json({ ok: false, message: 'Concesionario no encontrado.' });
+    const [result] = await pool.execute('INSERT INTO crm_dealer_contacts (dealer_id, contact_name, role, email, phone, whatsapp, preferred_channel) VALUES (?, ?, ?, ?, ?, ?, ?)', [dealerId, contactName, crmText(req.body?.role, 100), email, phone, whatsapp, crmText(req.body?.preferredChannel, 24)]);
+    return res.status(201).json({ ok: true, contactId: result.insertId, status: 'pending_review' });
+  } catch (error) { console.error('CRM dealer contact creation unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido guardar el contacto.' }); }
+});
+
+app.post('/api/crm/dealers/:id/contacts/:contactId/status', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const dealerId = crmId(req.params.id), contactId = crmId(req.params.contactId), consentStatus = crmText(req.body?.consentStatus, 24);
+  if (!dealerId || !contactId || !['pending_review', 'approved', 'rejected'].includes(consentStatus)) return res.status(400).json({ ok: false, message: 'Contacto o estado de autorización no válidos.' });
+  try {
+    const [result] = await pool.execute('UPDATE crm_dealer_contacts SET consent_status = ? WHERE id = ? AND dealer_id = ? AND deleted_at IS NULL', [consentStatus, contactId, dealerId]);
+    if (!result.affectedRows) return res.status(404).json({ ok: false, message: 'Contacto no encontrado.' });
+    return res.json({ ok: true, dealerId, contactId, consentStatus });
+  } catch (error) { console.error('CRM dealer contact status unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido actualizar la autorización del contacto.' }); }
+});
+
+app.post('/api/crm/cases', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const leadId = req.body?.leadId ? crmId(req.body.leadId) : null, requestId = req.body?.purchaseRequestId ? crmId(req.body.purchaseRequestId) : null;
+  const stage = crmText(req.body?.stage, 40) || 'visitor';
+  if (!crmStages.includes(stage)) return res.status(400).json({ ok: false, message: 'Etapa no válida.' });
+  const priority = crmText(req.body?.priority, 16) || 'normal';
+  if (!['low', 'normal', 'high'].includes(priority)) return res.status(400).json({ ok: false, message: 'Prioridad no válida.' });
+  try {
+    const [result] = await pool.execute('INSERT INTO crm_cases (lead_id, purchase_request_id, stage, source, assigned_to, priority, next_action_at, consent_snapshot) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [leadId, requestId, stage, crmText(req.body?.source, 40) || 'manual', crmText(req.body?.assignedTo, 80), priority, crmText(req.body?.nextActionAt, 32), req.body?.consentSnapshot ? JSON.stringify(req.body.consentSnapshot) : null]);
+    await pool.execute('INSERT INTO crm_case_events (case_id, to_stage, actor_type, reason) VALUES (?, ?, ?, ?)', [result.insertId, stage, 'admin', 'Alta manual']);
+    return res.status(201).json({ ok: true, caseId: result.insertId, stage });
+  } catch (error) { console.error('CRM case creation unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido crear el caso.' }); }
+});
+
+app.post('/api/crm/cases/:id/events', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const caseId = crmId(req.params.id), toStage = crmText(req.body?.toStage, 40), reason = crmOperationalNote(req.body?.reason);
+  if (req.body?.reason && !reason) return res.status(400).json({ ok: false, message: 'El motivo no puede contener emails o teléfonos.' });
+  if (!caseId || !crmStages.includes(toStage)) return res.status(400).json({ ok: false, message: 'Caso o etapa no válidos.' });
+  try {
+    const [rows] = await pool.execute('SELECT stage FROM crm_cases WHERE id = ? AND deleted_at IS NULL LIMIT 1', [caseId]);
+    const current = rows[0];
+    if (!current) return res.status(404).json({ ok: false, message: 'Caso no encontrado.' });
+    if (!crmTransitions[current.stage]?.includes(toStage)) return res.status(409).json({ ok: false, message: `Transición no permitida: ${current.stage} → ${toStage}.` });
+    if (toStage === 'closed') { const [[openTasks]] = await pool.execute('SELECT COUNT(*) AS total FROM crm_aftercare_tasks WHERE case_id = ? AND status = ?', [caseId, 'open']); if (Number(openTasks?.total || 0) > 0) return res.status(409).json({ ok: false, message: 'Completa las tareas abiertas antes de cerrar el caso.' }); }
+    const connection = await pool.getConnection();
+    try { await connection.beginTransaction(); await connection.execute('UPDATE crm_cases SET stage = ?, closed_at = IF(? = \'closed\', CURRENT_TIMESTAMP, closed_at) WHERE id = ?', [toStage, toStage, caseId]); await connection.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [caseId, current.stage, toStage, 'admin', reason]); await connection.commit(); } catch (error) { await connection.rollback().catch(() => {}); throw error; } finally { connection.release(); }
+    return res.json({ ok: true, caseId, fromStage: current.stage, toStage });
+  } catch (error) { console.error('CRM transition unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido actualizar el caso.' }); }
+});
+
+app.post('/api/crm/cases/:id/dealers', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const caseId = crmId(req.params.id), dealerId = crmId(req.body?.dealerId);
+  const relationshipState = crmText(req.body?.relationshipState, 24) || 'candidate';
+  if (!caseId || !dealerId || !['candidate', 'invited', 'responded', 'selected', 'declined', 'blocked'].includes(relationshipState)) return res.status(400).json({ ok: false, message: 'Caso, concesionario o relación no válidos.' });
+  try {
+    const [[caseRow]] = await pool.execute('SELECT id FROM crm_cases WHERE id = ? AND deleted_at IS NULL LIMIT 1', [caseId]);
+    if (!caseRow) return res.status(404).json({ ok: false, message: 'Caso no encontrado.' });
+    const [[dealerRow]] = await pool.execute('SELECT id, status, data_processing_status AS dataProcessingStatus FROM crm_dealers WHERE id = ? AND archived_at IS NULL LIMIT 1', [dealerId]);
+    if (!dealerRow) return res.status(404).json({ ok: false, message: 'Concesionario no encontrado.' });
+    if (relationshipState === 'selected') {
+      const [[approvedContact]] = await pool.execute('SELECT COUNT(*) AS total FROM crm_dealer_contacts WHERE dealer_id = ? AND consent_status = ? AND deleted_at IS NULL', [dealerId, 'approved']);
+      if (dealerRow.status !== 'verified' || dealerRow.dataProcessingStatus !== 'approved' || Number(approvedContact?.total || 0) < 1) return res.status(409).json({ ok: false, message: 'Solo puede seleccionarse un concesionario verificado, con tratamiento aprobado y contacto aprobado.' });
+    }
+    await pool.execute('INSERT INTO crm_case_dealers (case_id, dealer_id, relationship_state) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE relationship_state = VALUES(relationship_state), updated_at = CURRENT_TIMESTAMP', [caseId, dealerId, relationshipState]);
+    return res.status(201).json({ ok: true, caseId, dealerId, relationshipState });
+  } catch (error) { console.error('CRM case dealer link unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido asociar el concesionario.' }); }
+});
+
+app.post('/api/crm/cases/:id/aftercare', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const caseId = crmId(req.params.id), taskType = crmText(req.body?.taskType, 32);
+  if (!caseId || !['documentation', 'inspection', 'insurance', 'transfer', 'delivery', 'finance_review', 'maintenance', 'first_service', 'warranty', 'warranty_claim', 'followup'].includes(taskType)) return res.status(400).json({ ok: false, message: 'Caso o tipo de tarea no válidos.' });
+  const dueAt = crmText(req.body?.dueAt, 32), notes = crmOperationalNote(req.body?.notes);
+  if (req.body?.notes && !notes) return res.status(400).json({ ok: false, message: 'La nota no puede contener emails o teléfonos; usa el contacto restringido.' });
+  try {
+    const [caseRows] = await pool.execute('SELECT id, stage FROM crm_cases WHERE id = ? AND deleted_at IS NULL LIMIT 1', [caseId]);
+    const currentCase = caseRows[0];
+    if (!currentCase) return res.status(404).json({ ok: false, message: 'Caso no encontrado.' });
+    const [result] = await pool.execute('INSERT INTO crm_aftercare_tasks (case_id, task_type, owner_type, owner_id, due_at, notes) VALUES (?, ?, ?, ?, ?, ?)', [caseId, taskType, crmText(req.body?.ownerType, 24) || 'internal', crmText(req.body?.ownerId, 80), dueAt || null, notes]);
+    if (currentCase.stage === 'purchased' && crmTransitions[currentCase.stage]?.includes('aftercare')) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['aftercare', caseId]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [caseId, currentCase.stage, 'aftercare', 'admin', 'Tarea de poscompra creada']); }
+    return res.status(201).json({ ok: true, taskId: result.insertId, status: 'open' });
+  } catch (error) { console.error('CRM aftercare creation unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido crear la tarea.' }); }
+});
+
+
+app.post('/api/crm/aftercare/:id/complete', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const taskId = crmId(req.params.id);
+  if (!taskId) return res.status(400).json({ ok: false, message: 'Tarea no válida.' });
+  try {
+    const [[task]] = await pool.execute('SELECT task.id, task.case_id AS caseId, cases.stage FROM crm_aftercare_tasks task JOIN crm_cases cases ON cases.id = task.case_id WHERE task.id = ? AND task.status = \'open\' AND cases.deleted_at IS NULL LIMIT 1', [taskId]);
+    if (!task) return res.status(404).json({ ok: false, message: 'Tarea no encontrada, ya completada o caso no disponible.' });
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.execute('UPDATE crm_aftercare_tasks SET status = \'completed\' WHERE id = ? AND status = \'open\'', [taskId]);
+      await connection.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason, metadata) VALUES (?, ?, ?, ?, ?, ?)', [task.caseId, task.stage, task.stage, 'admin', 'Tarea de acompañamiento completada', JSON.stringify({ taskId })]);
+      await connection.commit();
+    } catch (error) { await connection.rollback().catch(() => {}); throw error; } finally { connection.release(); }
+    return res.json({ ok: true, taskId, caseId: task.caseId, status: 'completed', tracked: true });
+  } catch (error) { console.error('CRM aftercare completion unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido completar la tarea.' }); }
+});
+
+app.get('/api/crm/aftercare', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const status = crmText(req.query.status, 24) || 'open';
+  if (!['open', 'completed'].includes(status)) return res.status(400).json({ ok: false, message: 'Estado de tarea no válido.' });
+  try {
+    const [rows] = await pool.execute('SELECT task.id, task.case_id AS caseId, task.task_type AS taskType, task.status, task.owner_type AS ownerType, task.due_at AS dueAt, task.notes, crm.stage FROM crm_aftercare_tasks task JOIN crm_cases crm ON crm.id = task.case_id WHERE task.status = ? AND crm.deleted_at IS NULL ORDER BY task.due_at IS NULL, task.due_at ASC, task.id ASC LIMIT 200', [status]);
+    return res.json({ ok: true, tasks: rows });
+  } catch (error) { console.error('CRM aftercare list unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido consultar las tareas.' }); }
+});
+
+app.post('/api/nearby-services', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {}, lat = Number(body.lat), lon = Number(body.lon), radius = Number(body.radius || 10000), category = String(body.category || 'dealer');
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180 || ![2000, 5000, 10000, 25000].includes(radius) || !nearbyCategories[category]) return res.status(400).json({ ok: false, message: 'Ubicación, radio o categoría no válidos.' });
+  const filters = nearbyCategories[category].filters.map((filter) => `${filter}(around:${radius},${lat},${lon});`).join('');
+  const query = `[out:json][timeout:20];(${filters});out center tags 80;`;
+  for (const endpoint of overpassEndpoints) { try { const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'CocheCierto/1.0 (https://cochecierto.com)' }, body: new URLSearchParams({ data: query }), signal: AbortSignal.timeout(15000) }); if (!response.ok) continue; const payload = await response.json(); const toRad = (value) => value * Math.PI / 180; const distance = (item) => { const point = item.lat != null ? item : item.center || {}; const a = Math.sin(toRad(Number(point.lat) - lat) / 2) ** 2 + Math.cos(toRad(lat)) * Math.cos(toRad(Number(point.lat))) * Math.sin(toRad(Number(point.lon) - lon) / 2) ** 2; return Math.round(6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))); }; const places = (payload.elements || []).map((item) => { const point = item.lat != null ? item : item.center || {}; const tags = item.tags || {}; return { id: `${item.type}-${item.id}`, osmType: item.type, name: tags.name || null, category: nearbyCategories[category].label, latitude: Number(point.lat), longitude: Number(point.lon), address: [tags['addr:street'], tags['addr:housenumber'], tags['addr:postcode'], tags['addr:city']].filter(Boolean).join(', ') || null, phone: tags.phone || tags['contact:phone'] || null, website: tags.website || tags['contact:website'] || null, openingHours: tags.opening_hours || null, distanceMeters: distance(point), source: 'OpenStreetMap' }; }).filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude)).sort((a, b) => a.distanceMeters - b.distanceMeters).slice(0, 50); return res.json({ ok: true, source: 'OpenStreetMap', category, radius, places }); } catch (error) { console.error('Nearby services unavailable:', error.message); } }
+  return res.status(503).json({ ok: false, message: 'El servicio de mapas está temporalmente saturado. Inténtalo de nuevo en unos minutos.' });
+});
+
+app.post('/api/dealer-request-pdf', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {}, profile = body.profile || {};
+  const translations = { high: 'alto', medium: 'medio', low: 'bajo', mixed: 'mixto', 'three-four': 'tres o cuatro', repairs: 'facilidad de reparación', sometimes: 'a veces', always: 'habitualmente', never: 'nunca', private: 'particular', professional: 'profesional' };
+  const clean = (value) => { const text = typeof value === 'string' ? value.replace(/[\r\n]/g, ' ').trim() : ''; return (translations[text] || text || 'Por concretar').slice(0, 120); };
+  const radiusValue = Number(body.radius), radiusKm = Number.isFinite(radiusValue) ? (radiusValue > 100 ? radiusValue / 1000 : radiusValue) : null;
+  const radiusLabel = radiusKm == null ? 'por concretar' : `${radiusKm.toLocaleString('es-ES', { maximumFractionDigits: 1 })} km`;
+  let resourcesQr = null;
+  try { resourcesQr = await QRCode.toDataURL(resourcesUrl, { margin: 0, width: 96 }); } catch (error) { console.warn('Resources QR unavailable:', error.message); }
+  const document = new PDFDocument({ size: 'A4', margins: { top: 52, bottom: 52, left: 54, right: 54 }, info: { Title: 'Ficha de necesidades CocheCierto', Author: 'CocheCierto' } });
+  res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', 'attachment; filename="ficha-oferta-ajustada-cochecierto.pdf"'); document.pipe(res);
+  const navy = '#082d46', orange = '#fc4c02', muted = '#58717d', pale = '#eef8f4';
+  const section = (title) => { document.moveDown(.8).font('Helvetica-Bold').fontSize(11).fillColor(orange).text(title.toUpperCase(), { characterSpacing: .7 }); document.moveDown(.25).font('Helvetica').fontSize(10).fillColor(navy); };
+  document.rect(0, 0, 595, 118).fill(navy).fillColor('#ffffff').font('Helvetica-Bold').fontSize(24).text('CocheCierto', 54, 42); document.font('Helvetica').fontSize(11).fillColor('#b8cbd2').text('FICHA DE NECESIDADES PARA SOLICITAR UNA OFERTA', 54, 78); if (resourcesQr) document.image(resourcesQr, 474, 20, { width: 72 }); document.fillColor(navy).font('Helvetica').fontSize(10).text(`Zona aproximada: ${clean(body.area)}  |  Radio de referencia: ${radiusLabel}`, 54, 140);
+  document.rect(0, 0, 595, 118).fill(navy).fillColor('#ffffff').font('Helvetica-Bold').fontSize(24).text('CocheCierto', 54, 42); document.font('Helvetica').fontSize(11).fillColor('#b8cbd2').text('FICHA DE NECESIDADES PARA SOLICITAR UNA OFERTA', 54, 78); document.fillColor(navy).font('Helvetica').fontSize(10).text(`Zona aproximada: ${clean(body.area)}  |  Radio de referencia: ${radiusLabel}`, 54, 140);
+  section('Objetivo de la petición'); document.text('Preparar una oferta ajustada a necesidades reales, sin pagar por extras que no aportan valor al uso declarado. No se solicita una marca, modelo o precio concreto: se piden alternativas y diferencias explicadas.');
+  section('Perfil de uso'); [['Categoría', profile.category], ['Carrocería', profile.body], ['Uso principal', profile.usage], ['Kilómetros declarados', profile.kilometres], ['Personas habituales', profile.people], ['Presupuesto declarado', profile.budget], ['Prioridad', profile.priority], ['ZBE o restricciones', profile.zbe]].forEach(([label, value]) => document.fillColor(navy).font('Helvetica-Bold').text(`${label}: `, { continued: true }).font('Helvetica').text(clean(value)));
+  section('Datos que debe incluir la oferta'); ['Vehículo propuesto, versión, motor y equipamiento incluido.', 'Precio final desglosado, impuestos, matriculación y gastos adicionales.', 'Disponibilidad, plazo de entrega y condiciones de reserva.', 'Garantía, historial, kilometraje y estado de la unidad si es usada.', 'Financiación solo si se solicita: entrada, TAE, plazo, cuota y coste total.', 'Elementos opcionales separados del equipamiento necesario.', 'Condiciones de prueba, inspección independiente y desistimiento.'].forEach((item) => document.text(`• ${item}`, { indent: 10, hanging: 5 }));
+  section('Respuesta útil para comparar'); document.text('Para que la persona pueda decidir con criterio, presenta una opción principal y, si es posible, una alternativa. Explica en una línea qué necesidad resuelve cada una y qué diferencia de coste implica. Señala expresamente cualquier dato pendiente de confirmar.');
+  section('Criterios de ajuste'); document.rect(54, document.y, 487, 50).fill(pale); document.fillColor(navy).font('Helvetica').text('Prioriza lo que resuelve el uso declarado. No añadas paquetes, servicios o extras sin explicar su utilidad y coste. Si un dato no está confirmado, indícalo como pendiente.', 68, document.y + 14, { width: 460 });
+  section('Siguiente paso'); document.text('Comparar la oferta con al menos una alternativa y confirmar por escrito disponibilidad, condiciones y coste total antes de pagar.');
+  document.moveDown(1.4).strokeColor('#d7e2df').moveTo(54, document.y).lineTo(541, document.y).stroke().moveDown(.5).fontSize(8).fillColor(muted).text(`CocheCierto · Recursos: ${resourcesUrl} · Contacto: hola@cochecierto.com · Documento orientativo. No es una oferta, tasación, garantía ni asesoramiento financiero. No contiene datos personales ni sensibles.`); document.end();
+  document.moveDown(1.4).strokeColor('#d7e2df').moveTo(54, document.y).lineTo(541, document.y).stroke().moveDown(.5).fontSize(8).fillColor(muted).text('CocheCierto · Documento orientativo. No es una oferta, tasación, garantía ni asesoramiento financiero. No contiene datos personales ni sensibles.'); document.end();
+});
+
+app.post('/api/geocode', async (req, res) => {
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const address = typeof req.body?.address === 'string' ? req.body.address.trim().slice(0, 120) : '';
+  if (!address) return res.status(400).json({ ok: false, message: 'Introduce una localidad o código postal.' });
+  try { const url = new URL('https://nominatim.openstreetmap.org/search'); url.searchParams.set('q', address); url.searchParams.set('format', 'jsonv2'); url.searchParams.set('limit', '1'); url.searchParams.set('countrycodes', 'es'); const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'CocheCierto/1.0 (https://cochecierto.com)' }, signal: AbortSignal.timeout(10000) }); if (!response.ok) throw new Error(`Nominatim ${response.status}`); const first = (await response.json())[0]; if (!first) return res.status(404).json({ ok: false, message: 'No hemos encontrado esa zona.' }); return res.json({ ok: true, location: { latitude: Number(first.lat), longitude: Number(first.lon) }, formattedAddress: first.display_name }); } catch (error) { console.error('OSM geocode unavailable:', error.message); return res.status(502).json({ ok: false, message: 'No se ha podido localizar esa zona.' }); }
+});
+
+app.post('/api/dealers/search', async (req, res) => {
+  if (!googlePlaces) return res.status(503).json({ ok: false, configured: false, message: 'La búsqueda local aún no está activa.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const body = req.body || {};
+  const latitude = Number(body.latitude), longitude = Number(body.longitude), radius = Number(body.radius || 10);
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || ![5, 10, 25, 50].includes(radius)) {
+    return res.status(400).json({ ok: false, message: 'Ubicación o radio no válidos.' });
+  }
+  try {
+    const response = await fetch(googlePlaces.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': googlePlaces.key, 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.types' },
+      body: JSON.stringify({ includedPrimaryTypes: ['car_dealer'], maxResultCount: 20, rankPreference: 'DISTANCE', locationRestriction: { circle: { center: { latitude, longitude }, radius: radius * 1000 } } }),
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error(`Places ${response.status}`);
+    const payload = await response.json();
+    const places = Array.isArray(payload.places) ? payload.places.map((place) => ({ id: place.id || null, name: place.displayName?.text || 'Concesionario sin nombre', address: place.formattedAddress || null, location: place.location || null, phone: place.nationalPhoneNumber || null, website: place.websiteUri || null, mapsUrl: place.googleMapsUri || null, types: Array.isArray(place.types) ? place.types : [] })) : [];
+    return res.json({ ok: true, source: 'Google Places API (New)', radius, places });
+  } catch (error) {
+    console.error('Dealer search unavailable:', error.message);
+    return res.status(502).json({ ok: false, message: 'No se han podido consultar opciones locales.' });
+  }
+});
+
+app.post('/api/dealers/geocode', async (req, res) => {
+  if (!googlePlaces) return res.status(503).json({ ok: false, configured: false, message: 'La búsqueda local aún no está activa.' });
+  if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
+  const address = typeof req.body?.address === 'string' ? req.body.address.trim().slice(0, 120) : '';
+  if (!address) return res.status(400).json({ ok: false, message: 'Introduce una localidad o código postal.' });
+  try {
+    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+    url.searchParams.set('address', address); url.searchParams.set('region', 'es'); url.searchParams.set('language', 'es'); url.searchParams.set('key', googlePlaces.key);
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!response.ok) throw new Error(`Geocoding ${response.status}`);
+    const payload = await response.json();
+    const first = payload.results?.[0];
+    if (!first?.geometry?.location) return res.status(404).json({ ok: false, message: 'No hemos encontrado esa zona.' });
+    return res.json({ ok: true, location: { latitude: first.geometry.location.lat, longitude: first.geometry.location.lng }, formattedAddress: first.formatted_address || address });
+  } catch (error) {
+    console.error('Dealer geocode unavailable:', error.message);
+    return res.status(502).json({ ok: false, message: 'No se ha podido localizar esa zona.' });
+  }
+});
+
 app.post('/api/leads', async (req, res) => {
   if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.' });
   const body = req.body || {};
@@ -768,8 +1340,18 @@ app.post('/api/leads', async (req, res) => {
   const email = body.email.trim().toLowerCase();
   const lead = { email, phone: typeof body.phone === 'string' ? body.phone.trim() : null, name: typeof body.name === 'string' ? body.name.trim() : null, intent: body.intent, purchaseWindow: body.purchaseWindow, recommendedCategory: body.recommendedCategory, usageType: body.usageType === 'professional' ? 'professional' : 'private', questionnaireVersion: body.questionnaireVersion, recommendationVersion: body.recommendationVersion, consentResult: body.consentResult === true, consentCommercial: body.consentCommercial === true, consentAt: new Date() };
   if (!lead.consentResult) return res.status(400).json({ error: 'Es necesario aceptar el consentimiento para enviar el informe.' });
+  let leadId = null;
   if (pool) {
-    await pool.execute('INSERT INTO leads (email, phone, name, intent, purchase_window, recommended_category, usage_type, questionnaire_version, recommendation_version, consent_result, consent_commercial, consent_at, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)', [lead.email, lead.phone, lead.name, lead.intent, lead.purchaseWindow, lead.recommendedCategory, lead.usageType, lead.questionnaireVersion, lead.recommendationVersion, lead.consentResult, lead.consentCommercial, lead.consentAt]);
+    const [leadResult] = await pool.execute('INSERT INTO leads (email, phone, name, intent, purchase_window, recommended_category, usage_type, questionnaire_version, recommendation_version, consent_result, consent_commercial, consent_at, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)', [lead.email, lead.phone, lead.name, lead.intent, lead.purchaseWindow, lead.recommendedCategory, lead.usageType, lead.questionnaireVersion, lead.recommendationVersion, lead.consentResult, lead.consentCommercial, lead.consentAt]);
+    leadId = leadResult.insertId;
+    if (crmEnabled) {
+      try {
+        const [crmCase] = await pool.execute('INSERT INTO crm_cases (lead_id, stage, source, consent_snapshot) VALUES (?, ?, ?, ?)', [leadId, 'diagnostic_started', 'valorador', JSON.stringify({ result: true, commercial: lead.consentCommercial, capturedAt: lead.consentAt.toISOString() })]);
+        await pool.execute('INSERT INTO crm_case_events (case_id, to_stage, actor_type, reason) VALUES (?, ?, ?, ?)', [crmCase.insertId, 'diagnostic_started', 'system', 'Diagnóstico iniciado antes del registro']);
+        await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['report_requested', crmCase.insertId]);
+        await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [crmCase.insertId, 'diagnostic_started', 'report_requested', 'system', 'Informe solicitado tras consentimiento']);
+      } catch (error) { console.error('CRM lead tracking unavailable:', error.message); }
+    }
   }
   const verifyToken = createReportToken();
   const expires = new Date(Date.now() + REPORT_TTL_MS);
@@ -781,7 +1363,7 @@ app.post('/api/leads', async (req, res) => {
   report.llmStatus = generated.status;
   addReport(verifyToken, report);
   try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
-  if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
+
   if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL}/verify-email.html?token=${verifyToken}` });
   res.status(202).json({ accepted: true, message: 'Solicitud recibida. Revisa tu email para validar la dirección.' });
 });
@@ -793,7 +1375,16 @@ app.get('/api/verify-email', async (req, res) => {
   if (!report) { try { report = await loadAirtableReport(received); if (report) addReport(received, report); } catch (error) { console.error('No se pudo consultar Airtable:', error.message); } }
   if (!report) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
   report.verified = true;
-  if (pool) await pool.execute('UPDATE leads SET verified_at = NOW() WHERE verification_token_hash = ?', [hash(received)]);
+  if (pool) {
+    const [verified] = await pool.execute('UPDATE leads SET verified_at = NOW() WHERE verification_token_hash = ?', [hash(received)]);
+    if (crmEnabled && verified.affectedRows) {
+      try {
+        const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE lead_id = (SELECT id FROM leads WHERE verification_token_hash = ? LIMIT 1) AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [hash(received)]);
+        const current = cases[0];
+        if (current && crmTransitions[current.stage]?.includes('report_verified')) { await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['report_verified', current.id]); await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [current.id, current.stage, 'report_verified', 'system', 'Email validado']); }
+      } catch (error) { console.error('CRM verification tracking unavailable:', error.message); }
+    }
+  }
   if (airtable && report.airtableRecordId) {
     try {
       await airtableRequest(`${airtableUrl(airtable.leadsTable)}/${report.airtableRecordId}`, { method: 'PATCH', body: JSON.stringify({ fields: { Status: 'validada' } }) });

@@ -17,3 +17,6 @@ coverage/
 Thumbs.db
 *.tmp
 *.log
+
+# Evidencias y copias temporales de auditoría/despliegue
+tmp/

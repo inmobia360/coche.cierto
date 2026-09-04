@@ -10,7 +10,12 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "check": "node --check src/server.js"
+    "check": "node --check src/server.js",
+    "check:purchase-flow": "node scripts/check-purchase-flow.mjs",
+    "check:crm-lifecycle": "node scripts/check-crm-lifecycle.mjs",
+    "check:crm-gates": "node scripts/check-crm-gates.mjs",
+    "db:migrate:crm": "node scripts/migrate-crm.mjs",
+    "db:check:crm": "node scripts/check-crm-database.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

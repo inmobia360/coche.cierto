@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>CRM interno · CocheCierto</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="eyebrow">COCHECIERTO · OPERACIONES</div>
+      <h1>CRM del ciclo de vida</h1>
+      <p class="muted">Seguimiento del usuario desde el diagnóstico hasta la compra y la poscompra.</p>
+    </header>
+    <section id="locked" class="notice">
+      <strong>CRM no activado</strong>
+      <span>Consola local preparada, sin datos reales y sin acciones externas.</span>
+    </section>
+    <section id="app" hidden>
+      <div class="toolbar">
+        <label>Token interno
+          <input id="token" type="password" autocomplete="off" placeholder="Token administrado fuera del repositorio">
+        </label>
+        <button id="load" type="button">Actualizar</button>
+      </div>
+      <div id="message" class="muted"></div>
+      <section class="cards">
+        <article><small>Casos</small><b id="cases">—</b></article>
+        <article><small>Concesionarios</small><b id="dealers">—</b></article>
+        <article><small>Poscompra abierta</small><b id="aftercare">—</b></article>
+        <article><small>Acciones vencidas</small><b id="overdue">—</b></article>
+      </section>
+      <section class="panel">
+        <h2>Añadir concesionario futuro</h2>
+        <p class="muted">Queda como borrador y pendiente de revisión. El contacto no se muestra al comprador.</p>
+        <form id="dealer-form">
+          <input name="legalName" required placeholder="Razón social">
+          <input name="taxId" placeholder="NIF/CIF (pendiente de revisión)">
+          <input name="tradeName" placeholder="Nombre comercial">
+          <input name="website" type="url" placeholder="Web">
+          <input name="contactName" required placeholder="Persona de contacto">
+          <input name="contactRole" placeholder="Cargo o función">
+          <input name="contactEmail" type="email" placeholder="Email de contacto">
+          <input name="phone" placeholder="Teléfono">
+          <input name="whatsapp" placeholder="WhatsApp (si procede)">
+          <select name="preferredChannel"><option value="">Canal por decidir</option><option>Email</option><option>Teléfono</option><option>WhatsApp</option></select>
+          <button type="submit">Guardar como borrador</button>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>Concesionarios registrados</h2>
+        <div id="dealer-list" class="empty">Todavía no hay concesionarios registrados.</div>
+      </section>
+      <section class="panel">
+        <h2>Casos en seguimiento</h2>
+        <div id="case-list" class="empty">Todavía no hay casos registrados.</div>
+      </section>
+    </section>
+  </main>
+  <script src="app.js" defer></script>
+</body>
+</html>
