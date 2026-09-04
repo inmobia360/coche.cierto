@@ -148,9 +148,7 @@ const requestLlmNarrative = async (report) => {
     const payload = isOllama
       ? { model: ollamaModel, stream: false, think: false, format: 'json', options: { temperature: 0.1, num_predict: 400 }, messages }
       : { model: llm.model, temperature: 0.2, max_tokens: 420, response_format: { type: 'json_schema', json_schema: { name: 'report_narrative_v1', strict: true, schema: LLM_RESPONSE_SCHEMA } }, messages };
-
     const response = await fetch(endpoint, { method: 'POST', signal: AbortSignal.timeout(isOllama ? 30000 : 8000), headers: { 'Content-Type': 'application/json', ...(llm.key ? { Authorization: `Bearer ${llm.key}` } : {}) }, body: JSON.stringify(payload) });
-
     if (!response.ok) throw new Error(`LLM ${response.status}`);
     const body = await response.json();
     const content = isOllama ? body?.message?.content : body?.choices?.[0]?.message?.content;
@@ -301,9 +299,7 @@ const drawMetricCard = (doc, x, y, width, label, value, note, accent) => {
   doc.fillColor('#58717d').font('Helvetica').fontSize(8).text(note, x + 10, y + 64, { width: width - 20, lineBreak: false });
 };
 const situationPack = (report) => {
-
   const packs = {
-
     'first-car': ['Primer coche', 'margen, seguro, sencillez y documentación', 'Compara tres unidades sencillas dentro del precio prudente y pide su documentación antes de desplazarte.'],
     'budget-tight': ['Presupuesto ajustado', 'precio prudente, reserva y coste de una avería', 'Define primero la reserva mínima y descarta cualquier unidad que te deje sin margen.'],
     'family-space': ['Compra familiar', 'espacio, seguridad, carga y cambios previsibles', 'Prueba el coche con el equipamiento familiar real antes de negociar.'],
@@ -454,7 +450,7 @@ const writeReportPdfLegacy = async (res, report) => {
     doc.font('Helvetica').fontSize(11).fillColor('#58717d').text(intro);
   };
   const writeCheckRows = (items) => items.forEach((item) => {
-
+    doc.moveDown(.45).font('Helvetica-Bold').fillColor('#fc4c02').text('[ ]', { continued: true }).fillColor('#082333').font('Helvetica').text(` ${item}`);
   });
   reportPage('ANALIZAR UN ANUNCIO', 'Ficha reutilizable de una unidad', 'Rellénala para cada candidato y conserva la evidencia que el vendedor aporte.');
   doc.moveDown(.8).font('Helvetica-Bold').fillColor('#082333').text('Datos del anuncio');
@@ -605,7 +601,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
 
   // 1. Portada: una lectura editorial, no una pared de texto.
   let y = newPage('Informe de orientación · versión beta', `Tu guía personal de compra`, 'El coche que te conviene y cómo comprarlo con criterio. Una hoja de ruta basada en tus respuestas, con comprobaciones para una unidad concreta.');
-
+  pdfCard(doc, x, y, contentWidth, 92, { fill: PDF_COLORS.navy, stroke: PDF_COLORS.navy, accent: PDF_COLORS.orange });
   pdfText(doc, situation[0], x + 20, y + 17, 250, { color: PDF_COLORS.orange, font: 'Helvetica-Bold', size: 9, characterSpacing: .7 });
   pdfText(doc, 'Tu punto de partida', x + 20, y + 38, 280, { color: PDF_COLORS.white, font: 'Helvetica-Bold', size: 17 });
   pdfText(doc, `${situation[1]}.`, x + 20, y + 62, 320, { color: '#c5d7de', size: 10 });
@@ -756,7 +752,7 @@ const writeReportPdfStyled = async (res, inputReport) => {
   const pageRange = doc.bufferedPageRange();
   for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
     doc.switchToPage(pageRange.start + pageIndex);
-
+    doc.x = doc.page.margins.left;
     doc.y = doc.page.margins.top;
     pdfHeaderFixed(doc, doc.page.margins.left, contentWidth);
     doc.save().font('Helvetica').fontSize(7.5).fillColor(PDF_COLORS.muted)
@@ -1058,9 +1054,7 @@ app.get('/api/crm/dealers', async (req, res) => {
 
 app.get('/api/crm/dealers/:id/contacts', async (req, res) => {
   if (!crmGuard(req, res)) return;
-
   const dealerId = crmId(req.params.id);
-
   if (!dealerId) return res.status(400).json({ ok: false, message: 'Concesionario no válido.' });
   try {
     const [rows] = await pool.execute('SELECT id, contact_name AS contactName, role, email, phone, whatsapp, preferred_channel AS preferredChannel, consent_status AS consentStatus, created_at AS createdAt FROM crm_dealer_contacts WHERE dealer_id = ? AND deleted_at IS NULL ORDER BY created_at ASC, id ASC', [dealerId]);
@@ -1213,7 +1207,6 @@ app.post('/api/crm/cases/:id/aftercare', async (req, res) => {
   } catch (error) { console.error('CRM aftercare creation unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido crear la tarea.' }); }
 });
 
-
 app.post('/api/crm/aftercare/:id/complete', async (req, res) => {
   if (!crmGuard(req, res)) return;
   const taskId = crmId(req.params.id);
@@ -1363,7 +1356,7 @@ app.post('/api/leads', async (req, res) => {
   report.llmStatus = generated.status;
   addReport(verifyToken, report);
   try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
-
+  if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
   if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL}/verify-email.html?token=${verifyToken}` });
   res.status(202).json({ accepted: true, message: 'Solicitud recibida. Revisa tu email para validar la dirección.' });
 });
