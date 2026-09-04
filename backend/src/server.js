@@ -16,7 +16,10 @@ const port = Number(process.env.PORT || 3000);
 const origin = process.env.APP_ORIGIN || 'http://localhost:5500';
 const allowedOrigins = new Set([origin, 'https://cochecierto.com', 'https://www.cochecierto.com']);
 const pool = process.env.MYSQL_HOST ? mysql.createPool({ host: process.env.MYSQL_HOST, port: Number(process.env.MYSQL_PORT || 3306), database: process.env.MYSQL_DATABASE, user: process.env.MYSQL_USER, password: process.env.MYSQL_PASSWORD, waitForConnections: true, connectionLimit: 5 }) : null;
-const mailer = process.env.MAIL_HOST ? nodemailer.createTransport({ host: process.env.MAIL_HOST, port: Number(process.env.MAIL_PORT || 587), secure: Number(process.env.MAIL_PORT) === 465, auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASSWORD } }) : null;
+const mailHost = process.env.MAIL_HOST || 'smtp.hostinger.com';
+const mailPort = Number(process.env.MAIL_PORT || 465);
+const mailUser = process.env.MAIL_USER || 'hola@cochecierto.com';
+const mailer = process.env.MAIL_PASSWORD ? nodemailer.createTransport({ host: mailHost, port: mailPort, secure: mailPort === 465, auth: { user: mailUser, pass: process.env.MAIL_PASSWORD } }) : null;
 if (mailer) {
   const sendMail = mailer.sendMail.bind(mailer);
   mailer.sendMail = (options) => {
@@ -1357,7 +1360,7 @@ app.post('/api/leads', async (req, res) => {
   addReport(verifyToken, report);
   try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
   if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
-  if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL}/verify-email.html?token=${verifyToken}` });
+  if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM || `CocheCierto <${mailUser}>`, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/verify-email.html?token=${verifyToken}` });
   res.status(202).json({ accepted: true, message: 'Solicitud recibida. Revisa tu email para validar la dirección.' });
 });
 
