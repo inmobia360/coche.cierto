@@ -322,6 +322,7 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
 
 @media (max-width: 880px) {
   body { padding-bottom: calc(132px + env(safe-area-inset-bottom)); }
+  .cookie-banner { bottom: calc(76px + env(safe-area-inset-bottom) + 10px); }
   .site-shell, .landing-shell, .page, .demo-app, .app { padding-left: 16px !important; padding-right: 16px !important; }
   .site-header, .landing-nav { gap: 10px; }
   .brand-lockup, .site-brand { font-size: clamp(18px, 5vw, 22px) !important; }

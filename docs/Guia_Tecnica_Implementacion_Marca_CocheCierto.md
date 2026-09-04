@@ -35,7 +35,7 @@ La marca debe sentirse como un **asesor digital independiente y fiable**, no com
 
 ### 2.2 Promesa
 
-> **No vendemos coches. Te ayudamos a elegir el correcto.**
+> **Te ayudamos a elegir con más criterio antes de comprar.**
 
 ### 2.3 Eslogan
 

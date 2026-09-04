@@ -23,7 +23,7 @@ La oportunidad de marca se encuentra entre los portales de anuncios, los compara
 
 ### Promesa de marca
 
-> **No vendemos coches. Te ayudamos a elegir el correcto.**
+> **Te ayudamos a elegir con más criterio antes de comprar.**
 
 ### Eslogan recomendado
 
@@ -283,7 +283,7 @@ Descubre qué coche puedes comprar y cuánto te costará realmente.
 
 ### Claim de independencia
 
-> **No vendemos coches. Te ayudamos a elegir el correcto.**
+> **Te ayudamos a elegir con más criterio antes de comprar.**
 
 ### Claims de campaña
 
@@ -664,7 +664,7 @@ Por eso miramos más allá del precio. Analizamos el uso, la financiación, el c
 
 Explicamos los datos para que cualquier persona pueda comprenderlos. Señalamos lo que conviene, lo que exige precaución y lo que todavía no puede saberse.
 
-No vendemos coches. No elegimos por ti. Te damos las herramientas para que decidas con criterio y compres con seguridad.
+No elegimos por ti. Te damos las herramientas para que decidas con criterio y compres con seguridad. Cualquier colaboración o referencia comercial deberá identificarse y no podrá alterar el informe.
 
 Porque el mejor coche no es el más caro, el más nuevo ni el más vendido.
 
