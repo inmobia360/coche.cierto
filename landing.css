@@ -616,13 +616,14 @@ html.theme-light .hero-integrated-bar {
   .hero-primary-action{display:grid;gap:10px;margin-top:18px}.hero-start-btn{justify-content:center;width:100%;box-sizing:border-box}.hero-primary-action p{max-width:none;text-align:center}.hero-result-preview{grid-template-columns:1fr;gap:9px;margin-top:14px}.hero-result-preview div{grid-template-columns:1fr auto;align-items:center}.hero-result-preview strong{font-size:14px;text-align:right}
   .hero-visual-wrapper { min-height: 270px; margin-inline: 16px; }
   .hero-car-image, .coche-cabecera { max-width: 100% !important; }
-  .hud-card { padding: 7px 9px; gap: 7px; }
-  .hud-icon-badge { width: 32px; height: 32px; }
-  .hud-label { font-size: 10px; }
-  .hud-card { transform: scale(.9); transform-origin: center; }
+  .hud-card { top: 0; bottom: auto; left: auto; right: auto; width: 31%; min-height: 58px; box-sizing: border-box; padding: 6px 7px; gap: 5px; transform: none; }
+  .hud-icon-badge { width: 26px; height: 26px; font-size: 13px; }
+  .hud-content { min-width: 0; }
+  .hud-label { font-size: 9px; }
+  .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val { min-width: 0; font-size: 11px; line-height: 1.1; overflow-wrap: anywhere; }
   .hud-encaje { left: 0; }
-  .hud-coste { right: 0; }
-  .hud-riesgo { right: 0; bottom: 4px; }
+  .hud-coste { left: 34.5%; }
+  .hud-riesgo { left: 69%; }
   .hero-integrated-bar { padding: 20px 16px !important; border-radius: 18px !important; }
   .bar-controls-grid {
     grid-template-columns: 1fr;

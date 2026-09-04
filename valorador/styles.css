@@ -553,6 +553,7 @@
 @media (max-width: 760px) {
   .app .screen-report,
   .app .screen-report-section { min-width: 0; max-width: 100%; }
+  .app .screen-report-section * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
   .app .screen-report-section { padding: 20px 16px; }
   .app .timeline-grid { grid-template-columns: 1fr; }
   .app .budget-visual { padding: 16px; }
@@ -562,7 +563,7 @@
   .app .budget-bar-labels span { width: auto !important; min-width: 0; padding: 0 2px; font-size: 10px; overflow-wrap: anywhere; }
   .app .budget-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .app .question-list .report-check { min-width: 0; }
-  .app .question-list .report-check > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+  .app .question-list .report-check > span:last-child { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; word-break: break-word; }
   .app .compare-table { overflow: visible; }
   .app .compare-head { display: none; }
   .app .compare-row { display: grid; grid-template-columns: 1fr; min-width: 0 !important; gap: 0; padding: 0; }
@@ -574,5 +575,5 @@
   .app .compare-row > span:nth-child(2)::before { content: 'Candidato A: '; color: var(--ink-primary); font-weight: 750; }
   .app .compare-row > span:nth-child(3)::before { content: 'Candidato B: '; color: var(--ink-primary); font-weight: 750; }
   .app .compare-row > span:nth-child(4)::before { content: 'Candidato C: '; color: var(--ink-primary); font-weight: 750; }
-  .app .decision-card strong { display: block; line-height: 1.8; }
+  .app .decision-card strong { display: block; max-width: 100%; line-height: 1.8; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
 }
