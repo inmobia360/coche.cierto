@@ -47,6 +47,19 @@ contener credenciales, datos personales innecesarios ni secretos.
 
 ## Entradas recientes
 
+### [2026-09-04] Versión buena comunicada a todos los agentes
+- Origen: petición expresa del director y verificación de sincronización
+- Tipo: decisión
+- Estado: cerrado
+- Decisión o hecho: `main@8d00881` queda designado como versión buena de referencia para Secretaría y todos los agentes.
+- Alcance: CTA principal unificado, nomenclatura pública de casos prácticos, copy de entrada del valorador y medición condicionada al consentimiento.
+- Responsable: SECRETARIA; todos los agentes deben partir de esta referencia.
+- Prioridad: alta
+- Dependencias: mantener la sincronización local/remota y revisar la API publicada por separado.
+- Criterio de aceptación: `git rev-parse HEAD` y `origin/main` coinciden en `8d00881`; el despliegue estático de Hostinger fue aceptado.
+- Evidencia: `AUTO-VALORADOR.md`, `secretaria-status.md`, commit `8d00881`.
+- Próxima acción: QA-VALIDACION conserva los pendientes técnicos y prueba producción sin cambiar la base de referencia.
+
 ### [2026-09-02] Secretaria de seguimiento por subagente
 - Origen: petición del director
 - Tipo: cambio

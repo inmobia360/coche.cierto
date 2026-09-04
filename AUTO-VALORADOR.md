@@ -182,13 +182,15 @@ Una tarea termina solo cuando sus criterios observables están cumplidos, las pr
 ## Registro de versión protegida
 
 **Versión de referencia:** `main` — **versión buena declarada por el propietario**
-**Commit de referencia:** `942d35d` — `merge: reconcile remote dealer improvements`
-**Fecha y hora de registro:** 2026-09-03 18:16:53 (Europe/Madrid)
-**Estado:** GitHub es la fuente de verdad. La sincronización local y la publicación en Hostinger quedan pendientes de validación.
+**Commit de referencia:** `8d00881` — `feat: unificar conversion y medir embudo respetando consentimiento`
+**Fecha y hora de registro:** 2026-09-04 20:57:52 (Europe/Madrid)
+**Estado:** GitHub y la carpeta local están sincronizados en `main`; la superficie estática correspondiente está desplegada en Hostinger. El backend desplegado permanece en `84c5ebc` y debe tratarse como la versión publicada de API hasta el siguiente despliegue.
 
 ### Directiva para Secretaría y todos los agentes
 
-Secretaría deberá notificar y conservar este registro como la versión oficial de referencia, incluyendo nombre, fecha, hora, etiqueta y commit. Todos los agentes deberán trabajar contra esta versión y no podrán realizar cambios que alteren el flujo funcional, el embudo, el consentimiento, la entrega por email, la generación/descarga del informe o sus criterios de seguridad.
+Secretaría deberá notificar y conservar este registro como la versión oficial de referencia, incluyendo nombre, fecha, hora, etiqueta y commit. Todos los agentes deberán trabajar contra `main@8d00881` y no podrán realizar cambios que alteren el flujo funcional, el embudo, el consentimiento, la entrega por email, la generación/descarga del informe o sus criterios de seguridad.
+
+**Handoff vigente:** INGENIERIA toma `main@8d00881` como base; QA-VALIDACION debe usar esta versión para pruebas públicas; UX-CONTENIDO y COPY-MENSAJE deben conservar el CTA principal `Crear mi valoración gratuita`; CONVERSION-CRM solo puede medir tras consentimiento y sin PII; SEO-AEO-GEO debe considerar `Casos prácticos` como nomenclatura pública. Esta comunicación no cierra los pendientes de email, CRM, migraciones, accesibilidad, rendimiento ni aprobación legal: cada uno conserva su criterio de aceptación y evidencia independiente.
 
 Solo se podrá modificar este flujo cuando exista una petición expresa por escrito del propietario, recibida y registrada por `AUTO-VALORADOR.md`. Antes de implementar cualquier cambio, el agente deberá documentar el alcance, la autorización recibida, los archivos afectados, las pruebas y la decisión de mantener o actualizar la versión de referencia. Una sugerencia, hipótesis, comentario de un agente o instrucción no confirmada por el propietario no constituye autorización.
 

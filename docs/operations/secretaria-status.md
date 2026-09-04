@@ -75,3 +75,15 @@ queda pendiente hasta el próximo despliegue autorizado.
 - Revisar textos legales definitivos y realizar pruebas de API/email en entorno desplegado.
 - Importar el workbook de keywords cuando esté disponible.
 - No iniciar campañas, páginas P1, contenido masivo, integraciones ni scraping.
+
+## Versión protegida comunicada — 4 de septiembre de 2026
+
+| Campo | Valor |
+|---|---|
+| Fuente de verdad | GitHub `main` |
+| Commit de referencia | `8d00881` — unificación de conversión y medición con consentimiento |
+| Carpeta local | Sin cambios pendientes frente a `origin/main` |
+| Hostinger estático | Desplegado desde `8d00881` |
+| Hostinger backend | Publicado en `84c5ebc` |
+| Instrucción | Todos los agentes deben partir de `main@8d00881` y no reabrir versiones anteriores |
+| Pendientes conservados | Email, CRM, migraciones, accesibilidad, rendimiento y revisión legal |
