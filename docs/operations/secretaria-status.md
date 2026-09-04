@@ -81,9 +81,9 @@ queda pendiente hasta el próximo despliegue autorizado.
 | Campo | Valor |
 |---|---|
 | Fuente de verdad | GitHub `main` |
-| Commit de referencia | `c994903` — registro operativo; base funcional `8d00881` |
+| Commit de referencia | Se fijará en el commit de registro de esta versión beta |
 | Carpeta local | Sin cambios pendientes frente a `origin/main` |
-| Hostinger estático | Desplegado desde `8d00881` |
+| Hostinger estático | Beta desplegada y verificada en `https://cochecierto.com/` |
 | Hostinger backend | Publicado en `84c5ebc` |
-| Instrucción | Todos los agentes deben partir de `main@c994903` y no reabrir versiones anteriores |
+| Instrucción | Todos los agentes deben partir del commit de registro de esta beta y no reabrir versiones anteriores |
 | Pendientes conservados | Email, CRM, migraciones, accesibilidad, rendimiento y revisión legal |

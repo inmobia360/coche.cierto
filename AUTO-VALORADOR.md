@@ -182,9 +182,9 @@ Una tarea termina solo cuando sus criterios observables están cumplidos, las pr
 ## Registro de versión protegida
 
 **Versión de referencia:** `main` — **versión buena declarada por el propietario**
-**Commit de referencia:** `c994903` — `docs: fijar version buena y comunicar handoff a agentes` (base funcional validada: `8d00881`)
-**Fecha y hora de registro:** 2026-09-04 20:57:52 (Europe/Madrid)
-**Estado:** GitHub y la carpeta local están sincronizados en `main@c994903`; la superficie estática funcional correspondiente a `8d00881` está desplegada en Hostinger. El backend desplegado permanece en `84c5ebc` y debe tratarse como la versión publicada de API hasta el siguiente despliegue.
+**Commit de referencia:** pendiente de commit de registro de esta versión beta desplegada
+**Fecha y hora de registro:** 2026-09-04 (Europe/Madrid)
+**Estado:** versión beta estática desplegada y verificada en `https://cochecierto.com/`; se conserva el backend publicado sin cambios. GitHub y la carpeta local se sincronizarán en este registro.
 
 ### Directiva para Secretaría y todos los agentes
 
