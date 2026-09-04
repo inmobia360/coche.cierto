@@ -548,3 +548,31 @@
  .valuator-seo-context{max-width:760px;margin:0 auto 24px;padding:0 20px;color:var(--ink-secondary)}
  .valuator-seo-context h1{color:var(--ink-primary);font-size:clamp(32px,5vw,56px);line-height:1.05;margin:0 0 14px;letter-spacing:-.04em}
  .valuator-seo-context p{line-height:1.55;margin:8px 0}
+
+/* Ajustes móviles para el informe: una columna, etiquetas legibles y sin tablas cortadas. */
+@media (max-width: 760px) {
+  .app .screen-report,
+  .app .screen-report-section { min-width: 0; max-width: 100%; }
+  .app .screen-report-section { padding: 20px 16px; }
+  .app .timeline-grid { grid-template-columns: 1fr; }
+  .app .budget-visual { padding: 16px; }
+  .app .budget-visual-head { align-items: flex-start; flex-wrap: wrap; }
+  .app .budget-visual-head strong { max-width: 100%; overflow-wrap: anywhere; font-size: 22px; }
+  .app .budget-bar-labels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .app .budget-bar-labels span { width: auto !important; min-width: 0; padding: 0 2px; font-size: 10px; overflow-wrap: anywhere; }
+  .app .budget-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .app .question-list .report-check { min-width: 0; }
+  .app .question-list .report-check > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+  .app .compare-table { overflow: visible; }
+  .app .compare-head { display: none; }
+  .app .compare-row { display: grid; grid-template-columns: 1fr; min-width: 0 !important; gap: 0; padding: 0; }
+  .app .compare-row > span { min-width: 0; padding: 11px 14px; overflow-wrap: anywhere; }
+  .app .compare-row > span:first-child { padding-bottom: 5px; font-weight: 750; }
+  .app .compare-row > span:nth-child(2),
+  .app .compare-row > span:nth-child(3),
+  .app .compare-row > span:nth-child(4) { border-top: 1px solid var(--border-subtle); font-size: 13px; }
+  .app .compare-row > span:nth-child(2)::before { content: 'Candidato A: '; color: var(--ink-primary); font-weight: 750; }
+  .app .compare-row > span:nth-child(3)::before { content: 'Candidato B: '; color: var(--ink-primary); font-weight: 750; }
+  .app .compare-row > span:nth-child(4)::before { content: 'Candidato C: '; color: var(--ink-primary); font-weight: 750; }
+  .app .decision-card strong { display: block; line-height: 1.8; }
+}
