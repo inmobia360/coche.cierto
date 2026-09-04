@@ -220,7 +220,7 @@
       <section class="dealer-next-step" aria-labelledby="dealer-next-title"><div><p class="eyebrow">Siguiente paso opcional</p><h3 id="dealer-next-title">Busca opciones cerca de ti</h3><p>Consulta un directorio local de prueba y decide tú con quién contactar. Esta búsqueda no cambia tu orientación ni recomienda marcas.</p></div><a class="button secondary" id="dealerSearchLink" href="../concesionarios/">Buscar concesionarios</a></section><div id="leadbox"></div><footer class="report-screen-footer"><span>CocheCierto · guía personal de compra</span><div class="report-screen-actions"><button class="button secondary" id="downloadReport" type="button">Descargar mi guía</button></div></footer>
     </div>`;
     const download=document.querySelector('#downloadReport'); if(download) download.onclick=()=>renderLead(r);
-    const dealerLink=document.querySelector('#dealerSearchLink'); if(dealerLink) dealerLink.onclick=()=>{try{sessionStorage.setItem('cochecierto:dealer-profile',JSON.stringify({category:p.category,body:p.body,usage:a.use||'no indicado',kilometres:a.km||'no indicados',people:a.people||'no indicado',budget:a.budget||'no declarado',priority:a.priority||'no indicada',zbe:a.zbe||'no indicada'}));}catch{}};
+    const dealerLink=document.querySelector('#dealerSearchLink'); if(dealerLink) dealerLink.onclick=()=>{try{sessionStorage.setItem('cochecierto:dealer-profile',JSON.stringify({category:p.category,body:p.body,usage:a.use||'no indicado',kilometres:a.km||'no indicados',people:a.people||'no indicado',budget:a.budget||'no declarado',priority:a.priority||'no indicada',zbe:a.zbe||'no indicada',purchaseWindow:a.window||'unknown'}));}catch{}};
   }
   renderFullReport = function(r){ polishedReport(r); };
   renderResult = function(){
