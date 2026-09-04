@@ -60,7 +60,7 @@
       '<a href="' + base + 'guias/"' + (currentKey === 'guias' ? ' aria-current="page"' : '') + '>' + navIcon('method') + '<span>Guías</span></a>' +
       '</nav>' +
       '<div class="header-actions">' +
-      '<a class="nav-cta" href="' + base + 'valorador/">' + (currentKey === 'valorador' ? 'Diagnóstico activo' : 'Crear mi valoración') + '</a>' +
+      '<a class="nav-cta" href="' + base + 'valorador/">' + (currentKey === 'valorador' ? 'Crear mi valoración gratuita' : 'Crear mi valoración gratuita') + '</a>' +
       '<button class="theme-toggle-btn" type="button" aria-label="Cambiar tema" title="Cambiar tema">☼</button>' +
       '<button class="mobile-menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>' +
       '</div>' + mobileMenuHTML;
@@ -312,7 +312,26 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initHeader);
+  window.trackCocheCierto = function(name, detail) {
+    try {
+      const preferences = JSON.parse(localStorage.getItem('cochecierto_cookie_preferences_v1') || '{}');
+      if (preferences.analytics !== true) return;
+      const safeDetail = detail && typeof detail === 'object' ? Object.fromEntries(Object.entries(detail).filter(([key]) => !/email|phone|name|address|answer|location/i.test(key))) : undefined;
+      if (typeof window.gtag === 'function') window.gtag('event', name, safeDetail);
+      window.dispatchEvent(new CustomEvent('cochecierto:conversion', { detail: { name, ...safeDetail } }));
+    } catch (_) {}
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    initHeader();
+    document.addEventListener('click', function(event) {
+      const cta = event.target.closest('a[href*="/valorador/"]');
+      if (cta) window.trackCocheCierto('view_cta', { label: cta.textContent.trim().slice(0, 80) });
+      if (event.target.closest('#start, #miniStart')) window.trackCocheCierto('start_diagnosis');
+      if (event.target.closest('#next')) window.trackCocheCierto('question_completed');
+      if (event.target.closest('#downloadReport, #makeDealerSheet')) window.trackCocheCierto('result_viewed');
+    });
+    document.addEventListener('submit', function(event) { if (event.target.matches('#lead, #emailGate')) window.trackCocheCierto('email_introduced'); });
+  });
   } else {
     initHeader();
   }
