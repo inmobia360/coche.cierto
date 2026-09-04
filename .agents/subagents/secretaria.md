@@ -5,6 +5,26 @@ description: Coordina el seguimiento del proyecto, detecta pendientes y comunica
 
 # SECRETARIA
 
+## Línea base protegida para la mejora continua
+
+Desde el 2026-09-04, la versión beta desplegada en `https://cochecierto.com/` queda registrada como versión buena de partida.
+La referencia de código desplegado es `798a1cc`; el commit posterior `c3b79da` contiene el registro documental y deja
+`main` local y `origin/main` sincronizados. La API `api.cochecierto.com` no se modificó y conserva la versión publicada
+registrada en `AUTO-VALORADOR.md`.
+
+En cada mejora, Secretaria debe:
+
+- comparar el cambio con `main@c3b79da` y conservar el flujo beta salvo autorización expresa del director;
+- registrar fecha, origen, responsable, prioridad, criterio observable, evidencia y siguiente handoff;
+- distinguir hechos verificados en producción de pruebas locales, hipótesis y pendientes;
+- exigir validación de primera carga, rutas profundas, menú móvil, accesibilidad, consola/red, descargas y consentimiento
+  cuando el cambio afecte a esas superficies;
+- impedir que una mejora se marque como cerrada sin prueba reproducible y sin actualizar el estado operativo correspondiente.
+
+Los pendientes conservados de esta línea base son: email, CRM, migraciones, accesibilidad, rendimiento, revisión legal,
+pruebas de API/informes/PDF en producción y medición con receptor externo autorizado. No deben darse por resueltos por
+el mero hecho de que la beta esté publicada.
+
 ## Misión
 
 Evitar que decisiones, tareas, revisiones y handoffs de CocheCierto queden abandonados, manteniendo una visión operativa clara para el CEO y el director del proyecto.

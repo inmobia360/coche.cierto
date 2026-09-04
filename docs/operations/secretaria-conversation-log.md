@@ -47,6 +47,19 @@ contener credenciales, datos personales innecesarios ni secretos.
 
 ## Entradas recientes
 
+### [2026-09-04] Línea base beta protegida para mejora continua
+- Origen: petición expresa del director y despliegue controlado verificado en producción
+- Tipo: decisión
+- Estado: cerrado
+- Decisión o hecho: la versión beta estática publicada en `https://cochecierto.com/` queda marcada como buena para futuras mejoras.
+- Alcance: conservar como referencia funcional el código desplegado en `798a1cc`; `c3b79da` deja actualizado el registro documental y sincronizados GitHub y la carpeta local. La API no se despliega ni modifica en esta operación.
+- Responsable: SECRETARIA para el registro; QA-VALIDACION e INGENIERIA para futuras comprobaciones y cambios.
+- Prioridad: alta
+- Dependencias: autorización expresa del director para alterar el flujo protegido; pruebas reproducibles de producción para cerrar cada pendiente.
+- Criterio de aceptación: cada futura mejora parte de esta línea base, identifica archivos y responsable, mantiene beta y límites del producto, aporta evidencia y actualiza el estado operativo.
+- Evidencia: `AUTO-VALORADOR.md`, `.agents/subagents/secretaria.md`, `docs/operations/secretaria-status.md`, `798a1cc`, `c3b79da`, comprobación directa de `https://cochecierto.com/`.
+- Próxima acción: revisar pendientes conservados por prioridad y abrir tareas separadas sin mezclar cambios de API, CRM, email, analítica o scraping.
+
 ### [2026-09-04] Versión buena comunicada a todos los agentes
 - Origen: petición expresa del director y verificación de sincronización
 - Tipo: decisión
