@@ -128,8 +128,8 @@
         const response=await fetch(`${window.COCHECIERTO_API}/leads`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:form.querySelector('input[type=email]').value,name:form.querySelector('[name=name]').value.trim(),website:form.querySelector('[name=website]').value,formStartedAt:form.querySelector('[name=formStartedAt]').value,intent:state.answers.intent,purchaseWindow:state.answers.window,recommendedCategory:r.category,usageType:state.useType,priority:state.answers.priority,situation:state.answers.situation,answers:{...state.answers},questionnaireVersion:'v1',recommendationVersion:'mvp-v1',consentResult:checks[0].checked,consentCommercial:checks[1].checked})});
         if(!response.ok) throw new Error('api');
         document.querySelector('#leadbox').innerHTML='<div class="notice"><strong>Solicitud recibida.</strong><br>Revisa tu email y valida la dirección para recibir el informe.</div>';
-      }catch{
-        document.querySelector('#leadbox').innerHTML='<div class="notice"><strong>No hemos podido enviar el informe todavía.</strong><br>Revisa tu conexión e inténtalo de nuevo.</div>';
+      }catch(error){
+        document.querySelector('#leadbox').innerHTML='<div class="notice"><strong>No hemos podido enviar el informe todavía.</strong><br>El servicio de email no está disponible en este momento. No se ha registrado tu solicitud; inténtalo de nuevo más tarde.</div>';
       }
     };
   }
