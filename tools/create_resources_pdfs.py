@@ -62,7 +62,7 @@ def doc_story(kicker, title, intro, sections, filename):
     story.append(resource_table)
     story.append(p('URL para la versión impresa: cochecierto.com/recursos', 'SmallCC'))
     story.append(p('<b>Aviso importante:</b> Este documento es una guía orientativa y no vinculante. CocheCierto no es un asesor certificado, perito, abogado, tasador ni entidad financiera. No garantiza el estado de ningún vehículo ni sustituye la revisión profesional. La decisión y sus consecuencias corresponden al usuario.', 'Disclaimer'))
-    story.append(Spacer(1, 8)); story.append(p('Más recursos y asistente digital: <link href="https://cochecierto.com">cochecierto.com</link>  ·  <link href="mailto:hola@cochecierto.com">hola@cochecierto.com</link>  ·  <link href="https://www.instagram.com/">Instagram</link>  ·  <link href="https://www.facebook.com/">Facebook</link>  ·  <link href="https://www.tiktok.com/">TikTok</link>  ·  <link href="https://www.youtube.com/">YouTube</link>  ·  <link href="https://x.com/">X</link>', 'SmallCC'))
+    story.append(Spacer(1, 8)); story.append(p('Más recursos y asistente digital: <link href="https://cochecierto.com">cochecierto.com</link>  ·  <link href="mailto:hola@cochecierto.com">hola@cochecierto.com</link>  ·  <link href="https://www.instagram.com/somoscochecierto/">Instagram</link>  ·  <link href="https://www.facebook.com/somoscochecierto">Facebook</link>  ·  <link href="https://www.tiktok.com/@somoscochecierto">TikTok</link>  ·  <link href="https://www.youtube.com/@somoscochecierto">YouTube</link>  ·  <link href="https://x.com/cochecierto">X</link>', 'SmallCC'))
     doc.build(story, onFirstPage=header_footer, onLaterPages=header_footer)
     return path
 
