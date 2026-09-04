@@ -182,9 +182,9 @@ Una tarea termina solo cuando sus criterios observables están cumplidos, las pr
 ## Registro de versión protegida
 
 **Versión de referencia:** `main` — **versión buena declarada por el propietario**
-**Commit de referencia:** pendiente de commit de registro de esta versión beta desplegada
+**Commit de referencia:** `798a1cc` — `docs: marcar beta desplegada como version buena`
 **Fecha y hora de registro:** 2026-09-04 (Europe/Madrid)
-**Estado:** versión beta estática desplegada y verificada en `https://cochecierto.com/`; se conserva el backend publicado sin cambios. GitHub y la carpeta local se sincronizarán en este registro.
+**Estado:** GitHub y la carpeta local están sincronizados en `main@798a1cc`; la versión beta estática está desplegada y verificada en `https://cochecierto.com/`. El backend publicado se conserva sin cambios.
 
 ### Directiva para Secretaría y todos los agentes
 
