@@ -1274,6 +1274,21 @@ app.post('/api/dealer-request-pdf', async (req, res) => {
   document.moveDown(1.2).strokeColor('#d7e2df').moveTo(54, document.y).lineTo(541, document.y).stroke().moveDown(.5).fontSize(8).fillColor(muted).text('cochecierto.com  ·  Documento orientativo para facilitar una propuesta comercial.', { width: 487 }); document.moveDown(.35).fontSize(7.5).text('Aviso: este documento no es un documento oficial de ninguna asociación ni de la asociación de Freight. Es una ficha informativa confeccionada por CocheCierto para ayudar a un concesionario o vendedor a preparar un presupuesto según las necesidades declaradas. No constituye una oferta, tasación, certificación, garantía mecánica ni asesoramiento financiero o jurídico. La disponibilidad, el precio, las condiciones y el estado del vehículo deben confirmarse por escrito.'); document.end();
 });
 
+app.get('/api/crm/metrics', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const days = Math.min(Math.max(Number(req.query.days || 30), 1), 365);
+  try {
+    const [[cases]] = await pool.query('SELECT COUNT(*) AS total, SUM(stage NOT IN (\'closed\', \'withdrawn\', \'blocked\')) AS active, SUM(stage = \'purchased\' OR stage = \'aftercare\') AS won, SUM(stage IN (\'withdrawn\', \'blocked\')) AS lost, SUM(next_action_at IS NOT NULL AND next_action_at < CURRENT_TIMESTAMP AND stage NOT IN (\'closed\', \'withdrawn\', \'blocked\')) AS overdue FROM crm_cases WHERE deleted_at IS NULL AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)', [days]);
+    const [funnelRows] = await pool.query('SELECT stage, COUNT(*) AS total FROM crm_cases WHERE deleted_at IS NULL AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY stage', [days]);
+    const [[dealers]] = await pool.query('SELECT COUNT(*) AS total, SUM(status = \'active\' OR status = \'verified\') AS active, SUM(status = \'verified\') AS verified FROM crm_dealers WHERE archived_at IS NULL AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)', [days]);
+    const [[tasks]] = await pool.query('SELECT COUNT(*) AS total, SUM(status = \'open\') AS open, SUM(status = \'open\' AND due_at < CURRENT_TIMESTAMP) AS overdue FROM crm_aftercare_tasks WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)', [days]);
+    const [eventRows] = await pool.query('SELECT event_type AS eventType, COUNT(*) AS total FROM crm_product_events WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY event_type ORDER BY total DESC', [days]);
+    const funnel = Object.fromEntries(funnelRows.map((row) => [row.stage, Number(row.total)]));
+    const total = Number(cases?.total || 0), won = Number(cases?.won || 0);
+    return res.json({ ok: true, period: { days }, cases: { ...(cases || {}), conversionToWon: total ? Number((won / total * 100).toFixed(1)) : null }, funnel, dealers: dealers || {}, tasks: tasks || {}, events: Object.fromEntries(eventRows.map((row) => [row.eventType, Number(row.total)])), definitions: { conversionToWon: 'casos ganados / casos creados en el periodo', active: 'casos no cerrados, retirados o bloqueados', dataPolicy: 'Solo datos agregados; sin PII.' } });
+  } catch (error) { console.error('CRM metrics unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido calcular las métricas.' }); }
+});
+
 app.get('/api/crm/observability', async (req, res) => {
   if (!crmGuard(req, res)) return;
   const days = Math.min(Math.max(Number(req.query.days || 7), 1), 90);

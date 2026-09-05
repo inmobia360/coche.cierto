@@ -42,6 +42,7 @@ No puede desplegar, publicar, enviar comunicaciones, comprar servicios, usar sec
 - [TAXONOMIA-VEHICULOS](TAXONOMIA-VEHICULOS.md)
 - [FINANZAS-TCO](FINANZAS-TCO.md)
 - [foro-coches](foro-coches.md)
+- [COORDINADOR-CRM](COORDINADOR-CRM.md)
 - [AUDIOVISUAL-COCHECIERTO](AUDIOVISUAL-COCHECIERTO.md)
 
 Los demás roles de `AUTO-VALORADOR.md` permanecen como especializaciones gobernadas por este contrato hasta que una iniciativa necesite un perfil más detallado.

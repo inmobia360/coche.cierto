@@ -77,9 +77,14 @@ function renderDealers(dealers) {
 async function load() {
   message.textContent = 'Consultando…';
   try {
-    const [summary, dealers, cases, aftercare] = await Promise.all([api('/api/crm/summary'), api('/api/crm/dealers'), api('/api/crm/cases'), api('/api/crm/aftercare')]);
+    const [summary, dealers, cases, aftercare, metrics] = await Promise.all([api('/api/crm/summary'), api('/api/crm/dealers'), api('/api/crm/cases'), api('/api/crm/aftercare'), api('/api/crm/metrics?days=30')]);
     const observability = await api('/api/crm/observability').catch(() => ({ events: { byType: {} }, alerts: [{ severity: 'warning', message: 'Instrumentación pendiente', action: 'Aplica la migración CRM 003 para activar métricas de eventos.' }], integrations: { email: 'pendiente de esquema', social: 'pendiente de esquema' } }));
     document.querySelector('#cases').textContent = summary.cases.total || 0; document.querySelector('#dealers').textContent = dealers.dealers.length; document.querySelector('#aftercare').textContent = summary.aftercare.open || 0; document.querySelector('#overdue').textContent = summary.cases.overdue || 0;
+    const metricItems = [['Casos activos', metrics.cases.active], ['Conversión a ganada', metrics.cases.conversionToWon == null ? '—' : `${metrics.cases.conversionToWon}%`], ['Partners activos', metrics.dealers.active], ['Tareas vencidas', metrics.tasks.overdue], ['Compartidos', metrics.events.share_created || 0], ['Referidos activados', metrics.events.referred_user_activated || 0]];
+    document.querySelector('#ceo-metrics').innerHTML = metricItems.map(([label, value]) => `<article class="metric"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></article>`).join('');
+    const funnelLabels = [['visitor', 'Visitantes'], ['diagnostic_started', 'Diagnóstico'], ['report_requested', 'Informe'], ['shared_manual', 'Compartido'], ['contact_authorized', 'Contacto'], ['visit_requested', 'Cita'], ['test_requested', 'Prueba'], ['purchased', 'Ganada']];
+    const funnelMax = Math.max(1, ...funnelLabels.map(([stage]) => Number(metrics.funnel[stage] || 0)));
+    document.querySelector('#funnel').innerHTML = funnelLabels.map(([stage, label]) => { const value = Number(metrics.funnel[stage] || 0); return `<div class="funnel-row"><span>${escapeHtml(label)}</span><div class="funnel-track"><i style="width:${Math.round(value / funnelMax * 100)}%"></i></div><b>${value}</b></div>`; }).join('');
     const observationTarget = document.querySelector('#observability');
     const eventRows = Object.entries(observability.events.byType || {}).map(([type, total]) => `<span class="pill">${escapeHtml(type)}: ${total}</span>`).join('');
     const alertRows = (observability.alerts || []).map((alert) => `<div class="alert ${escapeHtml(alert.severity)}"><strong>${escapeHtml(alert.message)}</strong><small>${escapeHtml(alert.action)}</small></div>`).join('');
