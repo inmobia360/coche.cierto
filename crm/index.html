@@ -9,7 +9,16 @@
 </head>
 <body>
   <main class="shell">
-    <header>
+    <div class="app-layout">
+      <aside class="sidebar" aria-label="Navegación CRM">
+        <div class="brand-mark">C<span>·</span>C</div>
+        <p class="sidebar-label">Operación</p>
+        <nav><a class="active" href="#dashboard">Dashboard</a><a href="#case-list">Oportunidades</a><a href="#dealer-list">Partners</a><a href="#task-list">Tareas y seguimiento</a></nav>
+        <p class="sidebar-label">Inteligencia</p><nav><a href="#ceo-metrics">Analítica</a><a href="#observability-panel">Alertas y auditoría</a></nav>
+        <p class="sidebar-note">Consola interna<br><strong>Datos agregados</strong></p>
+      </aside>
+      <div class="content-column">
+    <header id="dashboard">
       <div class="eyebrow">COCHECIERTO · OPERACIONES</div>
       <h1>CRM del ciclo de vida</h1>
       <p class="muted">Seguimiento del usuario desde el diagnóstico hasta la compra y la poscompra.</p>
@@ -25,6 +34,9 @@
         </label>
         <label>Token interno
           <input id="token" type="password" autocomplete="off" placeholder="Token administrado fuera del repositorio">
+        </label>
+        <label>Periodo
+          <select id="period"><option value="30">Últimos 30 días</option><option value="7">Últimos 7 días</option><option value="90">Últimos 90 días</option></select>
         </label>
         <button id="load" type="button">Actualizar</button>
       </div>
@@ -71,6 +83,8 @@
         <div id="case-list" class="empty">Todavía no hay casos registrados.</div>
       </section>
     </section>
+      </div>
+    </div>
   </main>
   <script src="app_metrics.js" defer></script>
 </body>
