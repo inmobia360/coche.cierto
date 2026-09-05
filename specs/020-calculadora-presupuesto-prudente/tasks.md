@@ -10,3 +10,5 @@
 - [x] Preparar y ejecutar casos normales, límites, teclado, accesibilidad básica y responsive móvil/escritorio; evidencia en `review-gates.md`.
 - [x] Verificar `tool_start`, `tool_complete`, `valuation_start` y `next_action` sin PII en la prueba local.
 - [x] Registrar evidencia técnica y actualizar revisión de Secretaria; cierre formal pendiente de aprobaciones externas.
+- [ ] Revisar mensualmente las referencias energéticas publicadas por MITECO y actualizar fecha/valores si cambian.
+- [x] Mostrar un rango de compra orientativo en lugar de un precio único, manteniendo advertencia cuando no existe margen suficiente.
