@@ -9,6 +9,7 @@
 - `crm_case_dealers` permite asociar candidatos, invitados, respondedores y seleccionados.
 - Las invitaciones pueden vincularse opcionalmente a un concesionario verificado sin publicar el catálogo interno.
 - `crm_aftercare_tasks` permite preparar servicios durante y después de la compra.
+- La spec define un catálogo de eventos de producto, métricas con denominador y cohortes, y atribución de referidos mediante identificadores aleatorios.
 - El valorador y el flujo de petición registran únicamente acciones explícitas y consentidas.
 - La autorización de contacto es separada de recibir ofertas y no envía mensajes.
 - La consola `crm/` no es indexable y permanece cerrada por defecto.
@@ -36,5 +37,6 @@ Estas comprobaciones son estructurales y no sustituyen ejecutar la migración so
 4. Definir concesionarios del piloto; no se han creado registros reales.
 5. Probar una cohorte ficticia y después un piloto autorizado, sin mensajes automáticos.
 6. Autorizar por separado cualquier integración de email, WhatsApp, SMS, calendario, pagos o CRM externo.
+7. Aprobar la extensión de medición, ejecutar su migración y validar idempotencia, retención, supresión y atribución en una cohorte ficticia.
 
 No deben activarse `CRM_ENABLED=true` ni `CRM_SCHEMA_READY=true` hasta cerrar estas puertas. `CRM_SCHEMA_READY=true` se marca manualmente solo después de ejecutar la migración y `npm run db:check:crm` en staging.

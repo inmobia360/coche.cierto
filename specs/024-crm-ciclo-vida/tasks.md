@@ -8,6 +8,13 @@
 - [x] Trazabilidad condicionada de lead, validación, petición e invitación.
 - [x] Autorización de contacto separada y sin envío automático.
 - [x] Catálogo de tareas preparado para entrega y servicios posteriores a la compra.
+- [x] Contrato inicial de eventos, embudo, cohortes y atribución de referidos definido en la spec.
+- [ ] Crear migración versionada para eventos de producto y referencias de referido, con `event_id` idempotente.
+- [ ] Instrumentar el valorador y el informe según el catálogo de eventos aprobado.
+- [ ] Instrumentar compartición, apertura, respuesta y activación atribuida.
+- [ ] Construir vistas de embudo, operaciones, compartición, negocio y poscompra.
+- [ ] Añadir definiciones visibles de métricas, filtros y cohortes.
+- [ ] Probar duplicados, reintentos, varios informes por caso y atribución de un solo enlace.
 - [ ] Revisión legal/RGPD y política de conservación.
 - [ ] MySQL de staging y pruebas con datos ficticios.
 - [ ] Definir concesionarios del piloto y autorizarlos.
