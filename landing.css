@@ -618,7 +618,7 @@ html.theme-light .hero-integrated-bar {
      anchas y una altura reservada para que el vehículo no las desplace. */
   .hero-visual-wrapper {
     display: block;
-    min-height: 360px;
+    min-height: 330px;
     width: auto;
     margin-inline: 16px;
     isolation: isolate;
@@ -649,7 +649,7 @@ html.theme-light .hero-integrated-bar {
   }
   .hud-encaje { top: 8px; left: 0; }
   .hud-coste { top: 8px; right: 0; }
-  .hud-riesgo { right: 0; bottom: 2px; }
+  .hud-riesgo { right: -8px; bottom: -8px; }
   .hud-riesgo { width: 46%; }
   .hero-car-stage {
     position: absolute;
@@ -676,8 +676,9 @@ html.theme-light .hero-integrated-bar {
 }
 
 @media (max-width: 379px) {
-  .hero-visual-wrapper { min-height: 340px; }
+  .hero-visual-wrapper { min-height: 320px; }
   .hud-card { width: 43%; min-height: 64px; padding-inline: 8px; }
+  .hud-riesgo { right: -5px; bottom: -6px; }
   .hud-icon-badge { flex-basis: 32px; width: 32px; height: 32px; }
   .hud-label { font-size: 10px; }
   .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val { font-size: 14px; }
