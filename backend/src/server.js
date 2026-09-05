@@ -253,6 +253,7 @@ const crmSchemaReady = process.env.CRM_SCHEMA_READY === 'true';
 const crmEnabled = process.env.CRM_ENABLED === 'true' && crmSchemaReady;
 const crmRuntimeEnabled = crmEnabled;
 const crmAdminToken = process.env.CRM_ADMIN_TOKEN || '';
+const crmAdminUser = process.env.CRM_ADMIN_USER || 'master_admin';
 const crmStages = ['visitor', 'diagnostic_started', 'report_requested', 'report_verified', 'request_draft', 'request_active', 'shared_manual', 'offer_received', 'comparison', 'contact_authorized', 'visit_requested', 'test_requested', 'purchased', 'aftercare', 'closed', 'withdrawn', 'expired', 'blocked'];
 const crmTransitions = {
   visitor: ['diagnostic_started', 'withdrawn', 'blocked'], diagnostic_started: ['report_requested', 'withdrawn', 'blocked'],
@@ -271,6 +272,8 @@ const expireCrmRequest = async (requestId) => { if (!crmRuntimeEnabled || !pool 
 const crmJson = (value) => Array.isArray(value) ? JSON.stringify(value.slice(0, 30).map((item) => crmText(item, 120)).filter(Boolean)) : null;
 const crmAuthorized = (req) => {
   if (!crmRuntimeEnabled || !crmAdminToken) return false;
+  const suppliedUser = String(req.get('x-crm-user') || '').trim();
+  if (!suppliedUser || suppliedUser !== crmAdminUser) return false;
   const supplied = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
   if (!/^[a-f0-9]{64}$/i.test(supplied) && supplied.length < 16) return false;
   const expected = Buffer.from(hash(crmAdminToken), 'hex');
