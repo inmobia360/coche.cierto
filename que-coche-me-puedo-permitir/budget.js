@@ -31,18 +31,17 @@
     var monthlyHigh = margin * assumptions.monthlyShareHigh;
     var reserve = Math.max(data.reserve, assumptions.reserveFloor);
     var cashMax = Math.max(0, data.savings - reserve - assumptions.initialHigh);
-    var rangeLow = Math.max(0, Math.round(cashMax * 0.75));
-    var rangeHigh = Math.max(rangeLow, Math.round(cashMax + monthlyHigh * 24));
+    var targetMax = Math.max(0, Math.round(cashMax + monthlyHigh * 24));
     var monthlyEnergy = data.energy === null ? null : data.km / 100 * data.energy;
     var status = cashMax <= 0 || monthlyHigh <= 0 ? 'Conviene frenar y proteger margen' : 'Ya tienes un rango para comparar';
     var professional = data.use === 'professional' ? '<li>Si el coche es una herramienta de trabajo, añade coste de parada, sustitución y fiscalidad con un profesional.</li>' : '';
     var finance = data.purchase === 'finance' ? '<li>En financiación, suma entrada, comisiones, cuotas y posible cuota final. No compares solo la cuota mensual.</li>' : '';
     result.innerHTML = '<div class="result-top"><div class="card-kicker">Tu referencia beta</div><h2>' + status + '</h2></div>' +
-      '<div class="result-number">' + money(rangeLow) + '<span class="range-separator">–</span>' + money(rangeHigh) + '<small>rango de compra orientativo del coche</small></div>' +
+      '<div class="result-number ' + (targetMax <= 0 ? 'is-unavailable' : '') + '">' + (targetMax <= 0 ? 'Sin margen' : money(targetMax)) + '<small>' + (targetMax <= 0 ? 'precio máximo objetivo no disponible con estos datos' : 'precio máximo objetivo del coche') + '</small></div>' +
       '<div class="metric-row"><div><strong>' + money(monthlyLow) + '–' + money(monthlyHigh) + '</strong><span>margen mensual de referencia</span></div><div><strong>' + money(reserve) + '</strong><span>reserva protegida en este cálculo</span></div></div>' +
       '<h3>Cómo sale</h3><ul class="result-list"><li>Margen tras gastos fijos: <strong>' + money(margin) + '</strong> al mes.</li><li>Gastos iniciales beta: <strong>' + money(assumptions.initialLow) + '–' + money(assumptions.initialHigh) + '</strong>.</li><li>Uso declarado: <strong>' + (data.use === 'professional' ? 'uso profesional' : data.use === 'city' ? 'ciudad y trayectos cortos' : data.use === 'road' ? 'carretera' : 'mixto: ciudad y carretera') + '</strong> · ' + data.km.toLocaleString('es-ES') + ' km/mes.</li><li>' + (monthlyEnergy === null ? 'Coste energético: <strong>pendiente</strong>; introduce tu coste real cuando lo conozcas.' : 'Coste energético declarado: <strong>' + money(monthlyEnergy) + '</strong> al mes.') + '</li>' + finance + professional + '</ul>' +
       '<div class="result-callout"><strong>Tu siguiente paso</strong><p>Usa esta cifra como techo provisional, compara el coste total y conserva margen para la unidad concreta.</p><a class="button" href="../valorador/?source=budget-tool&intent=budget">Crear mi valoración gratuita</a></div>' +
-      '<p class="muted result-footnote">El rango combina el ahorro disponible, los gastos iniciales beta y hasta 24 meses de margen mensual de referencia. Es una orientación, no una garantía: si el extremo inferior es 0 €, primero conviene aumentar ahorro o reducir gastos. Cambia los supuestos cuando tengas seguro, financiación y costes reales.</p>';
+      '<p class="muted result-footnote">El precio máximo objetivo combina el ahorro disponible, los gastos iniciales beta y hasta 24 meses de margen mensual de referencia. Es una orientación, no una garantía: si aparece “Sin margen”, conviene aumentar ahorro o reducir gastos antes de comparar coches. Cambia los supuestos cuando tengas seguro, financiación y costes reales.</p>';
     result.querySelector('a').addEventListener('click', function () {
       track('valuation_start', { intent: 'budget' });
       track('next_action', { action: 'start_valuation', intent: 'budget' });

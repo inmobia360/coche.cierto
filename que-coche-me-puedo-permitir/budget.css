@@ -33,7 +33,7 @@ legend{width:100%;margin-bottom:3px;color:var(--ink-primary);font-size:13px;font
 .result-orbit:after{content:"";position:absolute;right:7px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--brand-orange);box-shadow:0 0 18px rgba(252,76,2,.7)}
 .result-top h2{margin:10px 0 18px;font-size:clamp(25px,3vw,36px);line-height:1.05;letter-spacing:-.04em}
 .result-number{padding:18px 0;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);color:var(--brand-orange);font-size:clamp(34px,4.5vw,56px);font-weight:900;letter-spacing:-.06em;line-height:1;white-space:nowrap}
-.range-separator{display:inline-block;margin:0 7px;color:var(--ink-muted);font-size:.65em;letter-spacing:0}
+.result-number.is-unavailable{color:var(--ink-primary);font-size:clamp(30px,4vw,48px);letter-spacing:-.04em}
 .result-number small{display:block;margin-top:8px;color:var(--ink-secondary);font-size:12px;font-weight:750;letter-spacing:0}
 .metric-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 0}.metric-row div{display:grid;gap:5px}.metric-row strong{font-size:20px}.metric-row span{color:var(--ink-secondary);font-size:12px;line-height:1.35}
 .budget-result h3{margin:4px 0 8px;font-size:15px}.result-list{margin:0;padding-left:19px;color:var(--ink-secondary);font-size:13px;line-height:1.6}.result-list strong{color:var(--ink-primary)}
