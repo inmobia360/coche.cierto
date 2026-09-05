@@ -631,19 +631,19 @@ html.theme-light .hero-integrated-bar {
     z-index: 4;
     width: 100%;
     min-width: 0;
-    min-height: 128px;
+    min-height: 112px;
     box-sizing: border-box;
-    padding: 20px 22px;
-    gap: 16px;
+    padding: 16px 18px;
+    gap: 14px;
     transform: none;
     animation: none;
   }
-  .hud-icon-badge { flex: 0 0 56px; width: 56px; height: 56px; font-size: 24px; }
+  .hud-icon-badge { flex: 0 0 48px; width: 48px; height: 48px; font-size: 21px; }
   .hud-content { min-width: 0; }
-  .hud-label { font-size: 17px; line-height: 1.2; }
+  .hud-label { font-size: 15px; line-height: 1.2; }
   .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val {
     min-width: 0;
-    font-size: 24px;
+    font-size: 21px;
     line-height: 1.15;
     overflow-wrap: normal;
     word-break: normal;
@@ -672,8 +672,8 @@ html.theme-light .hero-integrated-bar {
 }
 
 @media (max-width: 379px) {
-  .hud-card { min-height: 122px; padding-inline: 18px; }
-  .hud-icon-badge { flex-basis: 50px; width: 50px; height: 50px; }
-  .hud-label { font-size: 15px; }
-  .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val { font-size: 21px; }
+  .hud-card { min-height: 108px; padding-inline: 16px; }
+  .hud-icon-badge { flex-basis: 44px; width: 44px; height: 44px; }
+  .hud-label { font-size: 14px; }
+  .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val { font-size: 19px; }
 }
