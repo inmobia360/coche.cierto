@@ -614,47 +614,50 @@ html.theme-light .hero-integrated-bar {
   .hero-title { font-size: clamp(34px, 10vw, 48px); line-height: 1.02; }
   .hero-lead { font-size: 16px; }
   .hero-primary-action{display:grid;gap:10px;margin-top:18px}.hero-start-btn{justify-content:center;width:100%;box-sizing:border-box}.hero-primary-action p{max-width:none;text-align:center}.hero-result-preview{grid-template-columns:1fr;gap:9px;margin-top:14px}.hero-result-preview div{grid-template-columns:1fr auto;align-items:center}.hero-result-preview strong{font-size:14px;text-align:right}
-  /* En móvil las fichas dejan de flotar sobre el vehículo: primero se leen,
-     después aparece la imagen completa. La elevación visual se conserva. */
+  /* En móvil conservamos la escena flotante, con tarjetas suficientemente
+     anchas y una altura reservada para que el vehículo no las desplace. */
   .hero-visual-wrapper {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
-    min-height: 0;
+    display: block;
+    min-height: 350px;
+    width: auto;
     margin-inline: 16px;
-    gap: 12px;
+    isolation: isolate;
   }
   .hero-car-image, .coche-cabecera { max-width: 100% !important; }
   .hud-card {
-    position: relative;
+    position: absolute;
     inset: auto;
     z-index: 4;
-    width: 100%;
+    width: 46%;
     min-width: 0;
-    min-height: 112px;
+    min-height: 76px;
     box-sizing: border-box;
-    padding: 16px 18px;
-    gap: 14px;
+    padding: 10px 11px;
+    gap: 8px;
     transform: none;
     animation: none;
   }
-  .hud-icon-badge { flex: 0 0 48px; width: 48px; height: 48px; font-size: 21px; }
+  .hud-icon-badge { flex: 0 0 36px; width: 36px; height: 36px; font-size: 17px; }
   .hud-content { min-width: 0; }
-  .hud-label { font-size: 15px; line-height: 1.2; }
+  .hud-label { font-size: 11px; line-height: 1.2; }
   .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val {
     min-width: 0;
-    font-size: 21px;
+    font-size: 16px;
     line-height: 1.15;
     overflow-wrap: normal;
     word-break: normal;
   }
-  .hud-encaje, .hud-coste, .hud-riesgo { left: auto; right: auto; top: auto; bottom: auto; }
-  .hud-riesgo { grid-column: auto; }
+  .hud-encaje { top: 8px; left: 0; }
+  .hud-coste { top: 8px; right: 0; }
+  .hud-riesgo { right: 0; bottom: 18px; }
   .hero-car-stage {
-    grid-column: 1 / -1;
-    order: 4;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
     min-width: 0;
-    margin-top: 4px;
+    margin-top: 0;
   }
   .hero-car-image, .coche-cabecera { height: auto !important; }
   .hud-connector { display: none; }
@@ -672,8 +675,9 @@ html.theme-light .hero-integrated-bar {
 }
 
 @media (max-width: 379px) {
-  .hud-card { min-height: 108px; padding-inline: 16px; }
-  .hud-icon-badge { flex-basis: 44px; width: 44px; height: 44px; }
-  .hud-label { font-size: 14px; }
-  .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val { font-size: 19px; }
+  .hero-visual-wrapper { min-height: 330px; }
+  .hud-card { width: 48%; min-height: 72px; padding-inline: 8px; }
+  .hud-icon-badge { flex-basis: 32px; width: 32px; height: 32px; }
+  .hud-label { font-size: 10px; }
+  .hud-val, .hud-encaje .hud-val, .hud-coste .hud-val, .hud-riesgo .hud-val { font-size: 14px; }
 }
