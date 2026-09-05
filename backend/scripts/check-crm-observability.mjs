@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const up = read('backend/migrations/003_crm_observability_up.sql');
+const down = read('backend/migrations/003_crm_observability_down.sql');
+const server = read('backend/src/server.js');
+const app = read('crm/app.js');
+const required = ['event_id', 'event_type', 'created_at', 'UNIQUE KEY uq_crm_product_events_event_id'];
+for (const item of required) if (!up.includes(item)) throw new Error(`Falta en CRM 003: ${item}`);
+if (!down.includes('DROP TABLE IF EXISTS crm_product_events')) throw new Error('Rollback de CRM 003 incompleto');
+for (const route of ["app.get('/api/crm/observability'", "app.post('/api/crm/events'"]) if (!server.includes(route)) throw new Error(`Falta ruta: ${route}`);
+for (const item of ['Instrumentación pendiente', '/api/crm/observability', 'byType']) if (!app.includes(item)) throw new Error(`Falta continuidad frontend: ${item}`);
+console.log('OK: observabilidad CRM 003 verificada; idempotencia y degradación confirmadas.');

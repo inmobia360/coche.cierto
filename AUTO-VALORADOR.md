@@ -45,7 +45,7 @@ Antes de implementar, exige una spec aprobada, un plan y tareas acotadas. Implem
 - `LEGAL-CONFIANZA`: revisa privacidad, consentimiento, cookies, claims, afiliación, disclaimers y uso de datos de terceros; bloquea mensajes engañosos.
 - `INE-CONTEXTO`: incorpora estadísticas oficiales del INE como contexto socioeconómico y territorial, con trazabilidad, versionado y protección contra inferencias individuales.
 - `COPY-MENSAJE`: desarrolla y edita copy de landing, CTA, informe y mensajes de fricción con hipótesis comprobables.
-- `SOCIAL-CONTENIDO`: adapta la propuesta a publicaciones sociales y creatividades sin promesas engañosas ni campañas automáticas.
+- `SOCIAL-CONTENIDO`: adapta la propuesta a publicaciones sociales y creatividades sin promesas engañosas ni campañas automáticas; mantiene experimentos de horario y formato, registra UTM/eventos/referidos, entrega informes a 24 horas, 7 días y mensual, y propone ajustes basados en cohortes sin activar incentivos ni comunicaciones no autorizadas.
 - `SEO-AEO-GEO`: estructura contenidos para buscadores y respuestas generativas, priorizando intención local y datos verificables.
 - `EMAIL-CICLO-VENTA`: diseña emails transaccionales y secuencias de nutrición con consentimiento, estados y métricas.
 - `PRECIO-OCASION`: prepara referencias de anuncios de ocasión en España desde fuentes autorizadas; no hace scraping no autorizado ni presenta precios como tasación.

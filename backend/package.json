@@ -14,7 +14,9 @@
     "check:purchase-flow": "node scripts/check-purchase-flow.mjs",
     "check:crm-lifecycle": "node scripts/check-crm-lifecycle.mjs",
     "check:crm-gates": "node scripts/check-crm-gates.mjs",
+    "check:crm-observability": "node scripts/check-crm-observability.mjs",
     "db:migrate:crm": "node scripts/migrate-crm.mjs",
+    "db:migrate:crm-observability": "node scripts/migrate-crm-observability.mjs",
     "db:check:crm": "node scripts/check-crm-database.mjs"
   },
   "dependencies": {

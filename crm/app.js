@@ -78,7 +78,12 @@ async function load() {
   message.textContent = 'Consultando…';
   try {
     const [summary, dealers, cases, aftercare] = await Promise.all([api('/api/crm/summary'), api('/api/crm/dealers'), api('/api/crm/cases'), api('/api/crm/aftercare')]);
+    const observability = await api('/api/crm/observability').catch(() => ({ events: { byType: {} }, alerts: [{ severity: 'warning', message: 'Instrumentación pendiente', action: 'Aplica la migración CRM 003 para activar métricas de eventos.' }], integrations: { email: 'pendiente de esquema', social: 'pendiente de esquema' } }));
     document.querySelector('#cases').textContent = summary.cases.total || 0; document.querySelector('#dealers').textContent = dealers.dealers.length; document.querySelector('#aftercare').textContent = summary.aftercare.open || 0; document.querySelector('#overdue').textContent = summary.cases.overdue || 0;
+    const observationTarget = document.querySelector('#observability');
+    const eventRows = Object.entries(observability.events.byType || {}).map(([type, total]) => `<span class="pill">${escapeHtml(type)}: ${total}</span>`).join('');
+    const alertRows = (observability.alerts || []).map((alert) => `<div class="alert ${escapeHtml(alert.severity)}"><strong>${escapeHtml(alert.message)}</strong><small>${escapeHtml(alert.action)}</small></div>`).join('');
+    observationTarget.innerHTML = `${eventRows || '<p>No hay eventos en el periodo.</p>'}${alertRows || '<p class="ok">Sin alertas operativas.</p>'}<p class="muted">Email: ${escapeHtml(observability.integrations.email)} · Social: ${escapeHtml(observability.integrations.social)}</p>`;
     renderDealers(dealers.dealers);
     const stageSummary = Object.entries(summary.cases.byStage || {}).map(([stage, total]) => `<span class="pill">${escapeHtml(stage)}: ${total}</span>`).join('');
     const rows = cases.cases.map((item) => { const options = (transitions[item.stage] || []).map((stage) => `<option value="${stage}">${stage}</option>`).join(''); return `<div class="row"><strong>Caso #${item.id}<br><small>${escapeHtml(item.stage)}</small></strong><span>${new Date(item.updatedAt).toLocaleDateString('es-ES')} ${options ? `<select data-case-id="${item.id}" class="stage-select"><option value="">Avanzar fase…</option>${options}</select>` : ''}</span></div>`; }).join('');

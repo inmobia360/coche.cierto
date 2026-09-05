@@ -1271,6 +1271,30 @@ app.post('/api/dealer-request-pdf', async (req, res) => {
   document.moveDown(1.2).strokeColor('#d7e2df').moveTo(54, document.y).lineTo(541, document.y).stroke().moveDown(.5).fontSize(8).fillColor(muted).text('cochecierto.com  ·  Documento orientativo para facilitar una propuesta comercial.', { width: 487 }); document.moveDown(.35).fontSize(7.5).text('Aviso: este documento no es un documento oficial de ninguna asociación ni de la asociación de Freight. Es una ficha informativa confeccionada por CocheCierto para ayudar a un concesionario o vendedor a preparar un presupuesto según las necesidades declaradas. No constituye una oferta, tasación, certificación, garantía mecánica ni asesoramiento financiero o jurídico. La disponibilidad, el precio, las condiciones y el estado del vehículo deben confirmarse por escrito.'); document.end();
 });
 
+app.get('/api/crm/observability', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const days = Math.min(Math.max(Number(req.query.days || 7), 1), 90);
+  try {
+    const [[events]] = await pool.query('SELECT COUNT(*) AS total, COUNT(DISTINCT event_type) AS types FROM crm_product_events WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)', [days]);
+    const [byType] = await pool.query('SELECT event_type AS eventType, COUNT(*) AS total FROM crm_product_events WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY event_type ORDER BY total DESC', [days]);
+    const [[failures]] = await pool.query("SELECT COUNT(*) AS total FROM crm_product_events WHERE event_type = 'social_sync_failed' AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)", [days]);
+    const [overdue] = await pool.query("SELECT id, case_id AS caseId, task_type AS taskType, due_at AS dueAt FROM crm_aftercare_tasks WHERE status = 'open' AND due_at < CURRENT_TIMESTAMP ORDER BY due_at ASC LIMIT 20");
+    const alerts = [];
+    if (Number(failures?.total || 0) > 0) alerts.push({ code: 'social_sync_failed', severity: 'warning', message: 'Hay sincronizaciones sociales fallidas.', action: 'Revisar credenciales y reintentar desde el adaptador autorizado.' });
+    if (overdue.length) alerts.push({ code: 'overdue_tasks', severity: 'warning', message: `${overdue.length} tarea(s) de acompañamiento vencida(s).`, action: 'Asignar responsable y actualizar la próxima acción.' });
+    return res.json({ ok: true, period: { days, since: new Date(Date.now() - days * 86400000).toISOString() }, definitions: { events: 'Eventos idempotentes registrados', emailSent: 'email_sent / total de email intentados', emailClicks: 'email_clicked / emails enviados', socialClicks: 'outbound_social_clicked / clics salientes desde la web', unit: 'evento' }, events: { ...(events || {}), byType: Object.fromEntries(byType.map((row) => [row.eventType, Number(row.total)])) }, integrations: { email: 'instrumentación preparada; proveedor desactivado', social: 'API desactivada hasta autorización específica' }, alerts, overdueTasks: overdue });
+  } catch (error) { console.error('CRM observability unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar la observabilidad. Aplica CRM 003 si falta el esquema.' }); }
+});
+
+app.post('/api/crm/events', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const eventId = crmText(req.body?.eventId, 64), eventType = crmText(req.body?.eventType, 48);
+  const allowed = ['email_sent', 'email_clicked', 'outbound_social_clicked', 'share_created', 'share_opened', 'referred_user_activated', 'social_sync_failed'];
+  if (!eventId || !eventType || !allowed.includes(eventType)) return res.status(400).json({ ok: false, message: 'Evento o event_id no válidos.' });
+  try { const [result] = await pool.execute('INSERT IGNORE INTO crm_product_events (event_id, event_type, case_id, source, campaign, metadata) VALUES (?, ?, ?, ?, ?, ?)', [eventId, eventType, crmId(req.body?.caseId), crmText(req.body?.source, 80), crmText(req.body?.campaign, 120), req.body?.metadata ? JSON.stringify(req.body.metadata) : null]); return res.status(201).json({ ok: true, recorded: result.affectedRows === 1, duplicate: result.affectedRows === 0 }); }
+  catch (error) { console.error('CRM event unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido registrar el evento.' }); }
+});
+
 app.post('/api/geocode', async (req, res) => {
   if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ ok: false, message: 'Demasiadas búsquedas. Inténtalo de nuevo más tarde.' });
   const address = typeof req.body?.address === 'string' ? req.body.address.trim().slice(0, 120) : '';
