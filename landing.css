@@ -617,7 +617,7 @@ html.theme-light .hero-integrated-bar {
   /* En móvil las fichas acompañan al vehículo sin robarle protagonismo. */
   .hero-visual-wrapper {
     display: block;
-    min-height: 282px;
+    min-height: 238px;
     width: auto;
     margin-inline: 16px;
     isolation: isolate;
@@ -674,7 +674,7 @@ html.theme-light .hero-integrated-bar {
 }
 
 @media (max-width: 379px) {
-  .hero-visual-wrapper { min-height: 270px; }
+  .hero-visual-wrapper { min-height: 228px; }
   .hud-card { width: 40%; min-height: 56px; padding-inline: 7px; }
   .hud-riesgo { right: -5px; bottom: -12px; }
   .hud-icon-badge { flex-basis: 28px; width: 28px; height: 28px; }
