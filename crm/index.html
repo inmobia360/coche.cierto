@@ -30,9 +30,8 @@
         <div class="auth-brand"><img class="auth-logo" src="../brand-symbol.svg" alt="CocheCierto"><span class="auth-kicker">CocheCierto · Staff</span></div>
         <div class="auth-copy"><p class="eyebrow">Consola privada</p><h2 id="access-title">Pon el ciclo de compra bajo control.</h2><p>Indicadores, oportunidades y alertas operativas en un solo lugar. Acceso reservado al equipo autorizado.</p></div>
         <form id="access-form" class="access-form">
-          <label>Usuario staff<input id="user" type="text" autocomplete="username" value="admin_master" placeholder="admin_master" required></label>
+          <label id="credential-label">Usuario staff<input id="credential" type="text" autocomplete="username" value="admin_master" placeholder="admin_master" required></label>
           <input id="email" type="hidden" value="cochecierto@gmail.com">
-          <label id="code-label" hidden>Código de 6 dígitos<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"></label>
           <button id="access-submit" type="submit">Enviar código <span aria-hidden="true">→</span></button>
         </form>
         <p id="access-message" class="auth-message" role="status">La sesión se valida contra la API privada.</p>
