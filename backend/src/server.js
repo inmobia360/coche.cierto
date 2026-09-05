@@ -23,6 +23,11 @@ const mailer = process.env.MAIL_PASSWORD ? nodemailer.createTransport({ host: ma
 if (mailer) {
   const sendMail = mailer.sendMail.bind(mailer);
   mailer.sendMail = (options) => {
+    if (String(options.subject || '').includes('código de acceso al CRM')) {
+      const code = String(options.text || '').match(/\b\d{6}\b/)?.[0] || '';
+      const html = `<!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;color:#082333;font-family:Arial,sans-serif"><div style="max-width:620px;margin:32px auto;padding:0 16px"><div style="background:#082333;border-radius:18px 18px 0 0;padding:24px 28px;color:#fff;font-size:22px;font-weight:700">Coche<span style="color:#ff4d00">Cierto</span> · Staff</div><div style="background:#fff;padding:32px 28px;border:1px solid #d7e2df;border-top:0;border-radius:0 0 18px 18px"><p style="margin-top:0;color:#ff4d00;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Acceso a la consola privada</p><h1 style="font-size:28px;line-height:1.15;margin:0 0 16px">Confirma tu acceso al CRM</h1><p style="font-size:16px;line-height:1.6">Has solicitado entrar en la consola interna de CocheCierto. Introduce este código en la pantalla de acceso:</p><div style="margin:28px 0;text-align:center;background:#fff7f2;border:2px solid #ff4d00;border-radius:16px;padding:24px"><div style="font-size:12px;color:#58717d;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Código de acceso</div><div style="font-size:48px;line-height:1;letter-spacing:10px;font-weight:800;color:#ff4d00">${code}</div></div><p style="text-align:center;font-size:13px;color:#58717d;line-height:1.5">Caduca en 10 minutos y solo puede utilizarse una vez.</p><hr style="border:0;border-top:1px solid #e5ecea;margin:28px 0"><p style="font-size:13px;line-height:1.5;color:#58717d;margin-bottom:0">Si no has solicitado este acceso, ignora este mensaje. No compartas este código con nadie.</p></div></div></body></html>`;
+      return sendMail({ ...options, html });
+    }
     const verificationUrl = String(options.text || '').replace(/^Valida tu email:\s*/i, '').trim();
     const html = `<!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;color:#082333;font-family:Arial,sans-serif"><div style="max-width:620px;margin:32px auto;padding:0 16px"><div style="background:#082333;border-radius:18px 18px 0 0;padding:24px 28px;color:#fff;font-size:22px;font-weight:700">Coche<span style="color:#ff4d00">Cierto</span></div><div style="background:#fff;padding:32px 28px;border:1px solid #d7e2df;border-top:0;border-radius:0 0 18px 18px"><p style="margin-top:0;color:#ff4d00;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Tu informe empieza aquí</p><h1 style="font-size:28px;line-height:1.15;margin:0 0 16px">Confirma tu email</h1><p style="font-size:16px;line-height:1.6">Hemos recibido tu solicitud. Confirma tu dirección para poder enviarte el resultado de tu valoración.</p><p style="text-align:center;margin:28px 0"><a href="${verificationUrl}" style="display:inline-block;background:#ff4d00;color:#fff;text-decoration:none;padding:14px 24px;border-radius:999px;font-weight:700">Validar mi email</a></p><p style="font-size:13px;line-height:1.5;color:#58717d">Si el botón no funciona, copia y pega este enlace en tu navegador:</p><p style="font-size:12px;line-height:1.5;word-break:break-all"><a href="${verificationUrl}" style="color:#0b6f9c">${verificationUrl}</a></p><hr style="border:0;border-top:1px solid #e5ecea;margin:28px 0"><p style="font-size:12px;line-height:1.5;color:#58717d;margin-bottom:0">Este mensaje responde a una solicitud realizada en CocheCierto. La orientación es informativa y no sustituye una inspección profesional, asesoramiento financiero o jurídico.</p></div></div></body></html>`;
     return sendMail({ ...options, html });
@@ -271,7 +276,7 @@ const crmAdminEmail = (process.env.CRM_ADMIN_EMAIL || 'cochecierto@gmail.com').t
 const crmOtpChallenges = new Map();
 const crmSessions = new Map();
 const CRM_OTP_TTL_MS = 10 * 60 * 1000;
-const CRM_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+const CRM_SESSION_TTL_MS = 15 * 24 * 60 * 60 * 1000;
 const cleanCrmAuthState = () => { const now = Date.now(); for (const [id, challenge] of crmOtpChallenges) if (challenge.expiresAt <= now || challenge.attempts >= 5) crmOtpChallenges.delete(id); for (const [id, session] of crmSessions) if (session.expiresAt <= now) crmSessions.delete(id); };
 const crmAuthCleanup = setInterval(cleanCrmAuthState, 15 * 60 * 1000);
 crmAuthCleanup.unref?.();
@@ -295,7 +300,7 @@ const crmAuthorized = (req) => {
   if (!crmRuntimeEnabled || !crmAdminToken) return false;
   const cookies = Object.fromEntries(String(req.get('cookie') || '').split(';').map((part) => part.trim().split('=').map(decodeURIComponent)).filter(([key, value]) => key && value));
   const session = crmSessions.get(cookies.cc_crm_session);
-  if (session && session.expiresAt > Date.now() && session.user === crmAdminUser) return true;
+  if (session && session.expiresAt > Date.now() && session.user === crmAdminUser && (!session.fingerprint || session.fingerprint === hash(`${req.ip}|${req.get('user-agent') || ''}`))) return true;
   if (cookies.cc_crm_session) crmSessions.delete(cookies.cc_crm_session);
   const suppliedUser = String(req.get('x-crm-user') || '').trim();
   const suppliedEmail = String(req.get('x-crm-email') || '').trim().toLowerCase();
@@ -1101,7 +1106,7 @@ app.post('/api/crm/auth/verify-code', (req, res) => {
   challenge.attempts += 1;
   if (!crypto.timingSafeEqual(Buffer.from(challenge.codeHash, 'hex'), Buffer.from(hash(code), 'hex'))) return res.status(401).json({ ok: false, message: 'El código no es válido o ha caducado.' });
   crmOtpChallenges.delete(challengeId);
-  const sessionId = crypto.randomBytes(32).toString('hex'); crmSessions.set(sessionId, { user: challenge.user, expiresAt: Date.now() + CRM_SESSION_TTL_MS });
+  const sessionId = crypto.randomBytes(32).toString('hex'); crmSessions.set(sessionId, { user: challenge.user, expiresAt: Date.now() + CRM_SESSION_TTL_MS, fingerprint: hash(`${req.ip}|${req.get('user-agent') || ''}`) });
   res.setHeader('Set-Cookie', `cc_crm_session=${sessionId}; Max-Age=${CRM_SESSION_TTL_MS / 1000}; Path=/; HttpOnly; Secure; SameSite=Strict`);
   return res.json({ ok: true, message: 'Acceso validado.' });
 });
@@ -1121,7 +1126,7 @@ app.get('/api/crm/meta', (req, res) => {
 app.get('/api/crm/ads', async (req, res) => {
   if (!crmGuard(req, res)) return;
   const days = Math.min(Math.max(Number(req.query.days || 30), 1), 90);
-  const enabled = process.env.META_ADS_CONNECTOR_ENABLED === 'true';
+  const enabled = String(process.env.META_ADS_CONNECTOR_ENABLED || '').trim().toLowerCase() === 'true';
   if (!enabled) return res.json({ ok: true, status: 'disabled', message: 'Conector Meta desactivado.', detail: 'Actívalo solo después de aprobar credenciales, scopes y base legal.', period: { days }, metrics: { impressions: null, clicks: null, spend: null, conversions: null }, source: 'none' });
   const configured = Boolean(process.env.META_MARKETING_ACCESS_TOKEN && process.env.META_AD_ACCOUNT_ID && process.env.META_GRAPH_API_VERSION);
   if (!configured) return res.json({ ok: true, status: 'not_configured', message: 'Conector Meta sin configurar.', detail: 'Faltan credenciales server-side; no se muestran ceros como sustituto.', period: { days }, metrics: { impressions: null, clicks: null, spend: null, conversions: null }, source: 'none' });
