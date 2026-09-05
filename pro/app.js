@@ -1,0 +1,4 @@
+const API = 'https://api.cochecierto.com';
+const form = document.querySelector('#partner-form');
+const message = document.querySelector('#partner-message');
+form.addEventListener('submit', async (event) => { event.preventDefault(); const data = Object.fromEntries(new FormData(form)); if (data.company) return; data.consent = form.elements.consent.checked; message.textContent = 'Enviando solicitud…'; try { const response = await fetch(`${API}/api/partner-interest`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); const payload = await response.json().catch(() => ({})); if (!response.ok) throw new Error(payload.message || 'No se ha podido enviar la solicitud.'); form.reset(); message.textContent = payload.message || 'Solicitud recibida.'; } catch (error) { message.textContent = error.message; } });

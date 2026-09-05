@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""
-Google Autocomplete keyword suggestions using DataForSEO API
-Get real-time search suggestions from Google Autocomplete
-
-Usage: python3 scripts/autocomplete_ideas.py "Claude Code"
-"""
+"""Free Google Autocomplete keyword suggestions (no API account required)."""
 import argparse
-from dataforseo_api import api_post, get_result
+import json
+import urllib.parse
+import urllib.request
+
+
+def get_suggestions(keyword, language, country):
+    query = urllib.parse.urlencode({"client": "firefox", "hl": language, "gl": country, "q": keyword})
+    request = urllib.request.Request(f"https://suggestqueries.google.com/complete/search?{query}", headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(request, timeout=15) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    return [item.strip() for item in payload[1] if isinstance(item, str) and item.strip()]
 
 
 def main():
@@ -18,59 +23,19 @@ def main():
                         help="Language code (default: es = Spanish)")
     args = parser.parse_args()
 
-    data = [{
-        "keyword": args.keyword,
-        "location_code": args.location,
-        "language_code": args.language
-    }]
-    
-    response = api_post("serp/google/autocomplete/live/advanced", data)
-    results = get_result(response)
-    
     print(f"keyword: {args.keyword}")
     print(f"location: {args.location}")
     print(f"language: {args.language}")
     print()
     
-    if results:
-        suggestions = []
-        for result in results:
-            items = result.get("items", [])
-            
-            # Try different possible field names if items is empty
-            if not items:
-                items = result.get("autocomplete", [])
-                if not items:
-                    items = result.get("suggestions", [])
-            
-            for item in items:
-                # Handle different response formats
-                suggestion = None
-                if isinstance(item, dict):
-                    if item.get("type") == "autocomplete_item":
-                        suggestion = item.get("title", "").strip()
-                    elif "value" in item:
-                        suggestion = item.get("value", "").strip()
-                elif isinstance(item, str):
-                    suggestion = item.strip()
-                
-                if suggestion:
-                    suggestions.append(suggestion)
-        
-        if suggestions:
-            print(f"autocomplete_suggestions[{len(suggestions)}]:")
-            for i, suggestion in enumerate(suggestions, 1):
-                print(f"  {i}. {suggestion}")
-        else:
-            print("No suggestions found")
-    else:
-        print("No results found")
-    
-    print()
-    print("Tip: These are real user searches. Use them to:")
-    print("  - Create content matching user intent")
-    print("  - Optimize page titles and meta descriptions")
-    print("  - Discover long-tail keyword opportunities")
+    try:
+        suggestions = get_suggestions(args.keyword, args.language, "ES")
+    except Exception as error:
+        raise SystemExit(f"error: no se pudo consultar Google Autocomplete: {error}") from error
+    print(f"autocomplete_suggestions[{len(suggestions)}]:")
+    for index, suggestion in enumerate(suggestions, 1):
+        print(f"  {index}. {suggestion}")
+    print("\nFuente: Google Autocomplete (gratuita; no proporciona volumen ni dificultad).")
 
 
 if __name__ == "__main__":

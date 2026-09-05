@@ -14,6 +14,19 @@
     ['¿Qué tolerancia tienes a gastos inesperados?', [['low','Baja'],['medium','Media'],['high','Alta'],['unknown','No lo sé']], 'risk']
   ];
   const state = { answers:{}, index:0, vehicleType:'occasion', useType:'private' };
+  // Atribución propia y minimizada: solo conserva UTMs técnicas para el embudo CRM.
+  // No se envían a terceros ni se consideran consentimiento de analítica.
+  const attribution = (() => {
+    const allowed = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    const params = new URLSearchParams(window.location.search);
+    const current = Object.fromEntries(allowed.filter((key) => params.get(key)).map((key) => [key, params.get(key).slice(0, 120)]));
+    try {
+      const previous = JSON.parse(sessionStorage.getItem('cc_attribution') || '{}');
+      const merged = { ...previous, ...current };
+      sessionStorage.setItem('cc_attribution', JSON.stringify(merged));
+      return merged;
+    } catch { return current; }
+  })();
   const nativeFetch = window.fetch.bind(window);
   window.fetch = (url, options) => {
     if (String(url).endsWith('/leads') && options?.body) {
@@ -125,7 +138,7 @@
       const form=event.currentTarget;
       const checks=form.querySelectorAll('input[type=checkbox]');
       try{
-        const response=await fetch(`${window.COCHECIERTO_API}/leads`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:form.querySelector('input[type=email]').value,name:form.querySelector('[name=name]').value.trim(),website:form.querySelector('[name=website]').value,formStartedAt:form.querySelector('[name=formStartedAt]').value,intent:state.answers.intent,purchaseWindow:state.answers.window,recommendedCategory:r.category,usageType:state.useType,priority:state.answers.priority,situation:state.answers.situation,answers:{...state.answers},questionnaireVersion:'v1',recommendationVersion:'mvp-v1',consentResult:checks[0].checked,consentCommercial:checks[1].checked})});
+        const response=await fetch(`${window.COCHECIERTO_API}/leads`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:form.querySelector('input[type=email]').value,name:form.querySelector('[name=name]').value.trim(),website:form.querySelector('[name=website]').value,formStartedAt:form.querySelector('[name=formStartedAt]').value,intent:state.answers.intent,purchaseWindow:state.answers.window,recommendedCategory:r.category,usageType:state.useType,priority:state.answers.priority,situation:state.answers.situation,answers:{...state.answers},attribution,questionnaireVersion:'v1',recommendationVersion:'mvp-v1',consentResult:checks[0].checked,consentCommercial:checks[1].checked})});
         if(!response.ok) throw new Error('api');
         document.querySelector('#leadbox').innerHTML='<div class="notice"><strong>Solicitud recibida.</strong><br>Revisa tu email y valida la dirección para recibir el informe.</div>';
       }catch(error){
