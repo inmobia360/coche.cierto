@@ -15,7 +15,7 @@ const transitions = {
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
 const token = () => document.querySelector('#token').value.trim();
-const headers = () => ({ 'Content-Type': 'application/json', 'X-CRM-User': document.querySelector('#user').value.trim(), Authorization: `Bearer ${token()}` });
+const headers = () => ({ 'Content-Type': 'application/json', 'X-CRM-User': document.querySelector('#user').value.trim(), 'X-CRM-Email': document.querySelector('#email').value.trim(), Authorization: `Bearer ${token()}` });
 const api = async (path, options = {}) => {
   const response = await fetch(`${API}${path}`, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
   const data = await response.json().catch(() => ({}));
