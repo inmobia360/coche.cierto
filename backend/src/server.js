@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const origin = process.env.APP_ORIGIN || 'http://localhost:5500';
-const allowedOrigins = new Set([origin, 'https://cochecierto.com', 'https://www.cochecierto.com']);
+const allowedOrigins = new Set([origin, 'https://cochecierto.com', 'https://www.cochecierto.com', 'https://pro.cochecierto.com']);
 const pool = process.env.MYSQL_HOST ? mysql.createPool({ host: process.env.MYSQL_HOST, port: Number(process.env.MYSQL_PORT || 3306), database: process.env.MYSQL_DATABASE, user: process.env.MYSQL_USER, password: process.env.MYSQL_PASSWORD, waitForConnections: true, connectionLimit: 5 }) : null;
 const mailHost = process.env.MAIL_HOST || 'smtp.hostinger.com';
 const mailPort = Number(process.env.MAIL_PORT || 465);
@@ -70,6 +70,12 @@ const allowedAnswerKeys = ['intent', 'window', 'situation', 'use', 'km', 'people
 const cleanAnswers = (answers) => Object.fromEntries(allowedAnswerKeys
   .filter((key) => typeof answers?.[key] === 'string' && answers[key].length <= 80)
   .map((key) => [key, answers[key]]));
+const cleanAttribution = (value) => {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+    .filter((key) => typeof value[key] === 'string' && value[key].length <= 120)
+    .map((key) => [key, value[key].trim()]));
+};
 const completeReportContext = (report) => {
   const answers = report.answers || {};
   const inferredSituation = report.situation && report.situation !== 'unknown' ? report.situation
@@ -223,7 +229,7 @@ const loadAirtableReport = async (token) => {
 };
 
 app.use(helmet());
-app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || allowedOrigins.has(requestOrigin) || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), methods: ['GET', 'POST', 'DELETE'] }));
+app.use(cors({ origin: (requestOrigin, callback) => callback(null, !requestOrigin || allowedOrigins.has(requestOrigin) || (process.env.NODE_ENV !== 'production' && requestOrigin === 'null')), credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }));
 app.use(express.json({ limit: '32kb' }));
 app.use('/api/purchase-', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
 app.use('/api/crm', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
@@ -231,6 +237,13 @@ app.use('/api/crm', (_req, res, next) => { res.setHeader('Cache-Control', 'no-st
 const required = (body, fields) => fields.filter((field) => typeof body[field] !== 'string' || !body[field].trim());
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const rateLimit = (key) => { const now = Date.now(); const recent = (attempts.get(key) || []).filter((time) => now - time < 60_000); if (recent.length >= 10) return false; recent.push(now); attempts.set(key, recent); return true; };
+app.post('/api/exit-feedback', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, message: 'Base de datos no configurada.' });
+  if (!rateLimit(`exit-feedback:${req.ip || 'unknown'}`)) return res.status(429).json({ ok: false, message: 'Demasiadas respuestas. Inténtalo más tarde.' });
+  const body = req.body || {}, usefulness = crmText(body.usefulness, 20), sessionId = crmText(body.session_id, 64), page = crmText(body.page, 255);
+  if (!/^[0-9a-f-]{36}$/i.test(sessionId || '') || !page?.startsWith('/') || !['helpful', 'uncertain', 'not_yet'].includes(usefulness)) return res.status(400).json({ ok: false, message: 'Datos de encuesta no válidos.' });
+  try { await pool.execute('INSERT INTO exit_feedback (session_id, page, device, source, completed_report, usefulness, reason, comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [sessionId, page, ['desktop', 'mobile', 'tablet'].includes(body.device) ? body.device : 'unknown', crmText(body.source, 120), body.completed_report === true, usefulness, crmText(body.reason, 80), crmText(body.comment, 300)]); return res.status(201).json({ ok: true }); } catch (error) { console.error('Exit feedback unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido guardar la opinión.' }); }
+});
 const createReportToken = () => crypto.randomBytes(32).toString('hex');
 const cleanReports = () => { const now = Date.now(); for (const [token, report] of pendingReports) if (report.expiresAt <= now) pendingReports.delete(token); };
 const addReport = (token, report) => { cleanReports(); pendingReports.set(token, { ...report, expiresAt: Date.now() + REPORT_TTL_MS }); };
@@ -255,6 +268,13 @@ const crmRuntimeEnabled = crmEnabled;
 const crmAdminToken = process.env.CRM_ADMIN_TOKEN || '';
 const crmAdminUser = process.env.CRM_ADMIN_USER || 'admin_master';
 const crmAdminEmail = (process.env.CRM_ADMIN_EMAIL || 'cochecierto@gmail.com').trim().toLowerCase();
+const crmOtpChallenges = new Map();
+const crmSessions = new Map();
+const CRM_OTP_TTL_MS = 10 * 60 * 1000;
+const CRM_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+const cleanCrmAuthState = () => { const now = Date.now(); for (const [id, challenge] of crmOtpChallenges) if (challenge.expiresAt <= now || challenge.attempts >= 5) crmOtpChallenges.delete(id); for (const [id, session] of crmSessions) if (session.expiresAt <= now) crmSessions.delete(id); };
+const crmAuthCleanup = setInterval(cleanCrmAuthState, 15 * 60 * 1000);
+crmAuthCleanup.unref?.();
 const crmStages = ['visitor', 'diagnostic_started', 'report_requested', 'report_verified', 'request_draft', 'request_active', 'shared_manual', 'offer_received', 'comparison', 'contact_authorized', 'visit_requested', 'test_requested', 'purchased', 'aftercare', 'closed', 'withdrawn', 'expired', 'blocked'];
 const crmTransitions = {
   visitor: ['diagnostic_started', 'withdrawn', 'blocked'], diagnostic_started: ['report_requested', 'withdrawn', 'blocked'],
@@ -273,6 +293,10 @@ const expireCrmRequest = async (requestId) => { if (!crmRuntimeEnabled || !pool 
 const crmJson = (value) => Array.isArray(value) ? JSON.stringify(value.slice(0, 30).map((item) => crmText(item, 120)).filter(Boolean)) : null;
 const crmAuthorized = (req) => {
   if (!crmRuntimeEnabled || !crmAdminToken) return false;
+  const cookies = Object.fromEntries(String(req.get('cookie') || '').split(';').map((part) => part.trim().split('=').map(decodeURIComponent)).filter(([key, value]) => key && value));
+  const session = crmSessions.get(cookies.cc_crm_session);
+  if (session && session.expiresAt > Date.now() && session.user === crmAdminUser) return true;
+  if (cookies.cc_crm_session) crmSessions.delete(cookies.cc_crm_session);
   const suppliedUser = String(req.get('x-crm-user') || '').trim();
   const suppliedEmail = String(req.get('x-crm-email') || '').trim().toLowerCase();
   const validUsers = new Set([crmAdminUser, 'admin_master']);
@@ -1025,21 +1049,85 @@ app.post('/api/purchase-requests/:token/contact-authorized', async (req, res) =>
 const crmGuard = (req, res) => {
   if (!crmRuntimeEnabled) { res.status(503).json({ ok: false, configured: false, message: 'El CRM aún no está activado.' }); return false; }
   if (!pool) { res.status(503).json({ ok: false, configured: false, message: 'El CRM requiere MySQL configurado.' }); return false; }
-  if (!rateLimit(`crm:${req.ip || 'unknown'}`)) { res.status(429).json({ ok: false, message: 'Demasiados intentos de acceso al CRM.' }); return false; }
-  if (!crmAuthorized(req)) { res.status(401).json({ ok: false, message: 'Autorización interna requerida.' }); return false; }
+  if (!crmAuthorized(req)) { if (!rateLimit(`crm:${req.ip || 'unknown'}`)) { res.status(429).json({ ok: false, message: 'Demasiados intentos de acceso al CRM.' }); return false; } res.status(401).json({ ok: false, message: 'Autorización interna requerida.' }); return false; }
   return true;
 };
 const crmId = (value) => /^\d+$/.test(String(value || '')) ? Number(value) : null;
 
+// Public intake only records a collaboration request; approval and activation stay inside the CRM.
+app.post('/api/partner-interest', async (req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, message: 'El registro de partners aún no está configurado.' });
+  if (!rateLimit(`partner-interest:${req.ip || 'unknown'}`)) return res.status(429).json({ ok: false, message: 'Demasiadas solicitudes. Inténtalo más tarde.' });
+  const legalName = crmText(req.body?.legalName || req.body?.businessName, 180)?.trim();
+  const tradeName = crmText(req.body?.tradeName, 180)?.trim();
+  const contactName = crmText(req.body?.contactName, 160)?.trim();
+  const email = crmText(req.body?.email || req.body?.contactEmail, 255)?.trim().toLowerCase();
+  const phone = crmText(req.body?.phone, 40)?.trim();
+  const website = crmText(req.body?.website, 255)?.trim();
+  const area = crmText(req.body?.area, 120)?.trim();
+  if (!legalName || !contactName || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || req.body?.consent !== true) return res.status(400).json({ ok: false, message: 'Completa los datos obligatorios y acepta el contacto.' });
+  try {
+    const [existing] = await pool.execute('SELECT d.id FROM crm_dealers d JOIN crm_dealer_contacts c ON c.dealer_id = d.id AND c.deleted_at IS NULL WHERE LOWER(d.legal_name) = LOWER(?) OR LOWER(c.email) = LOWER(?) LIMIT 1', [legalName, email]);
+    if (existing[0]) return res.status(202).json({ ok: true, status: 'already_received', message: 'Ya tenemos una solicitud con estos datos. El equipo la revisará.' });
+    const [dealer] = await pool.execute('INSERT INTO crm_dealers (legal_name, trade_name, website, status, verification_status, service_areas, contract_status, data_processing_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [legalName, tradeName || null, website || null, 'pending_review', 'not_started', JSON.stringify({ source: 'landing_pro', area: area || null }), 'not_started', 'pending_review']);
+    await pool.execute('INSERT INTO crm_dealer_contacts (dealer_id, contact_name, email, phone, preferred_channel, consent_status) VALUES (?, ?, ?, ?, ?, ?)', [dealer.insertId, contactName, email, phone || null, 'email', 'pending_review']);
+    return res.status(201).json({ ok: true, status: 'pending_review', message: 'Solicitud recibida. El equipo revisará los datos antes de activar la colaboración.' });
+  } catch (error) { console.error('Partner interest unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido registrar la solicitud.' }); }
+});
+
+app.post('/api/crm/auth/request-code', async (req, res) => {
+  if (!crmRuntimeEnabled || !mailer) return res.status(503).json({ ok: false, message: 'El acceso temporal no está disponible.' });
+  const user = crmText(req.body?.user, 80), email = crmText(req.body?.email, 255)?.toLowerCase();
+  if (user !== crmAdminUser || email !== crmAdminEmail) return res.status(202).json({ ok: true, message: 'Si los datos son válidos, recibirás un código en el correo autorizado.' });
+  const recent = crmOtpChallenges.get(`${req.ip || 'unknown'}:${user}`);
+  if (recent && recent.sentAt > Date.now() - 60 * 1000) return res.status(429).json({ ok: false, message: 'Espera un minuto antes de solicitar otro código.' });
+  const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  const challengeId = crypto.randomBytes(24).toString('hex');
+  crmOtpChallenges.set(challengeId, { user, email, codeHash: hash(code), expiresAt: Date.now() + CRM_OTP_TTL_MS, attempts: 0, sentAt: Date.now() });
+  try {
+    await mailer.sendMail({ from: process.env.MAIL_FROM || `CocheCierto <${mailUser}>`, to: email, subject: 'Tu código de acceso al CRM CocheCierto', text: `Tu código de acceso es: ${code}. Caduca en 10 minutos y solo puede utilizarse una vez.` });
+  } catch (error) {
+    crmOtpChallenges.delete(challengeId);
+    console.error('CRM OTP delivery unavailable:', error.message);
+    return res.status(503).json({ ok: false, message: 'No se pudo enviar el código. Revisa la configuración de correo del CRM.' });
+  }
+  return res.status(202).json({ ok: true, challengeId, message: 'Si los datos son válidos, recibirás un código en el correo autorizado.' });
+});
+
+app.post('/api/crm/auth/verify-code', (req, res) => {
+  const challengeId = crmText(req.body?.challengeId, 64), code = crmText(req.body?.code, 6);
+  const challenge = crmOtpChallenges.get(challengeId);
+  if (!challenge || challenge.expiresAt < Date.now() || !/^\d{6}$/.test(code || '') || challenge.attempts >= 5) return res.status(401).json({ ok: false, message: 'El código no es válido o ha caducado.' });
+  challenge.attempts += 1;
+  if (!crypto.timingSafeEqual(Buffer.from(challenge.codeHash, 'hex'), Buffer.from(hash(code), 'hex'))) return res.status(401).json({ ok: false, message: 'El código no es válido o ha caducado.' });
+  crmOtpChallenges.delete(challengeId);
+  const sessionId = crypto.randomBytes(32).toString('hex'); crmSessions.set(sessionId, { user: challenge.user, expiresAt: Date.now() + CRM_SESSION_TTL_MS });
+  res.setHeader('Set-Cookie', `cc_crm_session=${sessionId}; Max-Age=${CRM_SESSION_TTL_MS / 1000}; Path=/; HttpOnly; Secure; SameSite=Strict`);
+  return res.json({ ok: true, message: 'Acceso validado.' });
+});
+
 app.get('/api/crm/status', (_req, res) => {
   const checks = { mysql: Boolean(pool), featureFlag: process.env.CRM_ENABLED === 'true', schemaReady: crmSchemaReady, adminCredential: Boolean(crmAdminToken) };
   const enabled = checks.mysql && checks.featureFlag && checks.schemaReady && checks.adminCredential;
-  return res.json({ ok: true, enabled, checks, message: enabled ? 'CRM preparado para acceso interno.' : 'CRM cerrado hasta completar las puertas de activación.' });
+  return res.json({ ok: true, enabled, message: enabled ? 'CRM preparado para acceso interno.' : 'CRM cerrado hasta completar las puertas de activación.' });
 });
 
 app.get('/api/crm/meta', (req, res) => {
   if (!crmGuard(req, res)) return;
   return res.json({ ok: true, stages: crmStages, transitions: crmTransitions, dealerStatuses: ['draft', 'pending_review', 'verified', 'suspended', 'archived'], relationshipStates: ['candidate', 'invited', 'responded', 'selected', 'declined', 'blocked'] });
+});
+
+// Meta Ads remains opt-in. Credentials, when added, must stay server-side.
+app.get('/api/crm/ads', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const days = Math.min(Math.max(Number(req.query.days || 30), 1), 90);
+  const enabled = process.env.META_ADS_CONNECTOR_ENABLED === 'true';
+  if (!enabled) return res.json({ ok: true, status: 'disabled', message: 'Conector Meta desactivado.', detail: 'Actívalo solo después de aprobar credenciales, scopes y base legal.', period: { days }, metrics: { impressions: null, clicks: null, spend: null, conversions: null }, source: 'none' });
+  const configured = Boolean(process.env.META_MARKETING_ACCESS_TOKEN && process.env.META_AD_ACCOUNT_ID && process.env.META_GRAPH_API_VERSION);
+  if (!configured) return res.json({ ok: true, status: 'not_configured', message: 'Conector Meta sin configurar.', detail: 'Faltan credenciales server-side; no se muestran ceros como sustituto.', period: { days }, metrics: { impressions: null, clicks: null, spend: null, conversions: null }, source: 'none' });
+  const end = new Date(), start = new Date(end.getTime() - days * 86400000), version = process.env.META_GRAPH_API_VERSION.replace(/^v/i, 'v'), account = process.env.META_AD_ACCOUNT_ID.startsWith('act_') ? process.env.META_AD_ACCOUNT_ID : `act_${process.env.META_AD_ACCOUNT_ID}`;
+  const url = new URL(`https://graph.facebook.com/${version}/${account}/insights`); url.searchParams.set('fields', 'impressions,clicks,spend,actions'); url.searchParams.set('time_range', JSON.stringify({ since: start.toISOString().slice(0, 10), until: end.toISOString().slice(0, 10) }));
+  try { const response = await fetch(url, { headers: { Authorization: `Bearer ${process.env.META_MARKETING_ACCESS_TOKEN}` }, signal: AbortSignal.timeout(10000) }); const payload = await response.json().catch(() => ({})); if (!response.ok || payload.error) throw new Error(payload.error?.message || 'Meta Graph API rechazó la consulta.'); const row = payload.data?.[0] || {}; const conversions = (row.actions || []).filter((action) => ['lead', 'complete_registration', 'purchase'].includes(action.action_type)).reduce((total, action) => total + Number(action.value || 0), 0); return res.json({ ok: true, status: 'ready', message: 'Datos de Meta disponibles.', detail: 'Insights agregados de la cuenta publicitaria.', period: { days, since: start.toISOString(), until: end.toISOString() }, metrics: { impressions: Number(row.impressions || 0), clicks: Number(row.clicks || 0), spend: row.spend == null ? null : Number(row.spend), conversions }, source: 'meta_marketing_api' }); } catch (error) { console.error('Meta Ads insights unavailable:', error.message); return res.status(502).json({ ok: false, status: 'error', message: 'No se pudieron consultar los datos de Meta.', detail: 'Revisa token, cuenta, versión de API y permiso ads_read.', period: { days }, metrics: { impressions: null, clicks: null, spend: null, conversions: null }, source: 'meta_marketing_api' }); }
 });
 
 app.get('/api/crm/summary', async (req, res) => {
@@ -1288,10 +1376,11 @@ app.get('/api/crm/metrics', async (req, res) => {
     const [[partnerFlow]] = await pool.query("SELECT COUNT(*) AS invited, COALESCE(SUM(relationship_state IN ('responded', 'selected')), 0) AS responded, COALESCE(SUM(relationship_state = 'selected'), 0) AS selected FROM crm_case_dealers WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)", [days]);
     const [[consent]] = await pool.query("SELECT COALESCE(SUM(JSON_EXTRACT(consent_snapshot, '$.contact') = true), 0) AS authorized FROM crm_cases WHERE deleted_at IS NULL AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)", [days]);
     const [eventRows] = await pool.query('SELECT event_type AS eventType, COUNT(*) AS total FROM crm_product_events WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY event_type ORDER BY total DESC', [days]);
+    const [attributionRows] = await pool.query("SELECT COALESCE(source, 'unknown') AS source, COUNT(*) AS total FROM crm_product_events WHERE event_type = 'lead_attributed' AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY source ORDER BY total DESC", [days]);
     const funnel = Object.fromEntries(funnelRows.map((row) => [row.stage, Number(row.total)]));
     const total = Number(cases?.total || 0), won = Number(cases?.won || 0);
     const invited = Number(partnerFlow?.invited || 0), responded = Number(partnerFlow?.responded || 0);
-    return res.json({ ok: true, period: { days }, cases: { ...(cases || {}), conversionToWon: total ? Number((won / total * 100).toFixed(1)) : null }, funnel, dealers: dealers || {}, tasks: tasks || {}, partnerFlow: { ...(partnerFlow || {}), responseRate: invited ? Number((responded / invited * 100).toFixed(1)) : null }, consent: consent || {}, events: Object.fromEntries(eventRows.map((row) => [row.eventType, Number(row.total)])), saas: { mrr: null, arr: null, churn: null, ltv: null, cac: null, status: 'not_available', reason: 'No hay suscripciones ni costes de adquisición conectados todavía.' }, definitions: { conversionToWon: 'casos ganados / casos creados en el periodo', partnerResponseRate: 'partners que respondieron o fueron seleccionados / invitaciones', active: 'casos no cerrados, retirados o bloqueados', dataPolicy: 'Solo datos agregados; sin PII.' } });
+    return res.json({ ok: true, period: { days }, cases: { ...(cases || {}), conversionToWon: total ? Number((won / total * 100).toFixed(1)) : null }, funnel, dealers: dealers || {}, tasks: tasks || {}, partnerFlow: { ...(partnerFlow || {}), responseRate: invited ? Number((responded / invited * 100).toFixed(1)) : null }, consent: consent || {}, events: Object.fromEntries(eventRows.map((row) => [row.eventType, Number(row.total)])), attribution: Object.fromEntries(attributionRows.map((row) => [row.source, Number(row.total)])), saas: { mrr: null, arr: null, churn: null, ltv: null, cac: null, status: 'not_available', reason: 'No hay suscripciones ni costes de adquisición conectados todavía.' }, definitions: { conversionToWon: 'casos ganados / casos creados en el periodo', partnerResponseRate: 'partners que respondieron o fueron seleccionados / invitaciones', attribution: 'leads con UTMs / leads registrados; unidad: lead atribuido', active: 'casos no cerrados, retirados o bloqueados', dataPolicy: 'Solo datos agregados; sin PII.' } });
   } catch (error) { console.error('CRM metrics unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido calcular las métricas.' }); }
 });
 
@@ -1308,6 +1397,12 @@ app.get('/api/crm/observability', async (req, res) => {
     if (overdue.length) alerts.push({ code: 'overdue_tasks', severity: 'warning', message: `${overdue.length} tarea(s) de acompañamiento vencida(s).`, action: 'Asignar responsable y actualizar la próxima acción.' });
     return res.json({ ok: true, period: { days, since: new Date(Date.now() - days * 86400000).toISOString() }, definitions: { events: 'Eventos idempotentes registrados', emailSent: 'email_sent / total de email intentados', emailClicks: 'email_clicked / emails enviados', socialClicks: 'outbound_social_clicked / clics salientes desde la web', unit: 'evento' }, events: { ...(events || {}), byType: Object.fromEntries(byType.map((row) => [row.eventType, Number(row.total)])) }, integrations: { email: 'instrumentación preparada; proveedor desactivado', social: 'API desactivada hasta autorización específica' }, alerts, overdueTasks: overdue });
   } catch (error) { console.error('CRM observability unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar la observabilidad. Aplica CRM 003 si falta el esquema.' }); }
+});
+
+app.get('/api/crm/exit-feedback', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  const days = Math.min(Math.max(Number(req.query.days || 30), 1), 365);
+  try { const [rows] = await pool.execute("SELECT usefulness, COUNT(*) AS total FROM exit_feedback WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY usefulness ORDER BY total DESC", [days]); return res.json({ ok: true, period: { days }, rows: rows.map((row) => ({ usefulness: row.usefulness, total: Number(row.total) })), source: 'own_feedback', definition: 'Respuestas agregadas de la encuesta de salida; sin PII.' }); } catch (error) { console.error('CRM exit feedback unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar el feedback.' }); }
 });
 
 app.post('/api/crm/events', async (req, res) => {
@@ -1381,7 +1476,7 @@ app.post('/api/leads', async (req, res) => {
   const missing = required(body, ['email', 'intent', 'purchaseWindow', 'recommendedCategory', 'questionnaireVersion', 'recommendationVersion']);
   if (missing.length || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) return res.status(400).json({ error: 'Datos del lead incompletos o email no válido.', fields: missing });
   const email = body.email.trim().toLowerCase();
-  const lead = { email, phone: typeof body.phone === 'string' ? body.phone.trim() : null, name: typeof body.name === 'string' ? body.name.trim() : null, intent: body.intent, purchaseWindow: body.purchaseWindow, recommendedCategory: body.recommendedCategory, usageType: body.usageType === 'professional' ? 'professional' : 'private', questionnaireVersion: body.questionnaireVersion, recommendationVersion: body.recommendationVersion, consentResult: body.consentResult === true, consentCommercial: body.consentCommercial === true, consentAt: new Date() };
+  const lead = { email, phone: typeof body.phone === 'string' ? body.phone.trim() : null, name: typeof body.name === 'string' ? body.name.trim() : null, intent: body.intent, purchaseWindow: body.purchaseWindow, recommendedCategory: body.recommendedCategory, usageType: body.usageType === 'professional' ? 'professional' : 'private', questionnaireVersion: body.questionnaireVersion, recommendationVersion: body.recommendationVersion, consentResult: body.consentResult === true, consentCommercial: body.consentCommercial === true, attribution: cleanAttribution(body.attribution), consentAt: new Date() };
   if (!lead.consentResult) return res.status(400).json({ error: 'Es necesario aceptar el consentimiento para enviar el informe.' });
   let leadId = null;
   if (pool) {
@@ -1391,6 +1486,7 @@ app.post('/api/leads', async (req, res) => {
       try {
         const [crmCase] = await pool.execute('INSERT INTO crm_cases (lead_id, stage, source, consent_snapshot) VALUES (?, ?, ?, ?)', [leadId, 'diagnostic_started', 'valorador', JSON.stringify({ result: true, commercial: lead.consentCommercial, capturedAt: lead.consentAt.toISOString() })]);
         await pool.execute('INSERT INTO crm_case_events (case_id, to_stage, actor_type, reason) VALUES (?, ?, ?, ?)', [crmCase.insertId, 'diagnostic_started', 'system', 'Diagnóstico iniciado antes del registro']);
+        if (Object.keys(lead.attribution).length) await pool.execute('INSERT INTO crm_product_events (event_id, event_type, case_id, source, metadata) VALUES (?, ?, ?, ?, ?)', [crypto.randomUUID(), 'lead_attributed', crmCase.insertId, lead.attribution.utm_source || 'unknown', JSON.stringify(lead.attribution)]);
         await pool.execute('UPDATE crm_cases SET stage = ? WHERE id = ?', ['report_requested', crmCase.insertId]);
         await pool.execute('INSERT INTO crm_case_events (case_id, from_stage, to_stage, actor_type, reason) VALUES (?, ?, ?, ?, ?)', [crmCase.insertId, 'diagnostic_started', 'report_requested', 'system', 'Informe solicitado tras consentimiento']);
       } catch (error) { console.error('CRM lead tracking unavailable:', error.message); }
