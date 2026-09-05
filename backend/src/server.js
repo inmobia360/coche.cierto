@@ -1070,9 +1070,9 @@ app.get('/api/crm/dealers/:id/contacts', async (req, res) => {
 
 app.get('/api/crm/cases', async (req, res) => {
   if (!crmGuard(req, res)) return;
-  const stage = crmText(req.query.stage, 40);
+  const stage = crmText(req.query.stage, 40), source = crmText(req.query.source, 40), assignedTo = crmText(req.query.assignedTo, 80), priority = crmText(req.query.priority, 16);
   try {
-    const [rows] = await pool.execute('SELECT id, lead_id AS leadId, purchase_request_id AS purchaseRequestId, stage, source, assigned_to AS assignedTo, priority, next_action_at AS nextActionAt, created_at AS createdAt, updated_at AS updatedAt FROM crm_cases WHERE deleted_at IS NULL AND (? IS NULL OR stage = ?) ORDER BY next_action_at IS NULL, next_action_at ASC, updated_at DESC LIMIT 200', [stage, stage]);
+    const [rows] = await pool.execute('SELECT id, lead_id AS leadId, purchase_request_id AS purchaseRequestId, stage, source, assigned_to AS assignedTo, priority, next_action_at AS nextActionAt, created_at AS createdAt, updated_at AS updatedAt FROM crm_cases WHERE deleted_at IS NULL AND (? IS NULL OR stage = ?) AND (? IS NULL OR source = ?) AND (? IS NULL OR assigned_to = ?) AND (? IS NULL OR priority = ?) ORDER BY next_action_at IS NULL, next_action_at ASC, updated_at DESC LIMIT 200', [stage, stage, source, source, assignedTo, assignedTo, priority, priority]);
     return res.json({ ok: true, cases: rows });
   } catch (error) { console.error('CRM cases unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se han podido consultar los casos.' }); }
 });

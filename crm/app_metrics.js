@@ -78,7 +78,9 @@ async function load() {
   message.textContent = 'Consultando…';
   try {
     const selectedDays = document.querySelector('#period')?.value || '30';
-    const [summary, dealers, cases, aftercare, metrics] = await Promise.all([api('/api/crm/summary'), api('/api/crm/dealers'), api('/api/crm/cases'), api('/api/crm/aftercare'), api(`/api/crm/metrics?days=${encodeURIComponent(selectedDays)}`)]);
+    const stageFilter = document.querySelector('#stage-filter')?.value || '', priorityFilter = document.querySelector('#priority-filter')?.value || '';
+    const caseQuery = new URLSearchParams(); if (stageFilter) caseQuery.set('stage', stageFilter); if (priorityFilter) caseQuery.set('priority', priorityFilter);
+    const [summary, dealers, cases, aftercare, metrics] = await Promise.all([api('/api/crm/summary'), api('/api/crm/dealers'), api(`/api/crm/cases${caseQuery.toString() ? `?${caseQuery}` : ''}`), api('/api/crm/aftercare'), api(`/api/crm/metrics?days=${encodeURIComponent(selectedDays)}`)]);
     const observability = await api('/api/crm/observability').catch(() => ({ events: { byType: {} }, alerts: [{ severity: 'warning', message: 'Instrumentación pendiente', action: 'Aplica la migración CRM 003 para activar métricas de eventos.' }], integrations: { email: 'pendiente de esquema', social: 'pendiente de esquema' } }));
     document.querySelector('#cases').textContent = summary.cases.total || 0; document.querySelector('#dealers').textContent = dealers.dealers.length; document.querySelector('#aftercare').textContent = summary.aftercare.open || 0; document.querySelector('#overdue').textContent = summary.cases.overdue || 0;
     document.querySelector('.period-badge').textContent = `${selectedDays} días`;
@@ -104,5 +106,8 @@ async function load() {
 }
 
 document.querySelector('#load').addEventListener('click', load);
+document.querySelector('#period').addEventListener('change', load);
+document.querySelector('#stage-filter').addEventListener('change', load);
+document.querySelector('#priority-filter').addEventListener('change', load);
 document.querySelector('#dealer-form').addEventListener('submit', async (event) => { event.preventDefault(); try { const result = await api('/api/crm/dealers', { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) }); message.textContent = result.message; event.currentTarget.reset(); await load(); } catch (error) { message.textContent = error.message; } });
 fetch(`${API}/api/crm/status`).then(async (response) => { const status = await response.json(); if (!response.ok || status.enabled !== true) { const checks = status.checks || {}; const missing = [['MySQL', checks.mysql], ['bandera CRM', checks.featureFlag], ['esquema comprobado', checks.schemaReady], ['credencial interna', checks.adminCredential]].filter(([, ready]) => !ready).map(([label]) => label); throw new Error(`CRM cerrado. Falta: ${missing.join(', ') || 'configuración válida'}.`); } locked.hidden = true; app.hidden = false; mountControls(); mountCaseMetadata(); }).catch((error) => { message.textContent = error.message || 'CRM cerrado o backend local no disponible. La consola permanece protegida.'; });

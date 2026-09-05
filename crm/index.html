@@ -38,6 +38,12 @@
         <label>Periodo
           <select id="period"><option value="30">Últimos 30 días</option><option value="7">Últimos 7 días</option><option value="90">Últimos 90 días</option></select>
         </label>
+        <label>Etapa
+          <select id="stage-filter"><option value="">Todas</option><option value="visitor">Visitante</option><option value="diagnostic_started">Diagnóstico</option><option value="report_requested">Informe solicitado</option><option value="shared_manual">Compartido</option><option value="contact_authorized">Contacto autorizado</option><option value="visit_requested">Cita</option><option value="purchased">Ganada</option></select>
+        </label>
+        <label>Prioridad
+          <select id="priority-filter"><option value="">Todas</option><option value="high">Alta</option><option value="normal">Normal</option><option value="low">Baja</option></select>
+        </label>
         <button id="load" type="button">Actualizar</button>
       </div>
       <div id="message" class="muted"></div>
