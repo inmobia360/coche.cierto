@@ -2,6 +2,13 @@ const API = window.COCHECIERTO_API || ((window.location.hostname === 'localhost'
 const locked = document.querySelector('#locked');
 const app = document.querySelector('#app');
 const message = document.querySelector('#message');
+const accessMessage = document.querySelector('#access-message');
+const savedTheme = localStorage.getItem('cc_crm_theme') || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+document.documentElement.dataset.theme = savedTheme;
+const themeToggles = document.querySelectorAll('#theme-toggle,#theme-toggle-auth');
+const updateThemeButton = () => { const dark = document.documentElement.dataset.theme === 'dark'; themeToggles.forEach((button) => { button.innerHTML = `${dark ? '☀' : '☾'} <span>${dark ? 'Modo claro' : 'Modo oscuro'}</span>`; button.setAttribute('aria-label', dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'); }); };
+updateThemeButton();
+themeToggles.forEach((button) => button.addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('cc_crm_theme', next); updateThemeButton(); }));
 
 const transitions = {
   visitor: ['diagnostic_started', 'withdrawn', 'blocked'], diagnostic_started: ['report_requested', 'withdrawn', 'blocked'],
@@ -15,9 +22,9 @@ const transitions = {
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
 const token = () => document.querySelector('#token').value.trim();
-const headers = () => ({ 'Content-Type': 'application/json', 'X-CRM-User': document.querySelector('#user').value.trim(), 'X-CRM-Email': document.querySelector('#email').value.trim(), Authorization: `Bearer ${token()}` });
+const headers = () => ({ 'Content-Type': 'application/json', 'X-CRM-User': document.querySelector('#user').value.trim(), 'X-CRM-Email': document.querySelector('#email').value.trim() });
 const api = async (path, options = {}) => {
-  const response = await fetch(`${API}${path}`, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
+  const response = await fetch(`${API}${path}`, { credentials: 'include', ...options, headers: { ...headers(), ...(options.headers || {}) } });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.message || 'No se ha podido completar la operación.');
   return data;
@@ -52,6 +59,25 @@ function mountCaseMetadata() {
   form.insertBefore(assignee, form.lastElementChild); form.insertBefore(priority, form.lastElementChild); form.insertBefore(nextAction, form.lastElementChild);
 }
 
+const planDefaults = [0,0,500,1000,1600,2400,3300,4200,5200,6300,7500,9000];
+const planCosts = [1150,1050,1150,1350,1400,1500,1700,1800,1900,2000,2100,2300];
+const planMonths = ['Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago'];
+function renderPlan() {
+  const saved = JSON.parse(localStorage.getItem('cc_crm_plan') || 'null') || planDefaults.map((income, i) => ({ income, costs: planCosts[i], partners: i < 2 ? 10 + i * 3 : Math.min(50, 13 + (i - 2) * 4), opportunities: i < 2 ? 0 : 5 + (i - 2) * 3 }));
+  const body = document.querySelector('#plan-table-body'); if (!body) return;
+  body.innerHTML = saved.map((row, i) => `<tr><th scope="row">M${i + 1} · ${planMonths[i]}</th><td><input data-plan="income" data-index="${i}" type="number" min="0" step="50" value="${row.income}"></td><td><input data-plan="costs" data-index="${i}" type="number" min="0" step="50" value="${row.costs}"></td><td><input data-plan="partners" data-index="${i}" type="number" min="0" value="${row.partners}"></td><td><input data-plan="opportunities" data-index="${i}" type="number" min="0" value="${row.opportunities}"></td><td class="plan-result">${Number(row.income) - Number(row.costs)} €</td></tr>`).join('');
+  const totalIncome = saved.reduce((n, r) => n + Number(r.income || 0), 0), totalCosts = saved.reduce((n, r) => n + Number(r.costs || 0), 0);
+  document.querySelector('#plan-summary').innerHTML = `<div><small>Ingresos objetivo</small><strong>${totalIncome.toLocaleString('es-ES')} €</strong></div><div><small>Costes objetivo</small><strong>${totalCosts.toLocaleString('es-ES')} €</strong></div><div><small>Resultado objetivo</small><strong>${(totalIncome - totalCosts).toLocaleString('es-ES')} €</strong></div>`;
+}
+function savePlan() { const rows = [...document.querySelectorAll('#plan-table-body tr')].map((row) => { const get = (name) => row.querySelector(`[data-plan="${name}"]`).value; return { income: get('income'), costs: get('costs'), partners: get('partners'), opportunities: get('opportunities') }; }); localStorage.setItem('cc_crm_plan', JSON.stringify(rows)); renderPlan(); message.textContent = 'Versión del plan guardada en este navegador.'; }
+function renderAccounting() { const items = JSON.parse(localStorage.getItem('cc_crm_accounting') || '[]'); const income = items.filter((i) => i.type === 'income').reduce((n, i) => n + Number(i.amount), 0), expense = items.filter((i) => i.type === 'expense').reduce((n, i) => n + Number(i.amount), 0); document.querySelector('#accounting-summary').innerHTML = `<div><small>Ingresos</small><strong>${income.toLocaleString('es-ES')} €</strong></div><div><small>Gastos</small><strong>${expense.toLocaleString('es-ES')} €</strong></div><div><small>Resultado</small><strong>${(income - expense).toLocaleString('es-ES')} €</strong></div>`; document.querySelector('#accounting-list').innerHTML = items.length ? `<div class="data-table"><div class="data-table-row data-table-head"><span>Fecha</span><span>Concepto</span><span>Tipo</span><span>Importe</span><span></span></div>${items.map((item, i) => `<div class="data-table-row"><span>${escapeHtml(item.date)}</span><span>${escapeHtml(item.description)}<small>${escapeHtml(item.category)}</small></span><span>${item.type === 'income' ? 'Ingreso' : 'Gasto'}</span><strong>${Number(item.amount).toLocaleString('es-ES')} €</strong><button class="icon-button" data-accounting-delete="${i}" type="button" aria-label="Eliminar movimiento">×</button></div>`).join('')}</div>` : '<p class="muted">Todavía no hay movimientos.</p>'; document.querySelectorAll('[data-accounting-delete]').forEach((b) => b.addEventListener('click', () => { const next = items.filter((_, i) => i !== Number(b.dataset.accountingDelete)); localStorage.setItem('cc_crm_accounting', JSON.stringify(next)); renderAccounting(); })); }
+function mountBusinessTools() { renderPlan(); renderAccounting(); document.querySelector('#plan-save')?.addEventListener('click', savePlan); document.querySelector('#accounting-form')?.addEventListener('submit', (e) => { e.preventDefault(); const item = Object.fromEntries(new FormData(e.currentTarget)); const items = JSON.parse(localStorage.getItem('cc_crm_accounting') || '[]'); items.unshift(item); localStorage.setItem('cc_crm_accounting', JSON.stringify(items)); e.currentTarget.reset(); renderAccounting(); }); document.querySelector('#accounting-clear')?.addEventListener('click', () => { localStorage.removeItem('cc_crm_accounting'); renderAccounting(); }); }
+function applyView(view) { const target = view || 'dashboard'; document.querySelectorAll('[data-view-section]').forEach((section) => { section.hidden = section.dataset.viewSection !== target; }); document.querySelectorAll('[data-view]').forEach((link) => link.classList.toggle('active', link.dataset.view === target)); const dynamic = { opportunities: ['#case-form','#case-detail','#link-form','#case-list'], partners: ['#dealer-form','#dealer-list'], tasks: ['#task-form','#task-list'], analytics: ['.insights-grid'], ads: ['.ads-panel'], alerts: ['#observability-panel'] }; document.querySelectorAll('#app > .panel:not([data-view-section]),#app > .decision-grid:not([data-view-section])').forEach((el) => { if (target === 'dashboard') el.hidden = true; }); (dynamic[target] || []).forEach((selector) => { const el = document.querySelector(selector); if (el) (el.closest('.panel') || el).hidden = false; }); if (target === 'dashboard') document.querySelectorAll('[data-view-section="dashboard"]').forEach((el) => { el.hidden = false; }); }
+function mountNavigation() { document.querySelectorAll('[data-view]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); const view = link.dataset.view; history.replaceState(null, '', `#${link.getAttribute('href').slice(1)}`); applyView(view); })); const initial = location.hash === '#accounting' ? 'accounting' : location.hash === '#business-plan' ? 'business-plan' : location.hash === '#analytics' ? 'analytics' : location.hash === '#ads' ? 'ads' : location.hash === '#alerts' ? 'alerts' : location.hash === '#opportunities' ? 'opportunities' : location.hash === '#partners' ? 'partners' : location.hash === '#tasks' ? 'tasks' : 'dashboard'; applyView(initial); }
+
+function renderAds(data, metrics) { const state = document.querySelector('#ads-source-state'), status = document.querySelector('#ads-status'), metricTarget = document.querySelector('#ads-metrics'); if (!state || !status || !metricTarget) return; const labels = { disabled: 'Desactivado', not_configured: 'Sin configurar', ready: 'Conectado', error: 'Error' }; state.textContent = labels[data.status] || 'Sin estado'; state.className = `source-state${data.status === 'ready' ? '' : ' source-state--off'}`; status.innerHTML = `<div class="integration-mark integration-mark--meta">f</div><div><strong>${escapeHtml(data.message)}</strong><p class="muted">${escapeHtml(data.detail)}</p></div>`; const values = data.metrics || {}; metricTarget.innerHTML = [['Impresiones', values.impressions], ['Clics', values.clicks], ['Gasto', values.spend], ['Conversiones', values.conversions]].map(([label, value]) => `<article class="metric"><small>${label}</small><strong>${value == null ? '—' : escapeHtml(value)}</strong></article>`).join('') + `<div class="ads-owned"><small>Leads atribuidos propios · ${escapeHtml(metrics.period.days)} días</small><strong>${escapeHtml(metrics.attribution?.facebook || 0)}</strong></div>`; }
+function renderExitFeedback(data) { const target = document.querySelector('#exit-feedback-panel'); if (!target) return; const labels = { helpful: 'Sí, me ha ayudado', uncertain: 'Tengo algunas dudas', not_yet: 'Todavía no' }; target.innerHTML = data.rows?.length ? data.rows.map((row) => `<div class="data-list-row"><span>${escapeHtml(labels[row.usefulness] || row.usefulness)}</span><strong>${escapeHtml(row.total)}</strong></div>`).join('') : '<p class="muted">Aún no hay respuestas en este periodo.</p>'; }
+
 async function updateDealerStatus(dealerId, status, dataProcessingStatus) {
   try { await api(`/api/crm/dealers/${dealerId}/status`, { method: 'POST', body: JSON.stringify({ status, dataProcessingStatus, verificationStatus: status === 'verified' ? 'approved' : 'pending_review' }) }); message.textContent = `Estado del concesionario #${dealerId} actualizado.`; await load(); } catch (error) { message.textContent = error.message; }
 }
@@ -82,6 +108,10 @@ async function load() {
     const caseQuery = new URLSearchParams(); if (stageFilter) caseQuery.set('stage', stageFilter); if (priorityFilter) caseQuery.set('priority', priorityFilter);
     const [summary, dealers, cases, aftercare, metrics] = await Promise.all([api('/api/crm/summary'), api('/api/crm/dealers'), api(`/api/crm/cases${caseQuery.toString() ? `?${caseQuery}` : ''}`), api('/api/crm/aftercare'), api(`/api/crm/metrics?days=${encodeURIComponent(selectedDays)}`)]);
     const observability = await api('/api/crm/observability').catch(() => ({ events: { byType: {} }, alerts: [{ severity: 'warning', message: 'Instrumentación pendiente', action: 'Aplica la migración CRM 003 para activar métricas de eventos.' }], integrations: { email: 'pendiente de esquema', social: 'pendiente de esquema' } }));
+    const ads = await api(`/api/crm/ads?days=${encodeURIComponent(selectedDays)}`).catch(() => ({ status: 'error', message: 'No se pudo consultar ADS.', detail: 'Revisa el estado del conector en el servidor.', metrics: {} }));
+    renderAds(ads, metrics);
+    const feedback = await api(`/api/crm/exit-feedback?days=${encodeURIComponent(selectedDays)}`).catch(() => ({ rows: [] }));
+    renderExitFeedback(feedback);
     document.querySelector('#cases').textContent = summary.cases.total || 0; document.querySelector('#dealers').textContent = dealers.dealers.length; document.querySelector('#aftercare').textContent = summary.aftercare.open || 0; document.querySelector('#overdue').textContent = summary.cases.overdue || 0;
     document.querySelector('.period-badge').textContent = `${selectedDays} días`;
     const metricItems = [['Casos activos', metrics.cases.active], ['Conversión a ganada', metrics.cases.conversionToWon == null ? '—' : `${metrics.cases.conversionToWon}%`], ['Respuesta partner', metrics.partnerFlow.responseRate == null ? '—' : `${metrics.partnerFlow.responseRate}%`], ['Consentimientos', metrics.consent.authorized || 0], ['Tareas vencidas', metrics.tasks.overdue], ['Compartidos', metrics.events.share_created || 0], ['Referidos activados', metrics.events.referred_user_activated || 0], ['MRR / SaaS', '—']];
@@ -89,6 +119,8 @@ async function load() {
     const funnelLabels = [['visitor', 'Visitantes'], ['diagnostic_started', 'Diagnóstico'], ['report_requested', 'Informe'], ['shared_manual', 'Compartido'], ['contact_authorized', 'Contacto'], ['visit_requested', 'Cita'], ['test_requested', 'Prueba'], ['purchased', 'Ganada']];
     const funnelMax = Math.max(1, ...funnelLabels.map(([stage]) => Number(metrics.funnel[stage] || 0)));
     document.querySelector('#funnel').innerHTML = funnelLabels.map(([stage, label]) => { const value = Number(metrics.funnel[stage] || 0); return `<div class="funnel-row"><span>${escapeHtml(label)}</span><div class="funnel-track"><i style="width:${Math.round(value / funnelMax * 100)}%"></i></div><b>${value}</b></div>`; }).join('');
+    const attributionPanel = document.querySelector('#attribution-panel');
+    const attributionRows = Object.entries(metrics.attribution || {}).map(([source, total]) => `<div class="data-list-row"><span>${escapeHtml(source)}</span><strong>${total}</strong></div>`).join(''); attributionPanel.innerHTML = attributionRows || '<p class="muted">Aún no hay leads con UTMs.</p>';
     const observationTarget = document.querySelector('#observability');
     const eventRows = Object.entries(observability.events.byType || {}).map(([type, total]) => `<span class="pill">${escapeHtml(type)}: ${total}</span>`).join('');
     const alertRows = (observability.alerts || []).map((alert) => `<div class="alert ${escapeHtml(alert.severity)}"><strong>${escapeHtml(alert.message)}</strong><small>${escapeHtml(alert.action)}</small></div>`).join('');
@@ -110,4 +142,22 @@ document.querySelector('#period').addEventListener('change', load);
 document.querySelector('#stage-filter').addEventListener('change', load);
 document.querySelector('#priority-filter').addEventListener('change', load);
 document.querySelector('#dealer-form').addEventListener('submit', async (event) => { event.preventDefault(); try { const result = await api('/api/crm/dealers', { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) }); message.textContent = result.message; event.currentTarget.reset(); await load(); } catch (error) { message.textContent = error.message; } });
-fetch(`${API}/api/crm/status`).then(async (response) => { const status = await response.json(); if (!response.ok || status.enabled !== true) { const checks = status.checks || {}; const missing = [['MySQL', checks.mysql], ['bandera CRM', checks.featureFlag], ['esquema comprobado', checks.schemaReady], ['credencial interna', checks.adminCredential]].filter(([, ready]) => !ready).map(([label]) => label); throw new Error(`CRM cerrado. Falta: ${missing.join(', ') || 'configuración válida'}.`); } locked.hidden = true; app.hidden = false; mountControls(); mountCaseMetadata(); }).catch((error) => { locked.hidden = false; app.hidden = false; mountControls(); mountCaseMetadata(); message.textContent = error.message || 'No se ha podido conectar con la API. Introduce tus credenciales y pulsa Actualizar para reintentar.'; });
+let challengeId = '';
+document.querySelector('#access-form').addEventListener('submit', async (event) => { event.preventDefault(); accessMessage.textContent = 'Validando acceso…'; const user = document.querySelector('#user').value.trim(), email = document.querySelector('#email').value.trim(), codeLabel = document.querySelector('#code-label'), submit = document.querySelector('#access-submit'); try { if (!challengeId) { const response = await fetch(`${API}/api/crm/auth/request-code`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user, email }) }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || 'No se ha podido enviar el código.'); challengeId = data.challengeId || ''; codeLabel.hidden = false; document.querySelector('#code').required = true; submit.firstChild.textContent = 'Acceder al panel '; accessMessage.textContent = 'Introduce el código de 6 dígitos que hemos enviado al correo autorizado.'; return; } const response = await fetch(`${API}/api/crm/auth/verify-code`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ challengeId, code: document.querySelector('#code').value.trim() }) }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || 'El código no es válido o ha caducado.'); locked.hidden = true; app.hidden = false; mountControls(); mountCaseMetadata(); mountBusinessTools(); mountNavigation(); await load(); accessMessage.textContent = data.message || 'Sesión validada.'; } catch (error) { accessMessage.textContent = error.message || 'No se ha podido validar la sesión.'; } });
+async function bootstrapSession() {
+  app.hidden = true;
+  locked.hidden = false;
+  try {
+    await api('/api/crm/summary');
+    locked.hidden = true;
+    app.hidden = false;
+    mountControls();
+    mountCaseMetadata();
+    mountBusinessTools();
+    mountNavigation();
+    await load();
+  } catch (_) {
+    // La sesión no existe o ha caducado: se mantiene el acceso visible.
+  }
+}
+bootstrapSession();

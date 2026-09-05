@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>CRM interno · CocheCierto</title>
   <link rel="stylesheet" href="styles.css">
@@ -11,11 +12,11 @@
   <main class="shell">
     <div class="app-layout">
       <aside class="sidebar" aria-label="Navegación CRM">
-        <div class="brand-mark">C<span>·</span>C</div>
+        <a class="brand-lockup" href="#dashboard" aria-label="CocheCierto CRM"><img src="../brand-symbol.svg" alt="CocheCierto"><span>CocheCierto <small>Staff</small></span></a>
         <p class="sidebar-label">Operación</p>
-        <nav><a class="active" href="#dashboard">Dashboard</a><a href="#case-list">Oportunidades</a><a href="#dealer-list">Partners</a><a href="#task-list">Tareas y seguimiento</a></nav>
-        <p class="sidebar-label">Inteligencia</p><nav><a href="#ceo-metrics">Analítica</a><a href="#observability-panel">Alertas y auditoría</a></nav>
-        <p class="sidebar-note">Consola interna<br><strong>Datos agregados</strong></p>
+        <nav><a class="active" data-view="dashboard" href="#dashboard">Dashboard</a><a data-view="opportunities" href="#opportunities">Oportunidades</a><a data-view="partners" href="#partners">Partners</a><a data-view="tasks" href="#tasks">Tareas y seguimiento</a><a data-view="accounting" href="#accounting">Contabilidad</a><a data-view="business-plan" href="#business-plan">Plan de negocio</a></nav>
+        <p class="sidebar-label">Inteligencia</p><nav><a data-view="analytics" href="#analytics">Analítica</a><a data-view="ads" href="#ads">ADS</a><a data-view="alerts" href="#alerts">Alertas y auditoría</a></nav>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Cambiar tema">☾ <span>Modo oscuro</span></button><p class="sidebar-note">Consola interna<br><strong>Datos agregados</strong></p>
       </aside>
       <div class="content-column">
     <header id="dashboard">
@@ -23,21 +24,24 @@
       <h1>CRM del ciclo de vida</h1>
       <p class="muted">Seguimiento del usuario desde el diagnóstico hasta la compra y la poscompra.</p>
     </header>
-    <section id="locked" class="notice">
-      <strong>CRM no activado</strong>
-      <span>Consola local preparada, sin datos reales y sin acciones externas.</span>
+    <section id="locked" class="auth-screen" aria-labelledby="access-title">
+      <div class="auth-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="auth-card">
+        <div class="auth-brand"><img class="auth-logo" src="../brand-symbol.svg" alt="CocheCierto"><span class="auth-kicker">CocheCierto · Staff</span></div>
+        <div class="auth-copy"><p class="eyebrow">Consola privada</p><h2 id="access-title">Pon el ciclo de compra bajo control.</h2><p>Indicadores, oportunidades y alertas operativas en un solo lugar. Acceso reservado al equipo autorizado.</p></div>
+        <form id="access-form" class="access-form">
+          <label>Usuario staff<input id="user" type="text" autocomplete="username" value="admin_master" placeholder="admin_master" required></label>
+          <input id="email" type="hidden" value="cochecierto@gmail.com">
+          <label id="code-label" hidden>Código de 6 dígitos<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"></label>
+          <button id="access-submit" type="submit">Enviar código <span aria-hidden="true">→</span></button>
+        </form>
+        <p id="access-message" class="auth-message" role="status">La sesión se valida contra la API privada.</p>
+        <button id="theme-toggle-auth" class="theme-toggle auth-theme-toggle" type="button" aria-label="Cambiar tema">☾ <span>Modo oscuro</span></button>
+        <div class="auth-aside"><span class="status-dot"></span><strong>Entorno protegido</strong><p>Datos agregados para decisiones operativas. Sin acciones externas automáticas.</p><small>cochecierto.com/crm</small></div>
+      </div>
     </section>
     <section id="app" hidden>
       <div class="toolbar">
-        <label>Usuario staff
-          <input id="user" type="text" autocomplete="username" value="admin_master" placeholder="admin_master">
-        </label>
-        <label>Email de acceso
-          <input id="email" type="email" autocomplete="email" value="cochecierto@gmail.com" placeholder="cochecierto@gmail.com">
-        </label>
-        <label>Token interno
-          <input id="token" type="password" autocomplete="off" placeholder="Token administrado fuera del repositorio">
-        </label>
         <label>Periodo
           <select id="period"><option value="30">Últimos 30 días</option><option value="7">Últimos 7 días</option><option value="90">Últimos 90 días</option></select>
         </label>
@@ -56,18 +60,37 @@
         <article><small>Poscompra abierta</small><b id="aftercare">—</b></article>
         <article><small>Acciones vencidas</small><b id="overdue">—</b></article>
       </section>
-      <section class="panel ceo-panel">
+      <section class="panel ceo-panel view-section" data-view-section="dashboard">
         <div class="panel-heading"><div><h2>Panel CEO</h2><p class="muted">Indicadores agregados de los últimos 30 días. Sin datos reales, se muestra “—”.</p></div><span class="period-badge">30 días</span></div>
         <div id="ceo-metrics" class="metric-grid"><div class="empty">Cargando métricas…</div></div>
         <p class="metric-footnote">MRR, ARR, churn, LTV y CAC aparecerán cuando se conecten suscripciones y costes reales; nunca se estiman con datos ficticios.</p>
         <div class="funnel-wrap"><h3>Embudo operativo</h3><div id="funnel" class="funnel"></div></div>
       </section>
-      <section class="panel" id="observability-panel">
+      <section class="decision-grid view-section" data-view-section="dashboard" aria-label="Señales para decidir">
+        <article class="panel decision-card decision-card--accent"><div class="decision-icon">↗</div><div><small class="card-kicker">Siguiente decisión</small><h2>Detecta dónde se enfría el ciclo</h2><p class="muted">Compara finalización, validación y activación antes de cambiar campañas.</p></div><a href="#observability-panel">Revisar señales <span aria-hidden="true">→</span></a></article>
+        <article class="panel decision-card"><div class="decision-card-head"><div><small class="card-kicker">Salud operativa</small><h2 id="decision-health">Sin alertas críticas</h2></div><span class="health-badge">Estable</span></div><p class="muted">Las incidencias aparecen con causa, antigüedad y siguiente acción.</p><a href="#observability-panel">Ver alertas <span aria-hidden="true">→</span></a></article>
+      </section>
+      <section class="insights-grid view-section" data-view-section="analytics">
+        <article class="panel data-panel"><div class="panel-heading"><div><small class="card-kicker">Adquisición propia</small><h2>Origen de captación</h2></div><span class="source-state">Eventos propios</span></div><div id="attribution-panel" class="data-list"><p class="muted">Cargando atribución…</p></div></article>
+        <article class="panel data-panel search-console-panel"><div class="panel-heading"><div><small class="card-kicker">SEO orgánico</small><h2>Google Search Console</h2></div><span class="source-state source-state--off">Desactivado</span></div><div class="integration-empty"><div class="integration-mark">G</div><div><strong>Conector preparado</strong><p class="muted">Cuando se autorice, mostrará clics, impresiones, CTR y posición media de cochecierto.com.</p></div></div><small class="definition">Solo lectura · OAuth server-side · sin credenciales en el navegador</small></article>
+      </section>
+      <section class="panel view-section" data-view-section="analytics">
+        <div class="panel-heading"><div><small class="card-kicker">Investigación propia</small><h2>Feedback de salida</h2><p class="muted">Opiniones agregadas de usuarios que abandonan el valorador. No es una métrica de Meta.</p></div><span class="source-state">Datos propios</span></div>
+        <div id="exit-feedback-panel" class="data-list"><p class="muted">Cargando feedback…</p></div>
+      </section>
+      <section class="panel view-section ads-panel" data-view-section="ads">
+        <div class="panel-heading"><div><small class="card-kicker">Adquisición de pago</small><h2>ADS · Meta</h2><p class="muted">Lectura separada de la atribución propia. Los datos de Meta solo aparecen cuando el conector oficial esté autorizado.</p></div><span id="ads-source-state" class="source-state source-state--off">Desactivado</span></div>
+        <div id="ads-status" class="integration-empty"><div class="integration-mark integration-mark--meta">f</div><div><strong>Conector Meta desactivado</strong><p class="muted">No se ha enviado ningún dato a Meta ni se han consultado credenciales desde el navegador.</p></div></div>
+        <div id="ads-metrics" class="metric-grid ads-metrics"></div>
+        <div class="ads-campaign"><div><small>Campaña de referencia</small><strong>Lanzamiento CocheCierto · Valoración gratuita</strong></div><div><small>Destino</small><strong>cochecierto.com</strong></div><div><small>UTM</small><strong>lanzamiento_cochecierto</strong></div></div>
+        <p class="definition">Fuente propia: eventos agregados del CRM. Sin impresiones, clics, gasto o conversiones confirmadas de Meta hasta completar la autorización server-side.</p>
+      </section>
+      <section class="panel view-section" id="observability-panel" data-view-section="alerts">
         <h2>Observabilidad de flujos</h2>
         <p class="muted">Periodo móvil de 7 días · unidad: evento. Los clics sociales son salidas desde CocheCierto, no visitas confirmadas en la red.</p>
         <div id="observability" class="empty">Sin datos de instrumentación.</div>
       </section>
-      <section class="panel">
+      <section class="panel view-section" data-view-section="partners">
         <h2>Añadir concesionario futuro</h2>
         <p class="muted">Queda como borrador y pendiente de revisión. El contacto no se muestra al comprador.</p>
         <form id="dealer-form">
@@ -84,18 +107,30 @@
           <button type="submit">Guardar como borrador</button>
         </form>
       </section>
-      <section class="panel">
+      <section class="panel view-section" data-view-section="partners">
         <h2>Concesionarios registrados</h2>
         <div id="dealer-list" class="empty">Todavía no hay concesionarios registrados.</div>
       </section>
-      <section class="panel">
+      <section class="panel view-section" data-view-section="opportunities">
         <h2>Casos en seguimiento</h2>
         <div id="case-list" class="empty">Todavía no hay casos registrados.</div>
+      </section>
+      <section class="panel view-section" data-view-section="accounting" id="accounting">
+        <div class="panel-heading"><div><small class="card-kicker">Control económico</small><h2>Contabilidad</h2><p class="muted">Registro interno mensual de ingresos y gastos. No sustituye la contabilidad fiscal.</p></div><button id="accounting-clear" class="button-secondary" type="button">Limpiar borradores</button></div>
+        <div class="accounting-summary" id="accounting-summary"></div>
+        <form id="accounting-form" class="accounting-form"><select name="type" aria-label="Tipo"><option value="income">Ingreso</option><option value="expense">Gasto</option></select><input name="date" type="date" required><input name="category" placeholder="Categoría" required><input name="description" placeholder="Concepto" required><input name="amount" type="number" min="0" step="0.01" placeholder="Importe sin IVA" required><button type="submit">Añadir movimiento</button></form>
+        <div id="accounting-list" class="data-table-empty">Todavía no hay movimientos.</div>
+      </section>
+      <section class="panel view-section" data-view-section="business-plan" id="business-plan">
+        <div class="panel-heading"><div><small class="card-kicker">Escenario central · año fiscal M1–M12</small><h2>Plan de negocio</h2><p class="muted">Objetivos editables desde septiembre hasta agosto. Las cifras parten del plan aprobado y pueden versionarse.</p></div><button id="plan-save" type="button">Guardar versión</button></div>
+        <div class="plan-summary" id="plan-summary"></div>
+        <div class="plan-table-wrap"><table class="plan-table"><thead><tr><th>Mes</th><th>Ingresos objetivo</th><th>Costes objetivo</th><th>Partners</th><th>Oportunidades</th><th>Resultado</th></tr></thead><tbody id="plan-table-body"></tbody></table></div>
+        <p class="metric-footnote">Los objetivos son hipótesis editables. El resultado real procede de Contabilidad y no se sobrescribe al cambiar el plan.</p>
       </section>
     </section>
       </div>
     </div>
   </main>
-  <script src="app_metrics.js?v=20260905-1545" defer></script>
+  <script src="app_metrics.js?v=20260905-2200" defer></script>
 </body>
 </html>
