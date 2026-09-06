@@ -15,7 +15,7 @@
         <a class="brand-lockup" href="#dashboard" aria-label="CocheCierto CRM"><img src="../brand-symbol.svg" alt="CocheCierto"><span>CocheCierto <small>Staff</small></span></a>
         <p class="sidebar-label">Operación</p>
         <nav><a class="active" data-view="dashboard" href="#dashboard">Dashboard</a><a data-view="opportunities" href="#opportunities">Oportunidades</a><a data-view="partners" href="#partners">Partners</a><a data-view="tasks" href="#tasks">Tareas y seguimiento</a><a data-view="accounting" href="#accounting">Contabilidad</a><a data-view="business-plan" href="#business-plan">Plan de negocio</a></nav>
-        <p class="sidebar-label">Inteligencia</p><nav><a data-view="analytics" href="#analytics">Analítica</a><a data-view="ads" href="#ads">ADS</a><a data-view="alerts" href="#alerts">Alertas y auditoría</a></nav>
+            <p class="sidebar-label">Inteligencia</p><nav><a data-view="analytics" href="#analytics">Analítica</a><a data-view="traffic" href="#traffic">Tráfico</a><a data-view="alerts" href="#alerts">Alertas y auditoría</a></nav>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Cambiar tema">☾ <span>Modo oscuro</span></button><p class="sidebar-note">Consola interna<br><strong>Datos agregados</strong></p>
       </aside>
       <div class="content-column">
@@ -77,12 +77,20 @@
         <div class="panel-heading"><div><small class="card-kicker">Investigación propia</small><h2>Feedback de salida</h2><p class="muted">Opiniones agregadas de usuarios que abandonan el valorador. No es una métrica de Meta.</p></div><span class="source-state">Datos propios</span></div>
         <div id="exit-feedback-panel" class="data-list"><p class="muted">Cargando feedback…</p></div>
       </section>
-      <section class="panel view-section ads-panel" data-view-section="ads">
-        <div class="panel-heading"><div><small class="card-kicker">Adquisición de pago</small><h2>ADS · Meta</h2><p class="muted">Lectura separada de la atribución propia. Los datos de Meta solo aparecen cuando el conector oficial esté autorizado.</p></div><span id="ads-source-state" class="source-state source-state--off">Desactivado</span></div>
-        <div id="ads-status" class="integration-empty"><div class="integration-mark integration-mark--meta">f</div><div><strong>Conector Meta desactivado</strong><p class="muted">No se ha enviado ningún dato a Meta ni se han consultado credenciales desde el navegador.</p></div></div>
-        <div id="ads-metrics" class="metric-grid ads-metrics"></div>
-        <div class="ads-campaign"><div><small>Campaña de referencia</small><strong>Lanzamiento CocheCierto · Valoración gratuita</strong></div><div><small>Destino</small><strong>cochecierto.com</strong></div><div><small>UTM</small><strong>lanzamiento_cochecierto</strong></div></div>
-        <p class="definition">Fuente propia: eventos agregados del CRM. Sin impresiones, clics, gasto o conversiones confirmadas de Meta hasta completar la autorización server-side.</p>
+      <section class="panel view-section traffic-panel" data-view-section="traffic">
+        <div class="panel-heading"><div><small class="card-kicker">Adquisición y seguimiento</small><h2>Tráfico</h2><p class="muted">Pago y orgánico separados para no mezclar atribuciones ni presentar datos estimados como reales.</p></div><span class="source-state">Fuentes trazables</span></div>
+        <div class="traffic-sections">
+          <article class="traffic-channel traffic-channel--paid"><div class="panel-heading"><div><small class="card-kicker">Campañas</small><h3>Tráfico de pago</h3></div><span id="ads-source-state" class="source-state source-state--off">Desactivado</span></div>
+            <div id="ads-status" class="integration-empty"><div class="integration-mark integration-mark--meta">f</div><div><strong>Conector Meta desactivado</strong><p class="muted">Lectura server-side de campañas autorizadas.</p></div></div>
+            <div id="ads-metrics" class="metric-grid ads-metrics"></div>
+            <div class="ads-campaign"><div><small>Campaña de referencia</small><strong>Lanzamiento CocheCierto · Valoración gratuita</strong></div><div><small>Destino</small><strong>cochecierto.com</strong></div><div><small>UTM</small><strong>lanzamiento_cochecierto</strong></div></div>
+            <div class="channel-list"><div><span>TikTok Ads</span><span class="source-state source-state--off">Preparado · Pixel pendiente</span></div><div><span>Google Ads / YouTube</span><span class="source-state source-state--off">Preparado · autorización pendiente</span></div></div>
+          </article>
+          <article class="traffic-channel traffic-channel--organic"><div class="panel-heading"><div><small class="card-kicker">Contenido y búsqueda</small><h3>Tráfico orgánico</h3></div><span class="source-state source-state--off">En preparación</span></div>
+            <div class="channel-list"><div><span>Google Search Console</span><span class="source-state source-state--off">Desactivado</span></div><div><span>YouTube orgánico</span><span class="source-state source-state--off">API pendiente</span></div><div><span>Directo, referencias y redes</span><span class="source-state">UTM + eventos propios</span></div></div>
+            <p class="definition">Los clics y conversiones propios proceden del CRM. Las impresiones, alcance y visitas de cada red solo aparecerán cuando exista un adaptador oficial autorizado.</p>
+          </article>
+        </div>
       </section>
       <section class="panel view-section" id="observability-panel" data-view-section="alerts">
         <h2>Observabilidad de flujos</h2>
