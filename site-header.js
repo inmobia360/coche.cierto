@@ -272,7 +272,7 @@
     banner.setAttribute('aria-label', 'Preferencias de cookies');
     banner.innerHTML = '<div><strong>Tu privacidad importa</strong><p>Usamos cookies técnicas para que la web funcione. Las cookies opcionales solo se activarán si las aceptas.</p><a href="/legal/cookies.html">Ver política de cookies</a></div><div class="cookie-actions"><button type="button" data-cookie="reject">Rechazar opcionales</button><button type="button" data-cookie="configure">Configurar</button><button type="button" class="primary" data-cookie="accept">Aceptar opcionales</button></div>';
     document.body.appendChild(banner);
-    function save(mode) { localStorage.setItem(key, JSON.stringify({necessary:true, analytics:mode === 'accept', marketing:mode === 'accept', at:new Date().toISOString()})); banner.remove(); }
+    function save(mode) { var preferences = {necessary:true, analytics:mode === 'accept', marketing:mode === 'accept', at:new Date().toISOString()}; localStorage.setItem(key, JSON.stringify(preferences)); if (preferences.analytics) enableAnalytics(preferences); banner.remove(); }
     banner.querySelector('[data-cookie="reject"]').onclick = function () { save('reject'); };
     banner.querySelector('[data-cookie="accept"]').onclick = function () { save('accept'); };
     banner.querySelector('[data-cookie="configure"]').onclick = function () {
@@ -281,8 +281,27 @@
       panel.setAttribute('role', 'dialog');
       panel.innerHTML = '<div class="cookie-settings-card"><h2>Configura tus cookies</h2><p>Las cookies técnicas son necesarias. Las demás son opcionales.</p><label><input type="checkbox" checked disabled> Técnicas <small>Siempre activas</small></label><label><input type="checkbox" data-category="analytics"> Analítica <small>[Proveedor pendiente]</small></label><label><input type="checkbox" data-category="marketing"> Marketing <small>[Proveedor pendiente]</small></label><button type="button" data-save-cookies>Guardar preferencias</button></div>';
       document.body.appendChild(panel);
-      panel.querySelector('[data-save-cookies]').onclick = function () { localStorage.setItem(key, JSON.stringify({necessary:true, analytics:panel.querySelector('[data-category="analytics"]').checked, marketing:panel.querySelector('[data-category="marketing"]').checked, at:new Date().toISOString()})); panel.remove(); banner.remove(); };
+      panel.querySelector('[data-save-cookies]').onclick = function () { var preferences = {necessary:true, analytics:panel.querySelector('[data-category="analytics"]').checked, marketing:panel.querySelector('[data-category="marketing"]').checked, at:new Date().toISOString()}; localStorage.setItem(key, JSON.stringify(preferences)); if (preferences.analytics) enableAnalytics(preferences); panel.remove(); banner.remove(); };
     };
+  }
+
+  // The Measurement ID is intentionally empty until the owner creates the GA4
+  // property. It is public configuration, never a secret; consent still gates
+  // loading the Google script and sending events.
+  function enableAnalytics(preferences) {
+    if (!preferences || preferences.analytics !== true || window.__cocheciertoAnalyticsLoaded) return;
+    var measurementId = window.COCHECIERTO_GA4_MEASUREMENT_ID || '';
+    if (!/^G-[A-Z0-9]+$/i.test(measurementId)) return;
+    window.__cocheciertoAnalyticsLoaded = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId, { anonymize_ip: true, allow_google_signals: false, allow_ad_personalization_signals: false });
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+    document.head.appendChild(script);
+    window.trackCocheCierto('page_view');
   }
 
   function setupInstallPrompt() {
@@ -330,6 +349,7 @@
   };
   document.addEventListener('DOMContentLoaded', function() {
     initHeader();
+    try { enableAnalytics(JSON.parse(localStorage.getItem('cochecierto_cookie_preferences_v1') || '{}')); } catch (_) {}
     document.addEventListener('click', function(event) {
       const cta = event.target.closest('a[href*="/valorador/"]');
       if (cta) window.trackCocheCierto('view_cta', { label: cta.textContent.trim().slice(0, 80) });
