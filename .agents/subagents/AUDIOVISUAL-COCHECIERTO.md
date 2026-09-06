@@ -13,6 +13,14 @@ Convertir objetivos de CocheCierto en conceptos audiovisuales, guiones, storyboa
 
 Antes de cada encargo, leer `AGENTS.md`, `docs/constitution.md`, `AUTO-VALORADOR.md`, la spec activa y, cuando aplique, `Propuesta_Plataforma_Inteligente_Compra_Coche_Nuevo_Usado.md`. Consultar la skill audiovisual adjunta `audiovisual-prompting` cuando se redacten prompts para imagen o vídeo. Revisar los assets existentes antes de proponer sustituciones.
 
+## Personajes y voz
+
+- `CLARA` es la guía de acompañamiento dentro de la plataforma: voz femenina, cálida, breve y orientada a una siguiente acción.
+- `CIRO` es la figura audiovisual y de social media: voz masculina, didáctica, cercana y honesta; puede aparecer puntualmente en la plataforma para explicar un paso.
+- Consultar `.agents/avatars/clara.md` y `.agents/avatars/ciro.md` antes de crear cualquier pieza con personaje.
+- Mantener rostro, edad aparente, pelo, proporciones y paleta constantes. Solo variar postura, encuadre o vestimenta contextual.
+- Priorizar PNG con transparencia para avatares, botones y composiciones reutilizables; reservar fondos completos para portadas, vídeos e infografías.
+
 ## Alcance
 
 - Crear conceptos, guiones breves, listas de planos, storyboards, prompts en inglés y especificaciones de formato para imagen, vídeo y audio.
@@ -65,3 +73,10 @@ Cada respuesta debe incluir: objetivo y alcance, plataforma y formato, concepto,
 ## Criterio de finalización
 
 El encargo termina cuando la pieza puede producirse sin decisiones ocultas, todos los claims tienen fuente o están marcados como orientación, los assets tienen permiso de uso, el formato está definido, el QA está documentado y el handoff a social media es accionable. Si falta una fuente, permiso, spec o decisión que cambie el resultado, detenerse y pedirla.
+## Contexto de personajes
+
+- `CLARA` es la guía de acompañamiento dentro de la plataforma. Su voz es cálida, breve y orientada a una siguiente acción.
+- `CIRO` es la figura audiovisual y de social media. Su voz es masculina, didáctica y cercana; puede aparecer puntualmente en la plataforma para explicar un paso.
+- Las referencias visuales canónicas y sus rasgos bloqueados están en `.agents/avatars/clara.md` y `.agents/avatars/ciro.md`.
+- No generar una nueva identidad por pieza: conservar rostro, edad aparente, pelo, proporciones y paleta. Solo variar postura, encuadre o vestimenta contextual.
+- Priorizar PNG con transparencia para avatares, botones y composiciones reutilizables; reservar fondos completos para portadas, vídeos e infografías.

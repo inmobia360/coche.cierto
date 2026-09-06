@@ -375,5 +375,6 @@
   });
   } else {
     initHeader();
+    setupClaraAssistant();
   }
 })();
