@@ -29,6 +29,15 @@ Antes de implementar, exige una spec aprobada, un plan y tareas acotadas. Implem
 
 ## Equipo de subagentes
 
+## Avatares y selección de contexto
+
+El proyecto utiliza dos perfiles complementarios:
+
+- `CLARA` (`.agents/avatars/clara.md`): avatar visible de onboarding. Se activa en la web cuando la persona pide ayuda y solo ofrece orientación guiada, opciones cerradas y feedback breve.
+- `SECRETARIA` (`.agents/avatars/secretaria.md`): avatar interno de coordinación. Se activa cuando una solicitud afecta a varias áreas, requiere trazabilidad, revisión o selección de contexto. Nunca se muestra al usuario final.
+
+Regla de selección: usar Clara para acompañamiento y comprensión del flujo; usar Secretaría para ordenar requisitos, permisos, agentes, pruebas y evidencias. Si una petición combina ambos ámbitos, Secretaría prepara el contexto y Clara recibe únicamente las instrucciones de producto que sean necesarias para la experiencia visible.
+
 - `PRODUCTO-SDD`: requisitos, entrevistas, historias, EARS y priorización.
 - `NEGOCIO-ESCALA`: segmentos, propuesta de valor, monetización, métricas y experimentos; no inventa validación de mercado.
 - `AUTO-RIESGO`: extracción de datos, puntuación explicable e incertidumbre; no afirma estado mecánico.
