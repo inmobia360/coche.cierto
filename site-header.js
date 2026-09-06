@@ -282,7 +282,7 @@
       var panel = document.createElement('div');
       panel.className = 'cookie-settings';
       panel.setAttribute('role', 'dialog');
-      panel.innerHTML = '<div class="cookie-settings-card"><h2>Configura tus cookies</h2><p>Las cookies técnicas son necesarias. Las demás son opcionales.</p><label><input type="checkbox" checked disabled> Técnicas <small>Siempre activas</small></label><label><input type="checkbox" data-category="analytics"> Analítica <small>[Proveedor pendiente]</small></label><label><input type="checkbox" data-category="marketing"> Marketing <small>[Proveedor pendiente]</small></label><button type="button" data-save-cookies>Guardar preferencias</button></div>';
+      panel.innerHTML = '<div class="cookie-settings-card"><h2>Configura tus cookies</h2><p>Las cookies técnicas son necesarias. Las demás son opcionales.</p><label><input type="checkbox" checked disabled> Técnicas <small>Siempre activas</small></label><label><input type="checkbox" data-category="analytics"> Analítica <small>Google Analytics 4 · solo tras consentimiento</small></label><label><input type="checkbox" data-category="marketing"> Marketing <small>Sin proveedor configurado</small></label><button type="button" data-save-cookies>Guardar preferencias</button></div>';
       document.body.appendChild(panel);
       panel.querySelector('[data-save-cookies]').onclick = function () { var preferences = {necessary:true, analytics:panel.querySelector('[data-category="analytics"]').checked, marketing:panel.querySelector('[data-category="marketing"]').checked, at:new Date().toISOString()}; localStorage.setItem(key, JSON.stringify(preferences)); if (preferences.analytics) enableAnalytics(preferences); panel.remove(); banner.remove(); };
     };
