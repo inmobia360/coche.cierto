@@ -4,6 +4,9 @@
 (function () {
   'use strict';
 
+  // Public GA4 Measurement ID. The script is still consent-gated below.
+  window.COCHECIERTO_GA4_MEASUREMENT_ID = window.COCHECIERTO_GA4_MEASUREMENT_ID || 'G-GYYGH896E1';
+
   function initHeader() {
     // Las páginas legales no incluyen el gestor de tema por separado; aplicamos
     // aquí la preferencia guardada antes de construir la cabecera.
