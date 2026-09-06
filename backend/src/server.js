@@ -10,6 +10,7 @@ import QRCode from 'qrcode';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { reportVerificationEmail } from './email-templates.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -28,9 +29,7 @@ if (mailer) {
       const html = `<!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;color:#082333;font-family:Arial,sans-serif"><div style="max-width:620px;margin:32px auto;padding:0 16px"><div style="background:#082333;border-radius:18px 18px 0 0;padding:24px 28px;color:#fff;font-size:22px;font-weight:700">Coche<span style="color:#ff4d00">Cierto</span> · Staff</div><div style="background:#fff;padding:32px 28px;border:1px solid #d7e2df;border-top:0;border-radius:0 0 18px 18px"><p style="margin-top:0;color:#ff4d00;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Acceso a la consola privada</p><h1 style="font-size:28px;line-height:1.15;margin:0 0 16px">Confirma tu acceso al CRM</h1><p style="font-size:16px;line-height:1.6">Has solicitado entrar en la consola interna de CocheCierto. Introduce este código en la pantalla de acceso:</p><div style="margin:28px 0;text-align:center;background:#fff7f2;border:2px solid #ff4d00;border-radius:16px;padding:24px"><div style="font-size:12px;color:#58717d;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Código de acceso</div><div style="font-size:48px;line-height:1;letter-spacing:10px;font-weight:800;color:#ff4d00">${code}</div></div><p style="text-align:center;font-size:13px;color:#58717d;line-height:1.5">Caduca en 10 minutos y solo puede utilizarse una vez.</p><hr style="border:0;border-top:1px solid #e5ecea;margin:28px 0"><p style="font-size:13px;line-height:1.5;color:#58717d;margin-bottom:0">Si no has solicitado este acceso, ignora este mensaje. No compartas este código con nadie.</p></div></div></body></html>`;
       return sendMail({ ...options, html });
     }
-    const verificationUrl = String(options.text || '').replace(/^Valida tu email:\s*/i, '').trim();
-    const html = `<!doctype html><html lang="es"><body style="margin:0;background:#f3f7f6;color:#082333;font-family:Arial,sans-serif"><div style="max-width:620px;margin:32px auto;padding:0 16px"><div style="background:#082333;border-radius:18px 18px 0 0;padding:24px 28px;color:#fff;font-size:22px;font-weight:700">Coche<span style="color:#ff4d00">Cierto</span></div><div style="background:#fff;padding:32px 28px;border:1px solid #d7e2df;border-top:0;border-radius:0 0 18px 18px"><p style="margin-top:0;color:#ff4d00;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Tu informe empieza aquí</p><h1 style="font-size:28px;line-height:1.15;margin:0 0 16px">Confirma tu email</h1><p style="font-size:16px;line-height:1.6">Hemos recibido tu solicitud. Confirma tu dirección para poder enviarte el resultado de tu valoración.</p><p style="text-align:center;margin:28px 0"><a href="${verificationUrl}" style="display:inline-block;background:#ff4d00;color:#fff;text-decoration:none;padding:14px 24px;border-radius:999px;font-weight:700">Validar mi email</a></p><p style="font-size:13px;line-height:1.5;color:#58717d">Si el botón no funciona, copia y pega este enlace en tu navegador:</p><p style="font-size:12px;line-height:1.5;word-break:break-all"><a href="${verificationUrl}" style="color:#0b6f9c">${verificationUrl}</a></p><hr style="border:0;border-top:1px solid #e5ecea;margin:28px 0"><p style="font-size:12px;line-height:1.5;color:#58717d;margin-bottom:0">Este mensaje responde a una solicitud realizada en CocheCierto. La orientación es informativa y no sustituye una inspección profesional, asesoramiento financiero o jurídico.</p></div></div></body></html>`;
-    return sendMail({ ...options, html });
+    return sendMail({ ...options, html: options.html || reportVerificationEmail({ verificationUrl: String(options.text || '').replace(/^Valida tu email:\s*/i, '').trim() }).html });
   };
 }
 const attempts = new Map();
@@ -1411,7 +1410,7 @@ app.get('/api/crm/observability', async (req, res) => {
 app.get('/api/crm/exit-feedback', async (req, res) => {
   if (!crmGuard(req, res)) return;
   const days = Math.min(Math.max(Number(req.query.days || 30), 1), 365);
-  try { const [rows] = await pool.execute("SELECT usefulness, COUNT(*) AS total FROM exit_feedback WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) GROUP BY usefulness ORDER BY total DESC", [days]); return res.json({ ok: true, period: { days }, rows: rows.map((row) => ({ usefulness: row.usefulness, total: Number(row.total) })), source: 'own_feedback', definition: 'Respuestas agregadas de la encuesta de salida; sin PII.' }); } catch (error) { console.error('CRM exit feedback unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar el feedback.' }); }
+  try { const assistantOnly = req.query.assistant === '1'; const [rows] = await pool.execute(`SELECT usefulness, COUNT(*) AS total FROM exit_feedback WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) ${assistantOnly ? "AND reason = 'clara_onboarding'" : ''} GROUP BY usefulness ORDER BY total DESC`, [days]); return res.json({ ok: true, period: { days }, rows: rows.map((row) => ({ usefulness: row.usefulness, total: Number(row.total) })), source: assistantOnly ? 'clara_onboarding' : 'own_feedback', definition: 'Respuestas agregadas; sin PII.' }); } catch (error) { console.error('CRM exit feedback unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar el feedback.' }); }
 });
 
 app.post('/api/crm/events', async (req, res) => {
@@ -1511,8 +1510,18 @@ app.post('/api/leads', async (req, res) => {
   report.llmStatus = generated.status;
   addReport(verifyToken, report);
   try { await saveAirtableLead({ ...report, expiresAt: Date.now() + REPORT_TTL_MS }, verifyToken); } catch (error) { console.error('No se pudo guardar el lead en Airtable:', error.message); }
-  if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ? WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
-  if (mailer) await mailer.sendMail({ from: process.env.MAIL_FROM || `CocheCierto <${mailUser}>`, to: email, subject: 'Valida tu email para recibir tu informe CocheCierto', text: `Valida tu email: ${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/verify-email.html?token=${verifyToken}` });
+  if (pool) await pool.execute('UPDATE leads SET verification_token_hash = ?, verification_expires_at = ?, email_status = \'pending\', email_last_sent_at = NOW(), email_send_attempts = email_send_attempts + 1 WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [hash(verifyToken), expires, email]);
+  if (mailer) {
+    const verificationUrl = `${process.env.REPORT_BASE_URL || 'https://cochecierto.com'}/verify-email.html?token=${verifyToken}`;
+    try {
+      await mailer.sendMail({ from: process.env.MAIL_FROM || `CocheCierto <${mailUser}>`, to: email, ...reportVerificationEmail({ verificationUrl, name: lead.name }) });
+      if (pool) await pool.execute('UPDATE leads SET email_status = \'sent\' WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [email]);
+    } catch (error) {
+      if (pool) await pool.execute('UPDATE leads SET email_status = \'send_failed\' WHERE email = ? AND verified_at IS NULL ORDER BY id DESC LIMIT 1', [email]);
+      console.error('Report email delivery failed:', error.message);
+      return res.status(502).json({ error: 'No se ha podido enviar el email de validación. Inténtalo de nuevo más tarde.' });
+    }
+  }
   res.status(202).json({ accepted: true, message: 'Solicitud recibida. Revisa tu email para validar la dirección.' });
 });
 
@@ -1524,7 +1533,8 @@ app.get('/api/verify-email', async (req, res) => {
   if (!report) return res.status(400).json({ error: 'Enlace de validación no válido o caducado.' });
   report.verified = true;
   if (pool) {
-    const [verified] = await pool.execute('UPDATE leads SET verified_at = NOW() WHERE verification_token_hash = ?', [hash(received)]);
+    const [verified] = await pool.execute('UPDATE leads SET verified_at = NOW(), email_status = \'verified\', verification_used_at = NOW() WHERE verification_token_hash = ? AND verification_expires_at > NOW() AND verification_used_at IS NULL', [hash(received)]);
+    if (!verified.affectedRows) return res.status(410).json({ error: 'Este enlace ya no está disponible. Solicita un nuevo enlace de validación.' });
     if (crmEnabled && verified.affectedRows) {
       try {
         const [cases] = await pool.execute('SELECT id, stage FROM crm_cases WHERE lead_id = (SELECT id FROM leads WHERE verification_token_hash = ? LIMIT 1) AND deleted_at IS NULL ORDER BY id DESC LIMIT 1', [hash(received)]);
@@ -1550,6 +1560,7 @@ app.get('/api/report.pdf', async (req, res) => {
   }
   if (!report || !report.verified) return res.status(403).json({ error: 'Primero valida tu email o solicita un nuevo informe.' });
   await writeReportPdfStyled(res, report);
+  if (pool) { try { await pool.execute('UPDATE leads SET pdf_downloaded_at = NOW() WHERE verification_token_hash = ? AND verified_at IS NOT NULL', [hash(token)]); } catch (error) { console.error('PDF download tracking unavailable:', error.message); } }
 });
 
 app.listen(port, () => console.log(`CocheCierto API escuchando en http://localhost:${port}`));

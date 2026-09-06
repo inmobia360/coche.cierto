@@ -18,6 +18,7 @@
     "db:migrate:crm": "node scripts/migrate-crm.mjs",
     "db:migrate:crm-observability": "node scripts/migrate-crm-observability.mjs",
     "db:migrate:exit-feedback": "node scripts/migrate-exit-feedback.mjs",
+    "db:migrate:email-delivery": "node scripts/migrate-email-delivery.mjs",
     "db:check:crm": "node scripts/check-crm-database.mjs"
   },
   "dependencies": {

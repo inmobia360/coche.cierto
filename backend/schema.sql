@@ -12,12 +12,18 @@ CREATE TABLE leads (
   consent_result BOOLEAN NOT NULL,
   consent_commercial BOOLEAN NOT NULL DEFAULT FALSE,
   consent_at DATETIME NOT NULL,
+  email_status VARCHAR(24) NOT NULL DEFAULT 'pending',
+  email_last_sent_at DATETIME NULL,
+  email_send_attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   verified_at DATETIME NULL,
   verification_token_hash CHAR(64) NULL,
   verification_expires_at DATETIME NULL,
+  verification_used_at DATETIME NULL,
+  pdf_downloaded_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_leads_email (email),
-  INDEX idx_leads_intent_window (intent, purchase_window)
+  INDEX idx_leads_intent_window (intent, purchase_window),
+  INDEX idx_leads_email_status (email_status, email_last_sent_at)
 );
 
 CREATE TABLE purchase_requests (
