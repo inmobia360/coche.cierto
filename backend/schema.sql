@@ -11,6 +11,12 @@ CREATE TABLE leads (
   recommendation_version VARCHAR(40) NOT NULL,
   consent_result BOOLEAN NOT NULL,
   consent_commercial BOOLEAN NOT NULL DEFAULT FALSE,
+  newsletter_status VARCHAR(16) NOT NULL DEFAULT 'none',
+  newsletter_consent_at DATETIME NULL,
+  newsletter_consent_source VARCHAR(80) NULL,
+  newsletter_consent_version VARCHAR(24) NULL,
+  newsletter_paused_at DATETIME NULL,
+  newsletter_unsubscribed_at DATETIME NULL,
   consent_at DATETIME NOT NULL,
   email_status VARCHAR(24) NOT NULL DEFAULT 'pending',
   email_last_sent_at DATETIME NULL,
@@ -24,6 +30,7 @@ CREATE TABLE leads (
   INDEX idx_leads_email (email),
   INDEX idx_leads_intent_window (intent, purchase_window),
   INDEX idx_leads_email_status (email_status, email_last_sent_at)
+  ,INDEX idx_leads_newsletter_status (newsletter_status, newsletter_consent_at)
 );
 
 CREATE TABLE purchase_requests (

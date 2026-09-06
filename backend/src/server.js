@@ -1413,6 +1413,29 @@ app.get('/api/crm/exit-feedback', async (req, res) => {
   try { const assistantOnly = req.query.assistant === '1'; const [rows] = await pool.execute(`SELECT usefulness, COUNT(*) AS total FROM exit_feedback WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) ${assistantOnly ? "AND reason = 'clara_onboarding'" : ''} GROUP BY usefulness ORDER BY total DESC`, [days]); return res.json({ ok: true, period: { days }, rows: rows.map((row) => ({ usefulness: row.usefulness, total: Number(row.total) })), source: assistantOnly ? 'clara_onboarding' : 'own_feedback', definition: 'Respuestas agregadas; sin PII.' }); } catch (error) { console.error('CRM exit feedback unavailable:', error.message); return res.status(503).json({ ok: false, message: 'No se ha podido consultar el feedback.' }); }
 });
 
+app.get('/api/crm/voice', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  if (!pool) return res.status(503).json({ ok: false, message: 'CRM sin base de datos configurada.' });
+  const days = Math.min(365, Math.max(1, Number(req.query.days || 30)));
+  const maskEmail = (email) => { const [local, domain] = String(email || '').split('@'); return local && domain ? `${local.slice(0, 1)}***@${domain}` : '—'; };
+  try {
+    const [[totals]] = await pool.query(`SELECT COUNT(*) AS leads, SUM(email_status IN ('sent','verified')) AS emailsSent, SUM(verified_at IS NOT NULL) AS validated, SUM(pdf_downloaded_at IS NOT NULL) AS pdfDownloaded, SUM(verification_expires_at IS NOT NULL AND verification_expires_at < NOW() AND verified_at IS NULL) AS expired, SUM(email_status = 'send_failed') AS failed FROM leads WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)`, [days]);
+    const [rows] = await pool.query(`SELECT id, name, email, created_at AS createdAt, email_status AS emailStatus, verified_at AS verifiedAt, pdf_downloaded_at AS pdfDownloadedAt, verification_expires_at AS expiresAt, GREATEST(created_at, COALESCE(email_last_sent_at, created_at), COALESCE(verified_at, created_at), COALESCE(pdf_downloaded_at, created_at)) AS lastActivity FROM leads WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) ORDER BY created_at DESC LIMIT 100`, [days]);
+    const leads = rows.map((lead) => { const expired = !lead.verifiedAt && lead.expiresAt && new Date(lead.expiresAt) < new Date(); const state = lead.pdfDownloadedAt ? 'PDF descargado' : lead.verifiedAt ? 'Email validado' : expired ? 'Validación caducada' : lead.emailStatus === 'send_failed' ? 'Email fallido' : lead.emailStatus === 'sent' ? 'Email enviado' : 'Nuevo'; return { id: lead.id, name: lead.name || 'Sin nombre', email: maskEmail(lead.email), createdAt: lead.createdAt, state, emailStatus: lead.emailStatus, verified: Boolean(lead.verifiedAt), pdfDownloaded: Boolean(lead.pdfDownloadedAt), lastActivity: lead.lastActivity }; });
+    return res.json({ ok: true, period: { days }, metrics: { leads: Number(totals.leads || 0), emailsSent: Number(totals.emailsSent || 0), validated: Number(totals.validated || 0), pdfDownloaded: Number(totals.pdfDownloaded || 0), expired: Number(totals.expired || 0), failed: Number(totals.failed || 0), feedback: null, averageRating: null }, leads, definitions: { feedback: 'Opiniones agregadas; no vinculadas a un lead individual.', averageRating: 'No disponible: la encuesta actual usa categorías, no una escala numérica.' } });
+  } catch (error) { console.error('CRM voice unavailable:', error.message); return res.status(500).json({ ok: false, message: 'No se pudo consultar el seguimiento de leads.' }); }
+});
+
+app.get('/api/crm/newsletter', async (req, res) => {
+  if (!crmGuard(req, res)) return;
+  if (!pool) return res.status(503).json({ ok: false, message: 'CRM sin base de datos configurada.' });
+  const days = Math.min(365, Math.max(1, Number(req.query.days || 30)));
+  try {
+    const [[totals]] = await pool.query(`SELECT SUM(newsletter_status IN ('pending_confirmation','subscribed')) AS optedIn, SUM(newsletter_status = 'pending_confirmation') AS pending, SUM(newsletter_status = 'paused') AS paused, SUM(newsletter_status = 'unsubscribed') AS unsubscribed, SUM(newsletter_consent_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)) AS newSignups FROM leads`, [days]);
+    return res.json({ ok: true, active: false, period: { days }, metrics: { optedIn: Number(totals.optedIn || 0), pending: Number(totals.pending || 0), paused: Number(totals.paused || 0), unsubscribed: Number(totals.unsubscribed || 0), newSignups: Number(totals.newSignups || 0), deliveryRate: null, openRate: null, clickRate: null, unsubscribeRate: null }, definitions: { active: 'La suscripción requiere confirmación explícita; el envío masivo sigue desactivado en el MVP.' } });
+  } catch (error) { console.error('CRM newsletter unavailable:', error.message); return res.status(500).json({ ok: false, message: 'No se pudo consultar la newsletter.' }); }
+});
+
 app.post('/api/crm/events', async (req, res) => {
   if (!crmGuard(req, res)) return;
   const eventId = crmText(req.body?.eventId, 64), eventType = crmText(req.body?.eventType, 48);
@@ -1488,7 +1511,7 @@ app.post('/api/leads', async (req, res) => {
   if (!lead.consentResult) return res.status(400).json({ error: 'Es necesario aceptar el consentimiento para enviar el informe.' });
   let leadId = null;
   if (pool) {
-    const [leadResult] = await pool.execute('INSERT INTO leads (email, phone, name, intent, purchase_window, recommended_category, usage_type, questionnaire_version, recommendation_version, consent_result, consent_commercial, consent_at, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)', [lead.email, lead.phone, lead.name, lead.intent, lead.purchaseWindow, lead.recommendedCategory, lead.usageType, lead.questionnaireVersion, lead.recommendationVersion, lead.consentResult, lead.consentCommercial, lead.consentAt]);
+    const [leadResult] = await pool.execute('INSERT INTO leads (email, phone, name, intent, purchase_window, recommended_category, usage_type, questionnaire_version, recommendation_version, consent_result, consent_commercial, newsletter_status, newsletter_consent_at, newsletter_consent_source, newsletter_consent_version, consent_at, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)', [lead.email, lead.phone, lead.name, lead.intent, lead.purchaseWindow, lead.recommendedCategory, lead.usageType, lead.questionnaireVersion, lead.recommendationVersion, lead.consentResult, lead.consentCommercial, lead.consentCommercial ? 'pending_confirmation' : 'none', lead.consentCommercial ? lead.consentAt : null, lead.consentCommercial ? 'valorador' : null, lead.consentCommercial ? 'newsletter-v1' : null, lead.consentAt]);
     leadId = leadResult.insertId;
     if (crmEnabled) {
       try {

@@ -58,6 +58,7 @@ Regla de selección: usar Clara para acompañamiento y comprensión del flujo; u
 - `SOCIAL-CONTENIDO`: adapta la propuesta a publicaciones sociales y creatividades sin promesas engañosas ni campañas automáticas; mantiene experimentos de horario y formato, registra UTM/eventos/referidos, entrega informes a 24 horas, 7 días y mensual, y propone ajustes basados en cohortes sin activar incentivos ni comunicaciones no autorizadas.
 - `SEO-AEO-GEO`: estructura contenidos para buscadores y respuestas generativas, priorizando intención local y datos verificables.
 - `EMAIL-CICLO-VENTA`: diseña emails transaccionales y secuencias de nutrición con consentimiento, estados y métricas.
+- `NEWSLETTER-FIDELIZACION`: coordina CocheCierto al día, preferencias, biblioteca editorial, recomendaciones desde Voz del usuario y métricas de fidelización; no envía campañas ni activa proveedores.
 - `PRECIO-OCASION`: prepara referencias de anuncios de ocasión en España desde fuentes autorizadas; no hace scraping no autorizado ni presenta precios como tasación.
 - `ENERGIA-MOVILIDAD`: futura especialización para rutas, recarga pública y modelos energéticos complejos; no se activa en el MVP hasta validar demanda y conectores autorizados.
 - `foro-coches`: investiga patrones nuevos en conversaciones públicas de ForoCoches, audita la comprensión y fricción del lenguaje actual, anonimiza hallazgos y los traduce en mejoras verificables; además prepara un brief editorial semanal para blog y newsletter, segmentado por perfil y estacionalidad; no accede a zonas privadas ni publica rankings concluyentes de marcas.
@@ -140,6 +141,7 @@ Si se incorporan rutas, redes de recarga, precios en tiempo real o modelos de eq
 | Claims y privacidad | LEGAL-CONFIANZA | Revisión de riesgos y textos aprobables |
 | Contexto oficial | INE-CONTEXTO | Dataset, periodo, ámbito, unidad, versión y advertencias |
 | Mensaje y conversión | COPY-MENSAJE + EMAIL-CICLO-VENTA | Copy, hipótesis, consentimiento y métrica |
+| Newsletter y fidelización | NEWSLETTER-FIDELIZACION + LEGAL-CONFIANZA + EMAIL-CICLO-VENTA | Estado de suscripción, preferencias, biblioteca, métricas y revisión previa al envío |
 | SEO y distribución | SEO-AEO-GEO + SOCIAL-CONTENIDO | Intención, fuente, formato y claim revisado |
 | Precio de ocasión | PRECIO-OCASION + DATOS-MERCADO | Comparables autorizados, fecha, muestra y límites |
 | Investigación de usuarios | foro-coches + PRODUCTO-SDD + LEGAL-CONFIANZA | Ventana temporal, patrones anonimizados, sesgos y propuesta validable |

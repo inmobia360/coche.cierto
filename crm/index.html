@@ -15,7 +15,7 @@
         <a class="brand-lockup" href="#dashboard" aria-label="CocheCierto CRM"><img src="../brand-symbol.svg" alt="CocheCierto"><span>CocheCierto <small>Staff</small></span></a>
         <p class="sidebar-label">Operación</p>
         <nav><a class="active" data-view="dashboard" href="#dashboard">Dashboard</a><a data-view="opportunities" href="#opportunities">Oportunidades</a><a data-view="partners" href="#partners">Partners</a><a data-view="tasks" href="#tasks">Tareas y seguimiento</a><a data-view="accounting" href="#accounting">Contabilidad</a><a data-view="business-plan" href="#business-plan">Plan de negocio</a></nav>
-            <p class="sidebar-label">Inteligencia</p><nav><a data-view="analytics" href="#analytics">Analítica</a><a data-view="traffic" href="#traffic">Tráfico</a><a data-view="assistant" href="#assistant">Asistente</a><a data-view="alerts" href="#alerts">Alertas y auditoría</a></nav>
+            <p class="sidebar-label">Inteligencia</p><nav><a data-view="analytics" href="#analytics">Analítica</a><a data-view="traffic" href="#traffic">Tráfico</a><a data-view="voice" href="#voice">Voz del usuario</a><a data-view="assistant" href="#assistant">Asistente</a><a data-view="alerts" href="#alerts">Alertas y auditoría</a></nav>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Cambiar tema">☾ <span>Modo oscuro</span></button><p class="sidebar-note">Consola interna<br><strong>Datos agregados</strong></p>
       </aside>
       <div class="content-column">
@@ -58,6 +58,14 @@
         <article><small>Concesionarios</small><b id="dealers">—</b></article>
         <article><small>Poscompra abierta</small><b id="aftercare">—</b></article>
         <article><small>Acciones vencidas</small><b id="overdue">—</b></article>
+      </section>
+      <section class="panel view-section voice-panel" data-view-section="voice">
+        <div class="panel-heading"><div><small class="card-kicker">Ciclo de validación</small><h2>Voz del usuario</h2><p class="muted">Seguimiento operativo del lead, el informe y la validación del correo. La opinión se muestra agregada para proteger la privacidad.</p></div><span class="source-state">Datos propios</span></div>
+        <div id="voice-metrics" class="metric-grid"><div class="empty">Cargando seguimiento…</div></div>
+        <div class="voice-note"><strong>Estados automáticos</strong><span>Nuevo → informe solicitado → email enviado → email validado → PDF descargado</span></div>
+        <div id="voice-leads" class="data-table-empty">Cargando leads…</div>
+        <div class="panel-heading newsletter-heading"><div><small class="card-kicker">Fidelización · MVP técnico</small><h3>Newsletter y fidelización</h3><p class="muted">Altas con consentimiento separado. El envío permanece desactivado hasta aprobar proveedor, textos y cumplimiento.</p></div><span id="newsletter-state" class="source-state source-state--off">No activa</span></div>
+        <div id="newsletter-metrics" class="metric-grid"><div class="empty">Cargando newsletter…</div></div>
       </section>
       <section class="panel ceo-panel view-section" data-view-section="dashboard">
         <div class="panel-heading"><div><h2>Panel CEO</h2><p class="muted">Indicadores agregados de los últimos 30 días. Sin datos reales, se muestra “—”.</p></div><span class="period-badge">30 días</span></div>
