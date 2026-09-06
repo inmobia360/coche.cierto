@@ -340,6 +340,16 @@
     }
   }
 
+  function setupClaraAssistant() {
+    if (document.querySelector('.clara-fab')) return;
+    var current = document.currentScript;
+    var source = current && current.src ? new URL('clara-assistant.js', current.src).href : '/clara-assistant.js';
+    var script = document.createElement('script');
+    script.src = source;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   if (document.readyState === 'loading') {
   window.trackCocheCierto = function(name, detail) {
     try {
@@ -352,6 +362,7 @@
   };
   document.addEventListener('DOMContentLoaded', function() {
     initHeader();
+    setupClaraAssistant();
     try { enableAnalytics(JSON.parse(localStorage.getItem('cochecierto_cookie_preferences_v1') || '{}')); } catch (_) {}
     document.addEventListener('click', function(event) {
       const cta = event.target.closest('a[href*="/valorador/"]');
