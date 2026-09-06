@@ -127,6 +127,33 @@
       }
       if (quickMenuBtn) quickMenuBtn.addEventListener('click', openMobileMenu);
       if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileMenu);
+      var bottomNav = header.querySelector('.mobile-bottom-nav');
+      if (bottomNav && window.matchMedia('(max-width: 880px)').matches) {
+        bottomNav.style.transition = 'transform .22s ease';
+        bottomNav.style.willChange = 'transform';
+        var previousScroll = window.scrollY || 0;
+        var showTimer = null;
+        var showBottomNav = function () {
+          bottomNav.classList.remove('nav-hidden');
+          bottomNav.style.transform = 'translateY(0)';
+        };
+        var handleScroll = function () {
+          var currentScroll = window.scrollY || 0;
+          var movingDown = currentScroll > previousScroll + 8;
+          var movingUp = currentScroll < previousScroll - 8;
+          previousScroll = currentScroll;
+          if (mobilePanel && !mobilePanel.hidden || document.activeElement && bottomNav.contains(document.activeElement)) {
+            showBottomNav();
+            return;
+          }
+          if (movingDown && currentScroll > 24) { bottomNav.classList.add('nav-hidden'); bottomNav.style.transform = 'translateY(110%)'; }
+          if (movingUp || currentScroll <= 24) showBottomNav();
+          window.clearTimeout(showTimer);
+          showTimer = window.setTimeout(showBottomNav, 350);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', showBottomNav, { passive: true });
+      }
       if (mobilePanel) {
         mobilePanel.querySelectorAll('a, [data-mobile-menu-close]').forEach(function (link) { link.addEventListener('click', closeMobileMenu); });
         document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !mobilePanel.hidden) closeMobileMenu(); });
@@ -343,11 +370,17 @@
   function setupClaraAssistant() {
     if (document.querySelector('.clara-fab')) return;
     var current = document.currentScript;
-    var source = current && current.src ? new URL('clara-assistant.js', current.src).href : '/clara-assistant.js';
+    var source = current && current.src ? new URL('clara-assistant.js?v=20260906-04', current.src).href : '/clara-assistant.js?v=20260906-04';
     var script = document.createElement('script');
     script.src = source;
     script.defer = true;
     document.head.appendChild(script);
+    script.addEventListener('load', function () {
+      var compat = document.createElement('script');
+      compat.src = current && current.src ? new URL('clara-chat-compat.js?v=20260906-05', current.src).href : '/clara-chat-compat.js?v=20260906-05';
+      compat.defer = true;
+      document.head.appendChild(compat);
+    });
   }
 
   if (document.readyState === 'loading') {

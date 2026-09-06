@@ -351,7 +351,11 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
     background: color-mix(in srgb, var(--bg-surface-elevated) 94%, transparent);
     box-shadow: 0 -10px 30px rgba(0, 10, 20, .28);
     backdrop-filter: blur(18px);
+    transform: translateY(0);
+    transition: transform .22s ease;
+    will-change: transform;
   }
+  .mobile-bottom-nav.nav-hidden { transform: translateY(110%); }
   .mobile-bottom-nav a, .mobile-bottom-nav button {
     min-width: 0;
     min-height: 58px;
@@ -392,6 +396,9 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
   .mobile-menu-link strong { font-size: 15px; }
   .mobile-menu-link small { color: var(--ink-secondary); font-size: 12px; line-height: 1.3; }
   body.menu-open { overflow: hidden; }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-bottom-nav { transition: none; }
+  }
   .install-app-prompt { align-items: flex-start; gap: 8px; }
   .install-app-button { align-self: center; }
 }
@@ -421,3 +428,5 @@ body:has(.legal-page) .site-header .nav-icon { display: none !important; }
 .context-intro{max-width:720px;color:var(--ink-secondary);line-height:1.6}.context-controls{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}.context-tab{border:1px solid var(--border-subtle);border-radius:999px;background:transparent;color:var(--ink-primary);padding:10px 14px;font:inherit;font-size:14px;cursor:pointer}.context-tab.is-active,.context-tab:hover{background:var(--brand-orange);border-color:var(--brand-orange);color:#fff}.context-result{border-left:3px solid var(--brand-orange);padding:4px 0 4px 18px;color:var(--ink-secondary);line-height:1.6}.context-result h3{margin:0 0 8px;color:var(--ink-primary);font-size:22px}.context-result p{margin:0 0 8px}
 .next-step-grid,.flow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}.flow-grid{grid-template-columns:repeat(4,1fr)}.next-step-grid>div,.flow-grid article{padding:18px;background:var(--bg-elevated,var(--bg-surface));border:1px solid var(--border-subtle);border-radius:var(--radius-md,12px)}.next-step-grid p,.flow-grid p{margin:8px 0 0;color:var(--ink-secondary);font-size:14px;line-height:1.5}.flow-grid span{color:var(--brand-orange);font-weight:800}.flow-grid h3{margin:8px 0 0;color:var(--ink-primary)}.method-note{padding:16px;border-left:3px solid var(--brand-orange);color:var(--ink-secondary);line-height:1.5}.resource-finder form{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.resource-finder label{display:flex;flex-direction:column;gap:6px;color:var(--ink-primary);font-weight:700;font-size:14px}.resource-finder select{min-width:min(100%,360px);padding:12px;border:1px solid var(--border-subtle);border-radius:10px;background:var(--bg-base,var(--bg-surface));color:var(--ink-primary);font:inherit}.resource-recommendation{margin-top:20px;color:var(--ink-secondary);line-height:1.6}.resource-recommendation h3{color:var(--ink-primary)}.resource-recommendation a{color:var(--brand-orange);font-weight:700}
 @media(max-width:760px){.context-panel,.next-step-panel,.method-flow,.resource-finder{padding:22px;margin-bottom:40px}.next-step-grid,.flow-grid{grid-template-columns:1fr}.context-controls{display:grid;grid-template-columns:1fr}.context-tab{text-align:left}.resource-finder form{align-items:stretch;flex-direction:column}.resource-finder select,.resource-finder .button{width:100%;max-width:none}}
+/* Clara: etiqueta discreta, sin peso visual excesivo. */
+.clara-fab span { font-weight: 400; }
