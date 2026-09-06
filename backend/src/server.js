@@ -291,6 +291,8 @@ const crmTransitions = {
   purchased: ['aftercare', 'closed', 'blocked'], aftercare: ['closed', 'blocked'], closed: [], withdrawn: [], blocked: []
 };
 const crmText = (value, max = 255) => typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null;
+const crmSessionCookie = (user, userAgent, expiresAt) => { const payload = Buffer.from(JSON.stringify({ user, exp: expiresAt, ua: hash(userAgent || '') })).toString('base64url'); const signature = crypto.createHmac('sha256', crmAdminToken).update(payload).digest('base64url'); return `${payload}.${signature}`; };
+const readCrmSessionCookie = (value, userAgent) => { try { const [payload, suppliedSignature] = String(value || '').split('.'); if (!payload || !suppliedSignature || !crmAdminToken) return null; const expectedSignature = crypto.createHmac('sha256', crmAdminToken).update(payload).digest('base64url'); const expected = Buffer.from(expectedSignature); const actual = Buffer.from(suppliedSignature); if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return null; const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')); return session.user === crmAdminUser && Number(session.exp) > Date.now() && session.ua === hash(userAgent || '') ? session : null; } catch { return null; } };
 const crmOperationalNote = (value) => { const note = crmText(value, 500); if (!note) return null; return /[^\s@]+@[^\s@]+\.[^\s@]+|\d[\d\s().+-]{6,}\d/.test(note) ? null : note; };
 const crmContactEmail = (value) => { const email = crmText(value, 255); return !email || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? email : null; };
 const crmContactPhone = (value) => { const phone = crmText(value, 40); return !phone || /^[+\d][\d\s().-]{5,38}$/.test(phone) ? phone : null; };
@@ -299,8 +301,8 @@ const crmJson = (value) => Array.isArray(value) ? JSON.stringify(value.slice(0, 
 const crmAuthorized = (req) => {
   if (!crmRuntimeEnabled || !crmAdminToken) return false;
   const cookies = Object.fromEntries(String(req.get('cookie') || '').split(';').map((part) => part.trim().split('=').map(decodeURIComponent)).filter(([key, value]) => key && value));
-  const session = crmSessions.get(cookies.cc_crm_session);
-  if (session && session.expiresAt > Date.now() && session.user === crmAdminUser && (!session.fingerprint || session.fingerprint === hash(`${req.ip}|${req.get('user-agent') || ''}`))) return true;
+  const session = readCrmSessionCookie(cookies.cc_crm_session, req.get('user-agent') || '');
+  if (session) return true;
   if (cookies.cc_crm_session) crmSessions.delete(cookies.cc_crm_session);
   const suppliedUser = String(req.get('x-crm-user') || '').trim();
   const suppliedEmail = String(req.get('x-crm-email') || '').trim().toLowerCase();
@@ -1106,8 +1108,10 @@ app.post('/api/crm/auth/verify-code', (req, res) => {
   challenge.attempts += 1;
   if (!crypto.timingSafeEqual(Buffer.from(challenge.codeHash, 'hex'), Buffer.from(hash(code), 'hex'))) return res.status(401).json({ ok: false, message: 'El código no es válido o ha caducado.' });
   crmOtpChallenges.delete(challengeId);
-  const sessionId = crypto.randomBytes(32).toString('hex'); crmSessions.set(sessionId, { user: challenge.user, expiresAt: Date.now() + CRM_SESSION_TTL_MS, fingerprint: hash(`${req.ip}|${req.get('user-agent') || ''}`) });
-  res.setHeader('Set-Cookie', `cc_crm_session=${sessionId}; Max-Age=${CRM_SESSION_TTL_MS / 1000}; Path=/; HttpOnly; Secure; SameSite=Strict`);
+  const expiresAt = Date.now() + CRM_SESSION_TTL_MS;
+  const sessionCookie = crmSessionCookie(challenge.user, req.get('user-agent') || '', expiresAt);
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Set-Cookie', `cc_crm_session=${sessionCookie}; Max-Age=${CRM_SESSION_TTL_MS / 1000}; Path=/; HttpOnly; Secure; SameSite=Strict`);
   return res.json({ ok: true, message: 'Acceso validado.' });
 });
 
